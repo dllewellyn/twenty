@@ -1,0 +1,11 @@
+# Context Map
+- `/`: Root directory
+- `/packages`: Monorepo packages
+  - `twenty-front`: React frontend
+  - `twenty-server`: Backend services
+  - `twenty-ui`: Shared UI components
+  - `twenty-shared`: Shared logic and types
+  - `twenty-sdk`: Public SDK
+  - `twenty-docs`: Documentation
+  - `twenty-e2e-testing`: End-to-end tests
+- `.cursor/rules`: Architectural and code style guidelines
