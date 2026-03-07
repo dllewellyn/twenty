@@ -1,7 +1,7 @@
 import { Field, HideField, InputType, OmitType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
-import { IsOptional, IsUUID, ValidateNested } from 'class-validator';
+import { IsBoolean, IsArray, IsObject, IsOptional, IsUUID, ValidateNested } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 import { RelationCreationPayload } from 'twenty-shared/types';
 
@@ -32,15 +32,18 @@ export class CreateFieldInput extends OmitType(
   @HideField()
   applicationId?: string;
 
-  @Field(() => Boolean, { nullable: true })
+  @IsBoolean()
   @IsOptional()
+  @Field(() => Boolean, { nullable: true })
   isRemoteCreation?: boolean;
 
   // TODO @prastoin implement validation for this with validate nested and dedicated class instance
+  @IsObject()
   @IsOptional()
   @Field(() => GraphQLJSON, { nullable: true })
   relationCreationPayload?: RelationCreationPayload;
 
+  @IsArray()
   @IsOptional()
   @Field(() => [GraphQLJSON], { nullable: true })
   morphRelationsCreationPayload?: RelationCreationPayload[];

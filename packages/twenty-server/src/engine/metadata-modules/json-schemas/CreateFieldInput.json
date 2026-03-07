@@ -5,9 +5,16 @@
       "format": "uuid",
       "type": "string"
     },
-    "isRemoteCreation": {},
-    "relationCreationPayload": {},
-    "morphRelationsCreationPayload": {},
+    "isRemoteCreation": {
+      "type": "boolean"
+    },
+    "relationCreationPayload": {
+      "type": "object"
+    },
+    "morphRelationsCreationPayload": {
+      "items": {},
+      "type": "array"
+    },
     "type": {
       "minLength": 1,
       "type": "string",
@@ -120,8 +127,12 @@
         "isRemote": {
           "type": "boolean"
         },
-        "primaryKeyColumnType": {},
-        "primaryKeyFieldMetadataSettings": {},
+        "primaryKeyColumnType": {
+          "type": "string"
+        },
+        "primaryKeyFieldMetadataSettings": {
+          "type": "object"
+        },
         "isLabelSyncedWithName": {
           "type": "boolean"
         }
@@ -475,9 +486,16 @@
           "format": "uuid",
           "type": "string"
         },
-        "isRemoteCreation": {},
-        "relationCreationPayload": {},
-        "morphRelationsCreationPayload": {},
+        "isRemoteCreation": {
+          "type": "boolean"
+        },
+        "relationCreationPayload": {
+          "type": "object"
+        },
+        "morphRelationsCreationPayload": {
+          "items": {},
+          "type": "array"
+        },
         "type": {
           "minLength": 1,
           "type": "string",
