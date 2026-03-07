@@ -12,7 +12,8 @@
     "database:init:prod": "npx ts-node ./scripts/setup-db.ts && yarn database:migrate:prod",
     "database:migrate:prod": "npx -y typeorm migration:run -d dist/database/typeorm/core/core.datasource",
     "clickhouse:migrate:prod": "node dist/database/clickHouse/migrations/run-migrations.js",
-    "typeorm": "../../node_modules/typeorm/.bin/typeorm"
+    "typeorm": "../../node_modules/typeorm/.bin/typeorm",
+    "generate:schemas": "TS_NODE_TRANSPILE_ONLY=true npx ts-node -P tsconfig.scripts.json ./scripts/generate-json-schemas.ts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^3.0.83",

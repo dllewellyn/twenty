@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsObject,
   ValidateNested,
 } from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
@@ -55,12 +56,18 @@ export class CreateObjectInput {
   @Field({ nullable: true })
   shortcut?: string;
 
+  @IsString()
+  @IsOptional()
   @HideField()
   dataSourceId: string;
 
+  @IsString()
+  @IsOptional()
   @HideField()
   applicationId?: string;
 
+  @IsString()
+  @IsOptional()
   @HideField()
   universalIdentifier?: string;
 
@@ -74,10 +81,12 @@ export class CreateObjectInput {
   @Field({ nullable: true })
   isRemote?: boolean;
 
+  @IsString()
   @IsOptional()
   @Field({ nullable: true })
   primaryKeyColumnType?: string;
 
+  @IsObject()
   @IsOptional()
   @Field(() => GraphQLJSON, { nullable: true })
   primaryKeyFieldMetadataSettings?: FieldMetadataSettings<FieldMetadataType>;
