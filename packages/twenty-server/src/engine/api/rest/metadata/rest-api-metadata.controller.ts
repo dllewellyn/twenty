@@ -15,13 +15,13 @@ import { PermissionFlagType } from 'twenty-shared/constants';
 
 import { RestApiMetadataService } from 'src/engine/api/rest/metadata/rest-api-metadata.service';
 import { cleanGraphQLResponse } from 'src/engine/api/rest/utils/clean-graphql-response.utils';
-import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
+import { FirebaseAuthGuard } from 'src/engine/core-modules/auth/guards/firebase-auth.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 
 @Controller('rest/metadata/*path')
 @UseGuards(
-  JwtAuthGuard,
+  FirebaseAuthGuard,
   WorkspaceAuthGuard,
   SettingsPermissionGuard(PermissionFlagType.DATA_MODEL),
 )

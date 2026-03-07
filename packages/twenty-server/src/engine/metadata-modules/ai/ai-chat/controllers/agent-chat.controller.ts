@@ -24,7 +24,7 @@ import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twent
 import type { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AuthUserWorkspaceId } from 'src/engine/decorators/auth/auth-user-workspace-id.decorator';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
-import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
+import { FirebaseAuthGuard } from 'src/engine/core-modules/auth/guards/firebase-auth.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import {
@@ -37,7 +37,7 @@ import { AgentChatStreamingService } from 'src/engine/metadata-modules/ai/ai-cha
 import { AiModelRegistryService } from 'src/engine/metadata-modules/ai/ai-models/services/ai-model-registry.service';
 
 @Controller('rest/agent-chat')
-@UseGuards(JwtAuthGuard, WorkspaceAuthGuard)
+@UseGuards(FirebaseAuthGuard, WorkspaceAuthGuard)
 @UseFilters(
   AgentRestApiExceptionFilter,
   BillingRestApiExceptionFilter,

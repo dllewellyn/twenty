@@ -40,6 +40,7 @@ import { EmailVerificationModule } from 'src/engine/core-modules/email-verificat
 import { FeatureFlagEntity } from 'src/engine/core-modules/feature-flag/feature-flag.entity';
 import { FeatureFlagModule } from 'src/engine/core-modules/feature-flag/feature-flag.module';
 import { FileModule } from 'src/engine/core-modules/file/file.module';
+import { FirebaseModule } from 'src/engine/core-modules/firebase/firebase.module';
 import { GuardRedirectModule } from 'src/engine/core-modules/guard-redirect/guard-redirect.module';
 import { JwtModule } from 'src/engine/core-modules/jwt/jwt.module';
 import { KeyValuePairEntity } from 'src/engine/core-modules/key-value-pair/key-value-pair.entity';
@@ -72,10 +73,12 @@ import { MessagingFolderSyncManagerModule } from 'src/modules/messaging/message-
 import { AuthResolver } from './auth.resolver';
 
 import { AuthService } from './services/auth.service';
+import { FirebaseAuthStrategy } from './strategies/firebase.auth.strategy';
 import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
 
 @Module({
   imports: [
+    FirebaseModule,
     JwtModule,
     DataSourceModule,
     WorkspaceDomainsModule,
@@ -133,6 +136,7 @@ import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
   providers: [
     SignInUpService,
     AuthService,
+    FirebaseAuthStrategy,
     JwtAuthStrategy,
     SamlAuthStrategy,
     AuthResolver,
