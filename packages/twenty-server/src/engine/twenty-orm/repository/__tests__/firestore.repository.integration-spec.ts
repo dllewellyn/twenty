@@ -32,7 +32,7 @@ describe('BaseFirestoreRepository Integration', () => {
       ssl: false,
     });
 
-    repository = new BaseFirestoreRepository('test_fields', createFieldSchema);
+    repository = new BaseFirestoreRepository('test_fields', createFieldSchema, admin.app());
   });
 
   afterAll(async () => {

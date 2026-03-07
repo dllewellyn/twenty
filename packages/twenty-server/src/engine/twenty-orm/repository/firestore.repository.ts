@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import Ajv, { AnySchema, ValidateFunction } from 'ajv';
+import { FIREBASE_ADMIN_APP } from '../../core-modules/firebase/firebase.constants';
 import addFormats from 'ajv-formats';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -28,11 +29,9 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   constructor(
     protected readonly collectionName: string,
     schemaOrName: AnySchema | string,
+    @Inject(FIREBASE_ADMIN_APP) protected readonly firebaseApp?: admin.app.App,
   ) {
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
-    this.db = admin.firestore();
+    this.db = this.firebaseApp ? this.firebaseApp.firestore() : admin.firestore();
     this.collection = this.db.collection(this.collectionName);
 
     this.ajv = new Ajv({ allErrors: true, strict: false });
