@@ -28324,7 +28324,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv@npm:^8.3.0":
+"ajv@npm:^8.18.0, ajv@npm:^8.3.0":
   version: 8.18.0
   resolution: "ajv@npm:8.18.0"
   dependencies:
@@ -58151,6 +58151,8 @@ __metadata:
     "@yarnpkg/types": "npm:^4.0.0"
     addressparser: "npm:1.0.1"
     ai: "npm:6.0.97"
+    ajv: "npm:^8.18.0"
+    ajv-formats: "npm:^3.0.1"
     apollo-server-core: "npm:3.13.0"
     archiver: "npm:7.0.1"
     axios: "npm:^1.13.5"
