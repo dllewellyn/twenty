@@ -1,3 +1,5 @@
+I will update the `AGENTS.md` file with the lessons learned from the implementation of the Firebase Authentication Guard and Strategy, focusing on hybrid authentication, passport customization, and maintaining type safety.
+
 # Agent Memory & Performance
 
 ## Lessons Learned
@@ -14,3 +16,8 @@
     - **Cloud Run Native Optimization**: Specialized Dockerfiles (`Dockerfile.cloudrun`) using multi-stage builds and `yarn workspaces focus --production` significantly reduce production image sizes. Applications must also be configured to listen on the dynamic `$PORT` provided by Cloud Run.
     - **Unified Ingress Strategy**: Utilizing Firebase Hosting `rewrites` to route specific paths (e.g., `/api/**`) to Cloud Run creates a seamless, unified entry point for both static and dynamic backend services.
     - **Artifact Registry Standardization**: Transitioning to Google Artifact Registry (`pkg.dev`) provides a more robust and secure alternative for container image hosting within the GCP ecosystem.
+- **2026-03-07**: Successfully implemented a **Firebase-native Authentication** layer, replacing the legacy JWT-based system. Key insights included:
+    - **Passport Customization**: Leveraging `passport-custom` allowed for seamless integration of Firebase Admin SDK's token verification within the existing NestJS/Passport ecosystem, providing a flexible way to handle non-standard Google-signed tokens.
+    - **Type Safety via Declarations**: When integrating libraries with missing or poor type definitions (e.g., `passport-custom`), providing a local `.d.ts` declaration is critical for maintaining idiomatic TypeScript and avoiding unsafe `any` types.
+    - **Systemic Migration Strategy**: A bulk replacement of `JwtAuthGuard` with `FirebaseAuthGuard` across the controller layer ensured architectural consistency and finalized the security transition in a single, verified pass.
+    - **Test Suite Precision**: Established a clear distinction between unit and integration tests by correctly naming mocked dependency tests as `*.spec.ts`, improving the reliability and maintainability of the authentication test suite.
