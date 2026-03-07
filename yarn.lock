@@ -49607,6 +49607,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"passport-custom@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "passport-custom@npm:1.1.1"
+  dependencies:
+    passport-strategy: "npm:1.x.x"
+  checksum: 10c0/49b6fcd125dcd60272d4f02c27acb3b61b2659f3148bc10b31b7c439314054ce32c83a12f422215bdfa83d0463668a1f38ca6e8d68ccd32c922f73ccaa5ac9b3
+  languageName: node
+  linkType: hard
+
 "passport-google-oauth20@npm:2.0.0":
   version: 2.0.0
   resolution: "passport-google-oauth20@npm:2.0.0"
@@ -58227,6 +58236,7 @@ __metadata:
     openid-client: "npm:^5.7.0"
     otplib: "npm:^12.0.1"
     passport: "npm:^0.7.0"
+    passport-custom: "npm:^1.1.1"
     passport-google-oauth20: "npm:2.0.0"
     passport-jwt: "npm:4.0.1"
     passport-microsoft: "npm:2.1.0"
