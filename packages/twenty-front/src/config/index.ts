@@ -21,3 +21,23 @@ export const REACT_APP_SERVER_BASE_URL =
   window._env_?.REACT_APP_SERVER_BASE_URL ||
   process.env.REACT_APP_SERVER_BASE_URL ||
   getDefaultUrl();
+
+export const FIREBASE_API_KEY =
+  window._env_?.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY;
+
+export const FIREBASE_AUTH_DOMAIN =
+  window._env_?.FIREBASE_AUTH_DOMAIN || process.env.VITE_FIREBASE_AUTH_DOMAIN;
+
+export const FIREBASE_PROJECT_ID =
+  window._env_?.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+
+export const FIREBASE_STORAGE_BUCKET =
+  window._env_?.FIREBASE_STORAGE_BUCKET ||
+  process.env.VITE_FIREBASE_STORAGE_BUCKET;
+
+export const FIREBASE_MESSAGING_SENDER_ID =
+  window._env_?.FIREBASE_MESSAGING_SENDER_ID ||
+  process.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
+
+export const FIREBASE_APP_ID =
+  window._env_?.FIREBASE_APP_ID || process.env.VITE_FIREBASE_APP_ID;

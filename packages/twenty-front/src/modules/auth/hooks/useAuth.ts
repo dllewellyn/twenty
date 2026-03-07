@@ -8,9 +8,7 @@ import {
   useGetAuthTokensFromLoginTokenMutation,
   useGetAuthTokensFromOtpMutation,
   useGetLoginTokenFromCredentialsMutation,
-  useSignInMutation,
   useSignUpInWorkspaceMutation,
-  useSignUpMutation,
   useVerifyEmailAndGetLoginTokenMutation,
   useVerifyEmailAndGetWorkspaceAgnosticTokenMutation,
   type AuthToken,
@@ -63,6 +61,14 @@ import { cookieStorage } from '~/utils/cookie-storage';
 import { getWorkspaceUrl } from '~/utils/getWorkspaceUrl';
 import { useStore } from 'jotai';
 
+import { auth } from '~/modules/auth/firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  sendEmailVerification,
+} from 'firebase/auth';
+
 export const useAuth = () => {
   const store = useStore();
   const setTokenPair = useSetAtomState(tokenPairState);
@@ -92,8 +98,6 @@ export const useAuth = () => {
 
   const [getLoginTokenFromCredentials] =
     useGetLoginTokenFromCredentialsMutation();
-  const [signIn] = useSignInMutation();
-  const [signUp] = useSignUpMutation();
   const [signUpInWorkspace] = useSignUpInWorkspaceMutation();
   const [getAuthTokensFromLoginToken] =
     useGetAuthTokensFromLoginTokenMutation();
@@ -360,55 +364,70 @@ export const useAuth = () => {
 
   const handleCredentialsSignIn = useCallback(
     async (email: string, password: string, captchaToken?: string) => {
-      signIn({
-        variables: { email, password, captchaToken },
-        onCompleted: async (data) => {
-          handleSetAuthTokens(data.signIn.tokens);
-          const { user } = await loadCurrentUser();
+      try {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password,
+        );
+        const token = await userCredential.user.getIdToken();
 
-          const availableWorkspacesCount = countAvailableWorkspaces(
+        handleSetAuthTokens({
+          accessOrWorkspaceAgnosticToken: {
+            token: token,
+            expiresAt: '', // the exact expiration is handled by Firebase
+          },
+          refreshToken: {
+            token: '', // Handled by firebase
+            expiresAt: '',
+          },
+        });
+
+        const { user } = await loadCurrentUser();
+
+        const availableWorkspacesCount = countAvailableWorkspaces(
+          user.availableWorkspaces,
+        );
+
+        if (availableWorkspacesCount === 0) {
+          return createWorkspace();
+        }
+
+        if (availableWorkspacesCount === 1) {
+          const targetWorkspace = getFirstAvailableWorkspaces(
             user.availableWorkspaces,
           );
+          return await redirectToWorkspaceDomain(
+            getWorkspaceUrl(targetWorkspace.workspaceUrls),
+            targetWorkspace.loginToken ? AppPath.Verify : AppPath.SignInUp,
+            {
+              ...(targetWorkspace.loginToken && {
+                loginToken: targetWorkspace.loginToken,
+              }),
+              email: user.email,
+            },
+          );
+        }
 
-          if (availableWorkspacesCount === 0) {
-            return createWorkspace();
-          }
-
-          if (availableWorkspacesCount === 1) {
-            const targetWorkspace = getFirstAvailableWorkspaces(
-              user.availableWorkspaces,
-            );
-            return await redirectToWorkspaceDomain(
-              getWorkspaceUrl(targetWorkspace.workspaceUrls),
-              targetWorkspace.loginToken ? AppPath.Verify : AppPath.SignInUp,
-              {
-                ...(targetWorkspace.loginToken && {
-                  loginToken: targetWorkspace.loginToken,
-                }),
-                email: user.email,
-              },
-            );
-          }
-
-          setSignInUpStep(SignInUpStep.WorkspaceSelection);
-        },
-        onError: (error) => {
-          if (
-            error instanceof ApolloError &&
-            error.graphQLErrors[0]?.extensions?.subCode === 'EMAIL_NOT_VERIFIED'
-          ) {
-            setSearchParams({ email });
-            setSignInUpStep(SignInUpStep.EmailVerification);
-            throw error;
-          }
+        setSignInUpStep(SignInUpStep.WorkspaceSelection);
+      } catch (error: unknown) {
+        if (
+          (error as Error).message?.includes('auth/unverified-email') ||
+          (error as Error).message?.includes('EMAIL_NOT_VERIFIED') ||
+          (error instanceof ApolloError &&
+            error.graphQLErrors[0]?.extensions?.subCode ===
+              'EMAIL_NOT_VERIFIED')
+        ) {
+          setSearchParams({ email });
+          setSignInUpStep(SignInUpStep.EmailVerification);
           throw error;
-        },
-      });
+        }
+        throw error;
+      }
     },
     [
       handleSetAuthTokens,
       redirectToWorkspaceDomain,
-      signIn,
       loadCurrentUser,
       setSearchParams,
       setSignInUpStep,
@@ -418,30 +437,31 @@ export const useAuth = () => {
 
   const handleCredentialsSignUp = useCallback(
     async (email: string, password: string, captchaToken?: string) => {
-      const signUpResult = await signUp({
-        variables: {
-          email,
-          password,
-          captchaToken,
-          locale: i18n.locale ?? SOURCE_LOCALE,
-        },
-      });
-
-      if (isDefined(signUpResult.errors)) {
-        throw signUpResult.errors;
-      }
+      // First, create the user with Firebase
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      const token = await userCredential.user.getIdToken();
 
       if (isEmailVerificationRequired) {
+        await sendEmailVerification(userCredential.user);
         setSearchParams({ email });
         setSignInUpStep(SignInUpStep.EmailVerification);
         return null;
       }
 
-      if (!signUpResult.data?.signUp) {
-        throw new Error('No signUp result');
-      }
-
-      handleSetAuthTokens(signUpResult.data.signUp.tokens);
+      handleSetAuthTokens({
+        accessOrWorkspaceAgnosticToken: {
+          token: token,
+          expiresAt: '', // handled by firebase
+        },
+        refreshToken: {
+          token: '', // Handled by firebase
+          expiresAt: '',
+        },
+      });
 
       const { user } = await loadCurrentUser();
 
@@ -455,7 +475,6 @@ export const useAuth = () => {
       isEmailVerificationRequired,
       setSearchParams,
       handleSetAuthTokens,
-      signUp,
       loadCurrentUser,
       setSignInUpStep,
       createWorkspace,
@@ -475,6 +494,11 @@ export const useAuth = () => {
   );
 
   const handleSignOut = useCallback(async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error('Firebase sign out error:', error);
+    }
     await clearSession();
     if (isCaptchaScriptLoaded) await requestFreshCaptchaToken();
   }, [clearSession, isCaptchaScriptLoaded, requestFreshCaptchaToken]);

@@ -2,8 +2,11 @@ import { useCreateAppRouter } from '@/app/hooks/useCreateAppRouter';
 import { currentUserState } from '@/auth/states/currentUserState';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { RouterProvider } from 'react-router-dom';
+import { useOnAuthStateChanged } from '@/auth/hooks/useOnAuthStateChanged';
 
 export const AppRouter = () => {
+  useOnAuthStateChanged();
+
   // We want to disable logic function settings but keep the code for now
   const isFunctionSettingsEnabled = false;
 
