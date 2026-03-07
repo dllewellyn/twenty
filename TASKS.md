@@ -1,7 +1,6 @@
 # Task Backlog
 
 ## Phase 2: Auth Migration
-- [ ] **Frontend Firebase Integration**: Initialize the Firebase Web SDK in `twenty-front` and refactor the login/signup flow.
 - [ ] **Token Management**: Update the frontend API client to attach Firebase ID tokens to all outgoing requests and handle session persistence.
 - [ ] **Legacy Auth Decommissioning**: Remove `JwtAuthStrategy`, related entities, and Passport JWT configuration once the frontend migration is verified.
 
@@ -19,6 +18,7 @@
 - [ ] **Search & Extensions**: Implement search using Firebase Extensions or Algolia and set up Trigger Email extension.
 
 ## COMPLETED WORK
+- [x] **Frontend Firebase Integration**: Initialize the Firebase Web SDK in `twenty-front` and refactor the login/signup flow.
 - [x] **Firebase Admin SDK Setup**: Configure the `twenty-server` with the Firebase Admin SDK and service account for token verification.
 - [x] **Auth Middleware & Guards**: Implement a NestJS guard/middleware to verify Firebase ID tokens in the backend, replacing the Passport JWT strategy.
 - [x] **Cloud Run Readiness**: Ensure `twenty-server` is fully containerizable (Dockerfile check) and compatible with Firebase execution environments.
