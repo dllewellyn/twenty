@@ -410,10 +410,13 @@ export const useAuth = () => {
         }
 
         setSignInUpStep(SignInUpStep.WorkspaceSelection);
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (
-          error instanceof ApolloError &&
-          error.graphQLErrors[0]?.extensions?.subCode === 'EMAIL_NOT_VERIFIED'
+          (error as Error).message?.includes('auth/unverified-email') ||
+          (error as Error).message?.includes('EMAIL_NOT_VERIFIED') ||
+          (error instanceof ApolloError &&
+            error.graphQLErrors[0]?.extensions?.subCode ===
+              'EMAIL_NOT_VERIFIED')
         ) {
           setSearchParams({ email });
           setSignInUpStep(SignInUpStep.EmailVerification);
