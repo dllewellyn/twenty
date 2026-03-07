@@ -2,11 +2,11 @@
 
 ## Phase 0: Infrastructure & Emulators (Immediate)
 - [x] **Firebase Initialization**: Initialize Firebase CLI in the root.
-- [ ] **Emulator Configuration**: Set up `firebase.json` with Firestore and Auth emulators.
-- [ ] **Integration Test Scaffold**: Create a simple test in `twenty-server` that connects to the Firestore emulator instead of Postgres.
+- [x] **Emulator Configuration**: Set up `firebase.json` with Firestore and Auth emulators.
+- [x] **Integration Test Scaffold**: Create a simple test in `twenty-server` that connects to the Firestore emulator instead of Postgres.
 
 ## Phase 1: JSON Schema & Adapter Strategy
-- [ ] **JSON Schema Extraction**: Audit `class-validator` usage in `twenty-server` core entities to generate initial JSON schemas.
+- [x] **JSON Schema Extraction**: Audit `class-validator` usage in `twenty-server` core entities to generate initial JSON schemas.
 - [ ] **Firestore Storage Adapter**: Design a "Firestore-backed" repository in `twenty-server` that implements the same interface as the current TypeORM repositories.
 - [ ] **Cloud Run Readiness**: Ensure `twenty-server` is fully containerizable (Dockerfile check).
 
