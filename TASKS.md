@@ -1,7 +1,7 @@
 # Task Backlog
 
 ## Phase 0: Infrastructure & Emulators (Immediate)
-- [ ] **Firebase Initialization**: Initialize Firebase CLI in the root.
+- [x] **Firebase Initialization**: Initialize Firebase CLI in the root.
 - [ ] **Emulator Configuration**: Set up `firebase.json` with Firestore and Auth emulators.
 - [ ] **Integration Test Scaffold**: Create a simple test in `twenty-server` that connects to the Firestore emulator instead of Postgres.
 
