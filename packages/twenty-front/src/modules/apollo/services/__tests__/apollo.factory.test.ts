@@ -9,21 +9,13 @@ import { WorkspaceActivationStatus } from '~/generated-metadata/graphql';
 
 enableFetchMocks();
 
-jest.mock('@/auth/services/AuthService', () => {
-  const initialAuthService = jest.requireActual('@/auth/services/AuthService');
-  return {
-    ...initialAuthService,
-    renewToken: jest.fn().mockReturnValue(
-      Promise.resolve({
-        accessOrWorkspaceAgnosticToken: {
-          token: 'newAccessToken',
-          expiresAt: '',
-        },
-        refreshToken: { token: 'newRefreshToken', expiresAt: '' },
-      }),
-    ),
-  };
-});
+jest.mock('~/modules/auth/firebase', () => ({
+  auth: {
+    currentUser: {
+      getIdToken: jest.fn().mockResolvedValue('newAccessToken'),
+    },
+  },
+}));
 
 const mockOnError = jest.fn();
 const mockOnNetworkError = jest.fn();

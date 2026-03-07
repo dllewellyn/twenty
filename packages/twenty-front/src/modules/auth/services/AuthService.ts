@@ -48,6 +48,9 @@ const renewTokenMutation = async (
   return data;
 };
 
+/**
+ * @deprecated Legacy logic to renew tokens; replaced by Firebase ID tokens.
+ */
 export const renewToken = async (
   uri: string | UriFunction | undefined,
   tokenPair: AuthTokenPair | undefined | null,

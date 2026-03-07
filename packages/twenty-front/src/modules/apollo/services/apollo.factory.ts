@@ -15,7 +15,6 @@ import { RetryLink } from '@apollo/client/link/retry';
 import { RestLink } from 'apollo-link-rest';
 import { createUploadLink } from 'apollo-upload-client';
 
-import { renewToken } from '@/auth/services/AuthService';
 import { type CurrentWorkspaceMember } from '@/auth/states/currentWorkspaceMemberState';
 import { type CurrentWorkspace } from '@/auth/states/currentWorkspaceState';
 import { type AuthTokenPair } from '~/generated-metadata/graphql';
@@ -36,9 +35,8 @@ import {
 } from 'graphql';
 import isEmpty from 'lodash.isempty';
 import { getGenericOperationName, isDefined } from 'twenty-shared/utils';
-import { REACT_APP_SERVER_BASE_URL } from '~/config';
 import { cookieStorage } from '~/utils/cookie-storage';
-import { isUndefinedOrNull } from '~/utils/isUndefinedOrNull';
+import { auth } from '~/modules/auth/firebase';
 
 const logger = loggerLink(() => 'Twenty');
 
@@ -102,27 +100,29 @@ export class ApolloFactory<TCacheShape> implements ApolloManager<TCacheShape> {
       });
 
       const authLink = setContext(async (_, { headers }) => {
-        const tokenPair = getTokenPair();
+        let token: string | undefined;
 
-        const locale = this.currentWorkspaceMember?.locale ?? i18n.locale;
-
-        if (isUndefinedOrNull(tokenPair)) {
-          return {
-            headers: {
-              ...headers,
-              ...options.headers,
-              'x-locale': locale,
-            },
-          };
+        if (auth.currentUser?.getIdToken) {
+          try {
+            token = await auth.currentUser.getIdToken();
+          } catch (e) {
+            // oxlint-disable-next-line no-console
+            console.error('Failed to get Firebase ID token', e);
+          }
         }
 
-        const token = tokenPair.accessOrWorkspaceAgnosticToken?.token;
+        if (!token) {
+          const tokenPair = getTokenPair();
+          token = tokenPair?.accessOrWorkspaceAgnosticToken?.token;
+        }
+
+        const locale = this.currentWorkspaceMember?.locale ?? i18n.locale;
 
         return {
           headers: {
             ...headers,
             ...options.headers,
-            authorization: token ? `Bearer ${token}` : '',
+            ...(token ? { authorization: `Bearer ${token}` } : {}),
             'x-locale': locale,
             ...(this.currentWorkspace?.metadataVersion && {
               'X-Schema-Version': `${this.currentWorkspace.metadataVersion}`,
@@ -157,22 +157,31 @@ export class ApolloFactory<TCacheShape> implements ApolloManager<TCacheShape> {
         forward: (operation: Operation) => Observable<FetchResult>,
       ) => {
         if (!renewalPromise) {
-          // Always renew through /metadata since the RenewToken is only exposed there
-          const graphqlUri = `${REACT_APP_SERVER_BASE_URL}/metadata`;
+          renewalPromise = (async () => {
+            if (!auth.currentUser?.getIdToken) {
+              throw new Error('No Firebase user available for token renewal');
+            }
 
-          renewalPromise = renewToken(graphqlUri, getTokenPair())
-            .then((tokens) => {
-              if (isDefined(tokens)) {
-                // oxlint-disable-next-line no-console
-                console.log('setTokenPair from handleTokenRenewal');
-                onTokenPairChange?.(tokens);
-                cookieStorage.setItem('tokenPair', JSON.stringify(tokens));
-              }
-            })
-            .catch(() => {
+            const token = await auth.currentUser.getIdToken(true);
+            if (!token) {
+              throw new Error('Failed to retrieve refreshed token');
+            }
+
+            const tokens: AuthTokenPair = {
+              accessOrWorkspaceAgnosticToken: { token, expiresAt: '' },
+              refreshToken: { token: '', expiresAt: '' },
+            };
+
+            // oxlint-disable-next-line no-console
+            console.log('setTokenPair from handleTokenRenewal');
+            onTokenPairChange?.(tokens);
+            cookieStorage.setItem('tokenPair', JSON.stringify(tokens));
+          })()
+            .catch((error) => {
               // oxlint-disable-next-line no-console
               console.log(
                 'Failed to renew token, triggering unauthenticated error from handleTokenRenewal',
+                error,
               );
               onUnauthenticatedError?.();
             })

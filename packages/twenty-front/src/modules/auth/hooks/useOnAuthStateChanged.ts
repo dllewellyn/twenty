@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onIdTokenChanged } from 'firebase/auth';
 
 import { auth } from '~/modules/auth/firebase';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
@@ -13,7 +13,7 @@ export const useOnAuthStateChanged = () => {
   const { loadCurrentUser } = useLoadCurrentUser();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
         // User is signed in, get the new token
         const token = await user.getIdToken();
