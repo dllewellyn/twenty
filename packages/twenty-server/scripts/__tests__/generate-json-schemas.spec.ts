@@ -27,6 +27,8 @@ describe('generate-json-schemas script', () => {
       const parsed = JSON.parse(content);
 
       expect(parsed).toHaveProperty('$schema');
+      expect(parsed).toHaveProperty('$id');
+      expect(parsed).toHaveProperty('version');
       expect(parsed).toHaveProperty('properties');
     }
   });
@@ -34,6 +36,10 @@ describe('generate-json-schemas script', () => {
   it('should not contain empty property definitions for audited fields', () => {
     const createObjectSchemaPath = path.join(schemaDir, 'CreateObjectInput.json');
     const createObjectSchema = JSON.parse(fs.readFileSync(createObjectSchemaPath, 'utf-8'));
+
+    expect(createObjectSchema.properties.dataSourceId).toEqual(expect.objectContaining({ type: 'string' }));
+    expect(createObjectSchema.properties.applicationId).toEqual(expect.objectContaining({ type: 'string' }));
+    expect(createObjectSchema.properties.universalIdentifier).toEqual(expect.objectContaining({ type: 'string' }));
 
     expect(createObjectSchema.properties.primaryKeyColumnType).toEqual(expect.objectContaining({ type: 'string' }));
     expect(createObjectSchema.properties.primaryKeyFieldMetadataSettings).toEqual(expect.objectContaining({ type: 'object' }));

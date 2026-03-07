@@ -1,8 +1,16 @@
 {
+  "$id": "https://twenty.com/schemas/v1/CreateFieldInput.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
   "properties": {
     "objectMetadataId": {
       "format": "uuid",
+      "type": "string"
+    },
+    "universalIdentifier": {
+      "type": "string"
+    },
+    "applicationId": {
       "type": "string"
     },
     "isRemoteCreation": {
@@ -119,6 +127,15 @@
           "type": "string"
         },
         "shortcut": {
+          "type": "string"
+        },
+        "dataSourceId": {
+          "type": "string"
+        },
+        "applicationId": {
+          "type": "string"
+        },
+        "universalIdentifier": {
           "type": "string"
         },
         "skipNameField": {
@@ -486,6 +503,12 @@
           "format": "uuid",
           "type": "string"
         },
+        "universalIdentifier": {
+          "type": "string"
+        },
+        "applicationId": {
+          "type": "string"
+        },
         "isRemoteCreation": {
           "type": "boolean"
         },
@@ -679,6 +702,12 @@
             "WORKSPACE",
             "UNLISTED"
           ],
+          "type": "string"
+        },
+        "universalIdentifier": {
+          "type": "string"
+        },
+        "applicationId": {
           "type": "string"
         }
       },

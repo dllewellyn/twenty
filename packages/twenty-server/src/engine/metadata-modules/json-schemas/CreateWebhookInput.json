@@ -1,5 +1,7 @@
 {
+  "$id": "https://twenty.com/schemas/v1/CreateWebhookInput.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
   "properties": {
     "id": {
       "format": "uuid",
@@ -51,6 +53,15 @@
           "type": "string"
         },
         "shortcut": {
+          "type": "string"
+        },
+        "dataSourceId": {
+          "type": "string"
+        },
+        "applicationId": {
+          "type": "string"
+        },
+        "universalIdentifier": {
           "type": "string"
         },
         "skipNameField": {
@@ -418,6 +429,12 @@
           "format": "uuid",
           "type": "string"
         },
+        "universalIdentifier": {
+          "type": "string"
+        },
+        "applicationId": {
+          "type": "string"
+        },
         "isRemoteCreation": {
           "type": "boolean"
         },
@@ -611,6 +628,12 @@
             "WORKSPACE",
             "UNLISTED"
           ],
+          "type": "string"
+        },
+        "universalIdentifier": {
+          "type": "string"
+        },
+        "applicationId": {
           "type": "string"
         }
       },

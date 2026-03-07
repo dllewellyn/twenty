@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
-const { defaultMetadataStorage } = require('class-transformer/cjs/storage');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+import { defaultMetadataStorage } from 'class-transformer/cjs/storage';
 
 // Import the DTO classes so their metadata is loaded
 import { CreateObjectInput } from '../src/engine/metadata-modules/object-metadata/dtos/create-object.input';
@@ -43,7 +44,9 @@ async function generateSchemas() {
     if (schema) {
       // Add definitions if they exist in the root schemas object
       const fullSchema = {
+        $id: `https://twenty.com/schemas/v1/${schemaName}.json`,
         $schema: 'http://json-schema.org/draft-07/schema#',
+        version: "1.0.0",
         ...schema,
         definitions: schemas, // Include all definitions just in case there are references
       };

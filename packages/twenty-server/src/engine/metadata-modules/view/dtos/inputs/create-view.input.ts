@@ -111,9 +111,13 @@ export class CreateViewInput {
   })
   visibility?: ViewVisibility;
 
+  @IsString()
+  @IsOptional()
   @HideField()
   universalIdentifier?: string;
 
+  @IsString()
+  @IsOptional()
   @HideField()
   applicationId?: string;
 }
