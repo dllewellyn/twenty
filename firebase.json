@@ -1,4 +1,15 @@
 {
+  "hosting": {
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "run": {
+          "serviceId": "twenty-server",
+          "region": "us-central1"
+        }
+      }
+    ]
+  },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
