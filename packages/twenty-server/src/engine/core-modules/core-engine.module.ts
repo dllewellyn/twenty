@@ -78,9 +78,11 @@ import { AuditModule } from './audit/audit.module';
 import { ClientConfigModule } from './client-config/client-config.module';
 import { EventLogsModule } from './event-logs/event-logs.module';
 import { FileModule } from './file/file.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
+    FirebaseModule,
     EnvironmentModule,
     TwentyConfigModule.forRoot(),
     HealthModule,
@@ -169,6 +171,7 @@ import { FileModule } from './file/file.module';
     EventLogsModule,
   ],
   exports: [
+    FirebaseModule,
     AuditModule,
     AuthModule,
     FeatureFlagModule,

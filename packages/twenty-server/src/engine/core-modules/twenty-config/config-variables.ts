@@ -1654,6 +1654,39 @@ export class ConfigVariables {
   })
   @IsOptional()
   APP_REGISTRY_TOKEN: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.FIREBASE,
+    description: 'The ID of the Firebase project',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  FIREBASE_PROJECT_ID?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.FIREBASE,
+    isSensitive: true,
+    description: 'JSON string containing the Firebase service account key',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  FIREBASE_SERVICE_ACCOUNT_KEY?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.FIREBASE,
+    description: 'Path to the Firebase service account JSON file',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  FIREBASE_SERVICE_ACCOUNT_KEY_PATH?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.FIREBASE,
+    description: 'The URL of the Firebase Realtime Database',
+    type: ConfigVariableType.STRING,
+  })
+  @IsOptional()
+  FIREBASE_DATABASE_URL?: string;
 }
 
 export const validate = (config: Record<string, unknown>): ConfigVariables => {

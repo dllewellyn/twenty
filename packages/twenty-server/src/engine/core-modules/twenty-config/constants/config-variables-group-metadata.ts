@@ -136,4 +136,9 @@ export const CONFIG_VARIABLES_GROUP_METADATA: Record<
     description: 'Configure AWS SES settings for emailing domains',
     isHiddenOnLoad: true,
   },
+  [ConfigVariablesGroup.FIREBASE]: {
+    position: 2200,
+    description: 'Configuration for Firebase Admin SDK integration.',
+    isHiddenOnLoad: true,
+  },
 };
