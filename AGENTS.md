@@ -10,3 +10,7 @@
     - **Query Translation**: Manually mapping TypeORM `FindOptions` (e.g., `where`, `moreThan`, `in`) to Firestore's native querying capabilities, acknowledging the inherent limitations of NoSQL compared to relational filtering.
     - **Atomic Batching**: Leveraging Firestore's `WriteBatch` for bulk operations (`save`, `insert`, `upsert`) to ensure data consistency and minimize API round-trips.
     - **Emulated Upsert**: Using Firestore's `set(doc, data, { merge: true })` as a reliable implementation for both `save` and `upsert`, provided a unique identifier (ID) is present.
+- **2026-03-07**: Optimized the deployment architecture for Google Cloud Run and Firebase Hosting. Key findings included:
+    - **Cloud Run Native Optimization**: Specialized Dockerfiles (`Dockerfile.cloudrun`) using multi-stage builds and `yarn workspaces focus --production` significantly reduce production image sizes. Applications must also be configured to listen on the dynamic `$PORT` provided by Cloud Run.
+    - **Unified Ingress Strategy**: Utilizing Firebase Hosting `rewrites` to route specific paths (e.g., `/api/**`) to Cloud Run creates a seamless, unified entry point for both static and dynamic backend services.
+    - **Artifact Registry Standardization**: Transitioning to Google Artifact Registry (`pkg.dev`) provides a more robust and secure alternative for container image hosting within the GCP ecosystem.
