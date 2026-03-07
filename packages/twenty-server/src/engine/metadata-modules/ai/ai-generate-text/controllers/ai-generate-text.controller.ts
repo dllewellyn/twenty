@@ -6,7 +6,7 @@ import { PermissionFlagType } from 'twenty-shared/constants';
 import { RestApiExceptionFilter } from 'src/engine/api/rest/rest-api-exception.filter';
 import type { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { AuthWorkspace } from 'src/engine/decorators/auth/auth-workspace.decorator';
-import { JwtAuthGuard } from 'src/engine/guards/jwt-auth.guard';
+import { FirebaseAuthGuard } from 'src/engine/core-modules/auth/guards/firebase-auth.guard';
 import { SettingsPermissionGuard } from 'src/engine/guards/settings-permission.guard';
 import { WorkspaceAuthGuard } from 'src/engine/guards/workspace-auth.guard';
 import {
@@ -18,7 +18,7 @@ import { GenerateTextInput } from 'src/engine/metadata-modules/ai/ai-generate-te
 import { AiModelRegistryService } from 'src/engine/metadata-modules/ai/ai-models/services/ai-model-registry.service';
 
 @Controller('rest/ai')
-@UseGuards(JwtAuthGuard, WorkspaceAuthGuard)
+@UseGuards(FirebaseAuthGuard, WorkspaceAuthGuard)
 @UseFilters(AgentRestApiExceptionFilter, RestApiExceptionFilter)
 export class AiGenerateTextController {
   constructor(

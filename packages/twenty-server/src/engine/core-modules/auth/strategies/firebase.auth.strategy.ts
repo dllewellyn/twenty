@@ -4,10 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { msg } from '@lingui/core/macro';
 import { Request } from 'express';
+import { Strategy } from 'passport-custom';
 import { ExtractJwt } from 'passport-jwt';
-// Using require to bypass typing issues if @types/passport-custom doesn't exist
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { Strategy } = require('passport-custom');
 import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { Repository } from 'typeorm';
