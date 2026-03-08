@@ -55,7 +55,7 @@ export class FirebaseAuthStrategy extends PassportStrategy(
     let decodedToken;
     try {
       decodedToken = await this.firebaseAdminService.verifyIdToken(rawToken);
-    } catch (error) {
+    } catch (_error) {
       throw new AuthException(
         'Invalid or expired token',
         AuthExceptionCode.FORBIDDEN_EXCEPTION,

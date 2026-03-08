@@ -48,7 +48,7 @@ export const rule = defineRule({
                   (
                     param.parameter.typeAnnotation.typeAnnotation
                       .typeName as any
-                  ).name.endsWith('WorkspaceService');
+                  ).name?.endsWith('WorkspaceService');
 
                 return hasDecorator || hasWorkspaceServiceType;
               }

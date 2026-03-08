@@ -21,12 +21,16 @@ export class TwentyCrmService {
 
   constructor(apiKey: string, apiUrl: string) {
     if (!apiKey) {
-      logger.critical('TWENTY_API_KEY is required but not provided - this is a critical configuration error');
+      logger.critical(
+        'TWENTY_API_KEY is required but not provided - this is a critical configuration error',
+      );
       throw new Error('TWENTY_API_KEY is required');
     }
     this.apiKey = apiKey;
     this.apiUrl = apiUrl;
-    this.isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
+    this.isTestEnvironment =
+      process.env.NODE_ENV === 'test' ||
+      process.env.JEST_WORKER_ID !== undefined;
   }
 
   async findExistingMeeting(title: string): Promise<IdNode | undefined> {
@@ -39,11 +43,16 @@ export class TwentyCrmService {
     `;
 
     const variables = { title };
-    const response = await this.gqlRequest<FindMeetingResponse>(query, variables);
+    const response = await this.gqlRequest<FindMeetingResponse>(
+      query,
+      variables,
+    );
     return response.data?.meetings?.edges?.[0]?.node;
   }
 
-  async findMeetingByFirefliesId(meetingId: string): Promise<IdNode | undefined> {
+  async findMeetingByFirefliesId(
+    meetingId: string,
+  ): Promise<IdNode | undefined> {
     const query = `
       query FindMeetingByFirefliesId($meetingId: String!) {
         meetings(filter: { firefliesMeetingId: { eq: $meetingId } }) {
@@ -53,7 +62,10 @@ export class TwentyCrmService {
     `;
 
     const variables = { meetingId };
-    const response = await this.gqlRequest<FindMeetingResponse>(query, variables);
+    const response = await this.gqlRequest<FindMeetingResponse>(
+      query,
+      variables,
+    );
     return response.data?.meetings?.edges?.[0]?.node;
   }
 
@@ -67,8 +79,12 @@ export class TwentyCrmService {
       return { matchedContacts: [], unmatchedParticipants: [] };
     }
 
-    const participantsWithEmails = participants.filter(p => p.email && p.email.trim());
-    const participantsNameOnly = participants.filter(p => !p.email || !p.email.trim());
+    const participantsWithEmails = participants.filter(
+      (p) => p.email && p.email.trim(),
+    );
+    const participantsNameOnly = participants.filter(
+      (p) => !p.email || !p.email.trim(),
+    );
 
     let matchedContacts: Contact[] = [];
     let unmatchedParticipants: FirefliesParticipant[] = [];
@@ -80,7 +96,10 @@ export class TwentyCrmService {
     }
 
     if (participantsNameOnly.length > 0) {
-      const nameMatches = await this.matchByName(participantsNameOnly, matchedContacts);
+      const nameMatches = await this.matchByName(
+        participantsNameOnly,
+        matchedContacts,
+      );
       matchedContacts.push(...nameMatches.matchedContacts);
       unmatchedParticipants.push(...nameMatches.unmatchedParticipants);
     }
@@ -102,7 +121,10 @@ export class TwentyCrmService {
     `;
 
     const variables = { emails };
-    const response = await this.gqlRequest<FindPeopleResponse>(query, variables);
+    const response = await this.gqlRequest<FindPeopleResponse>(
+      query,
+      variables,
+    );
     const people = response.data?.people;
 
     if (!people?.edges) {
@@ -111,7 +133,7 @@ export class TwentyCrmService {
 
     const matchedContacts = people.edges.map(({ node }) => ({
       id: node.id,
-      email: node.emails?.primaryEmail || ''
+      email: node.emails?.primaryEmail || '',
     }));
 
     const matchedEmails = new Set(
@@ -121,7 +143,7 @@ export class TwentyCrmService {
     );
 
     const unmatchedParticipants = participants.filter(
-      ({ email }) => !matchedEmails.has(email)
+      ({ email }) => !matchedEmails.has(email),
     );
 
     return { matchedContacts, unmatchedParticipants };
@@ -129,7 +151,7 @@ export class TwentyCrmService {
 
   private async matchByName(
     participants: FirefliesParticipant[],
-    alreadyMatchedContacts: Contact[]
+    alreadyMatchedContacts: Contact[],
   ): Promise<{
     matchedContacts: Contact[];
     unmatchedParticipants: FirefliesParticipant[];
@@ -137,7 +159,7 @@ export class TwentyCrmService {
     const matchedContacts: Contact[] = [];
     const unmatchedParticipants: FirefliesParticipant[] = [];
 
-    const alreadyMatchedIds = new Set(alreadyMatchedContacts.map(c => c.id));
+    const alreadyMatchedIds = new Set(alreadyMatchedContacts.map((c) => c.id));
 
     for (const participant of participants) {
       const nameMatch = await this.findContactByName(participant.name);
@@ -192,14 +214,24 @@ export class TwentyCrmService {
       : { firstName };
 
     try {
-      const response = await this.gqlRequest<{ people: { edges: Array<{ node: { id: string; emails?: { primaryEmail?: string }; name?: { firstName?: string; lastName?: string } } }> } }>(query, variables);
+      const response = await this.gqlRequest<{
+        people: {
+          edges: Array<{
+            node: {
+              id: string;
+              emails?: { primaryEmail?: string };
+              name?: { firstName?: string; lastName?: string };
+            };
+          }>;
+        };
+      }>(query, variables);
       const people = response.data?.people?.edges;
 
       if (people && people.length > 0) {
         const person = people[0].node;
         return {
           id: person.id,
-          email: person.emails?.primaryEmail || ''
+          email: person.emails?.primaryEmail || '',
         };
       }
 
@@ -212,20 +244,32 @@ export class TwentyCrmService {
           }
         `;
 
-        const fuzzyResponse = await this.gqlRequest<{ people: { edges: Array<{ node: { id: string; emails?: { primaryEmail?: string }; name?: { firstName?: string; lastName?: string } } }> } }>(fuzzyQuery, { firstName: `%${firstName}%` });
+        const fuzzyResponse = await this.gqlRequest<{
+          people: {
+            edges: Array<{
+              node: {
+                id: string;
+                emails?: { primaryEmail?: string };
+                name?: { firstName?: string; lastName?: string };
+              };
+            }>;
+          };
+        }>(fuzzyQuery, { firstName: `%${firstName}%` });
         const fuzzyPeople = fuzzyResponse.data?.people?.edges;
 
         if (fuzzyPeople && fuzzyPeople.length > 0) {
           const bestMatch = fuzzyPeople.find((edge) => {
             const personLastName = edge.node.name?.lastName || '';
-            return personLastName.toLowerCase().includes(lastName.toLowerCase());
+            return personLastName
+              .toLowerCase()
+              .includes(lastName.toLowerCase());
           });
 
           if (bestMatch) {
             const person = bestMatch.node;
             return {
               id: person.id,
-              email: person.emails?.primaryEmail || ''
+              email: person.emails?.primaryEmail || '',
             };
           }
         }
@@ -242,37 +286,53 @@ export class TwentyCrmService {
   ): Promise<string[]> {
     const newContactIds: string[] = [];
 
-    const participantsWithEmails = participants.filter(p => p.email && p.email.trim());
-    const participantsNameOnly = participants.filter(p => !p.email || !p.email.trim());
+    const participantsWithEmails = participants.filter(
+      (p) => p.email && p.email.trim(),
+    );
+    const participantsNameOnly = participants.filter(
+      (p) => !p.email || !p.email.trim(),
+    );
 
     if (participantsWithEmails.length > 0) {
-      const emailContactIds = await this.createContactsWithEmails(participantsWithEmails);
+      const emailContactIds = await this.createContactsWithEmails(
+        participantsWithEmails,
+      );
       newContactIds.push(...emailContactIds);
     }
 
     if (participantsNameOnly.length > 0) {
-      const nameContactIds = await this.createContactsNameOnly(participantsNameOnly);
+      const nameContactIds =
+        await this.createContactsNameOnly(participantsNameOnly);
       newContactIds.push(...nameContactIds);
     }
 
     return newContactIds;
   }
 
-  private async createContactsWithEmails(participants: FirefliesParticipant[]): Promise<string[]> {
+  private async createContactsWithEmails(
+    participants: FirefliesParticipant[],
+  ): Promise<string[]> {
     const newContactIds: string[] = [];
 
-    const uniqueParticipants = participants.reduce<FirefliesParticipant[]>((unique, participant) => {
-      const existing = unique.find(p => p.email === participant.email);
-      if (!existing) {
-        unique.push(participant);
-      } else {
-        logger.warn(`Duplicate participant email detected: ${participant.email}. Using first occurrence.`);
-      }
-      return unique;
-    }, []);
+    const uniqueParticipants = participants.reduce<FirefliesParticipant[]>(
+      (unique, participant) => {
+        const existing = unique.find((p) => p.email === participant.email);
+        if (!existing) {
+          unique.push(participant);
+        } else {
+          logger.warn(
+            `Duplicate participant email detected: ${participant.email}. Using first occurrence.`,
+          );
+        }
+        return unique;
+      },
+      [],
+    );
 
     for (const participant of uniqueParticipants) {
-      const [firstName, ...lastNameParts] = participant.name.trim().split(/\s+/);
+      const [firstName, ...lastNameParts] = participant.name
+        .trim()
+        .split(/\s+/);
       const lastName = lastNameParts.join(' ');
 
       const mutation = `
@@ -289,18 +349,31 @@ export class TwentyCrmService {
       };
 
       try {
-        const response = await this.gqlRequest<CreatePersonResponse>(mutation, variables, {
-          suppressErrorCodes: ['BAD_USER_INPUT'],
-          suppressErrorMessageIncludes: ['Duplicate Emails', 'duplicate entry'],
-        });
+        const response = await this.gqlRequest<CreatePersonResponse>(
+          mutation,
+          variables,
+          {
+            suppressErrorCodes: ['BAD_USER_INPUT'],
+            suppressErrorMessageIncludes: [
+              'Duplicate Emails',
+              'duplicate entry',
+            ],
+          },
+        );
         if (!response.data?.createPerson?.id) {
           throw new Error(`Failed to create contact for ${participant.email}`);
         }
         newContactIds.push(response.data.createPerson.id);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        if (errorMessage.includes('Duplicate Emails') || errorMessage.includes('BAD_USER_INPUT')) {
-            logger.warn(`Skipping contact creation for ${participant.email} due to duplicate email constraint: ${errorMessage}`);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        if (
+          errorMessage.includes('Duplicate Emails') ||
+          errorMessage.includes('BAD_USER_INPUT')
+        ) {
+          logger.warn(
+            `Skipping contact creation for ${participant.email} due to duplicate email constraint: ${errorMessage}`,
+          );
           continue;
         }
         throw error;
@@ -310,29 +383,42 @@ export class TwentyCrmService {
     return newContactIds;
   }
 
-  private async createContactsNameOnly(participants: FirefliesParticipant[]): Promise<string[]> {
+  private async createContactsNameOnly(
+    participants: FirefliesParticipant[],
+  ): Promise<string[]> {
     const newContactIds: string[] = [];
 
-    const uniqueParticipants = participants.reduce<FirefliesParticipant[]>((unique, participant) => {
-      const existing = unique.find(p =>
-        p.name.toLowerCase().trim() === participant.name.toLowerCase().trim()
-      );
-      if (!existing) {
-        unique.push(participant);
-      } else {
-        logger.warn(`Duplicate participant name detected: ${participant.name}. Using first occurrence.`);
-      }
-      return unique;
-    }, []);
+    const uniqueParticipants = participants.reduce<FirefliesParticipant[]>(
+      (unique, participant) => {
+        const existing = unique.find(
+          (p) =>
+            p.name.toLowerCase().trim() ===
+            participant.name.toLowerCase().trim(),
+        );
+        if (!existing) {
+          unique.push(participant);
+        } else {
+          logger.warn(
+            `Duplicate participant name detected: ${participant.name}. Using first occurrence.`,
+          );
+        }
+        return unique;
+      },
+      [],
+    );
 
     for (const participant of uniqueParticipants) {
       const existingContact = await this.findContactByName(participant.name);
       if (existingContact) {
-        logger.warn(`Contact with name "${participant.name}" already exists. Skipping creation.`);
+        logger.warn(
+          `Contact with name "${participant.name}" already exists. Skipping creation.`,
+        );
         continue;
       }
 
-      const [firstName, ...lastNameParts] = participant.name.trim().split(/\s+/);
+      const [firstName, ...lastNameParts] = participant.name
+        .trim()
+        .split(/\s+/);
       const lastName = lastNameParts.join(' ');
 
       const mutation = `
@@ -348,16 +434,24 @@ export class TwentyCrmService {
       };
 
       try {
-        const response = await this.gqlRequest<CreatePersonResponse>(mutation, variables);
+        const response = await this.gqlRequest<CreatePersonResponse>(
+          mutation,
+          variables,
+        );
         if (!response.data?.createPerson?.id) {
           throw new Error(`Failed to create contact for ${participant.name}`);
         }
         newContactIds.push(response.data.createPerson.id);
 
-        logger.debug(`Created contact for name-only participant: ${participant.name}`);
+        logger.debug(
+          `Created contact for name-only participant: ${participant.name}`,
+        );
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        logger.warn(`Failed to create contact for ${participant.name}: ${errorMessage}`);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        logger.warn(
+          `Failed to create contact for ${participant.name}: ${errorMessage}`,
+        );
         continue;
       }
     }
@@ -368,17 +462,14 @@ export class TwentyCrmService {
   async createNote(
     contactId: string,
     title: string,
-    body: string
+    body: string,
   ): Promise<string> {
     const noteId = await this.createNoteOnly(title, body);
     await this.createNoteTarget(noteId, contactId);
     return noteId;
   }
 
-  async createNoteOnly(
-    title: string,
-    body: string
-  ): Promise<string> {
+  async createNoteOnly(title: string, body: string): Promise<string> {
     const mutation = `
       mutation CreateNote($data: NoteCreateInput!) {
         createNote(data: $data) { id }
@@ -389,12 +480,15 @@ export class TwentyCrmService {
       data: {
         title,
         bodyV2: {
-          markdown: body.trim()
+          markdown: body.trim(),
         },
       },
     };
 
-    const response = await this.gqlRequest<CreateNoteResponse>(mutation, variables);
+    const response = await this.gqlRequest<CreateNoteResponse>(
+      mutation,
+      variables,
+    );
     if (!response.data?.createNote?.id) {
       throw new Error(`Failed to create note`);
     }
@@ -420,7 +514,9 @@ export class TwentyCrmService {
       },
     };
 
-    await this.gqlRequest<{ createNoteTarget: { id: string; noteId: string; personId: string } }>(mutation, variables);
+    await this.gqlRequest<{
+      createNoteTarget: { id: string; noteId: string; personId: string };
+    }>(mutation, variables);
   }
 
   async createMeeting(meetingData: MeetingCreateInput): Promise<string> {
@@ -433,10 +529,16 @@ export class TwentyCrmService {
     const variables = { data: meetingData };
 
     if (!this.isTestEnvironment) {
-      logger.debug('createMeeting variables:', JSON.stringify(variables, null, 2));
+      logger.debug(
+        'createMeeting variables:',
+        JSON.stringify(variables, null, 2),
+      );
     }
 
-    const response = await this.gqlRequest<CreateMeetingResponse>(mutation, variables);
+    const response = await this.gqlRequest<CreateMeetingResponse>(
+      mutation,
+      variables,
+    );
     if (!response.data?.createMeeting?.id) {
       throw new Error('Failed to create meeting: Invalid response from server');
     }
@@ -446,7 +548,10 @@ export class TwentyCrmService {
   private async gqlRequest<T>(
     query: string,
     variables?: Record<string, unknown>,
-    options?: { suppressErrorCodes?: string[]; suppressErrorMessageIncludes?: string[] }
+    options?: {
+      suppressErrorCodes?: string[];
+      suppressErrorMessageIncludes?: string[];
+    },
   ): Promise<GraphQLResponse<T>> {
     const url = `${this.apiUrl}/graphql`;
 
@@ -473,11 +578,18 @@ export class TwentyCrmService {
         throw new Error(errorMessage);
       }
 
-      const json = await res.json() as GraphQLResponse<T> & {
-        errors?: Array<{ message?: string; extensions?: Record<string, unknown> }>
+      const json = (await res.json()) as GraphQLResponse<T> & {
+        errors?: Array<{
+          message?: string;
+          extensions?: Record<string, unknown>;
+        }>;
       };
 
-      if (json?.errors && Array.isArray(json.errors) && json.errors.length > 0) {
+      if (
+        json?.errors &&
+        Array.isArray(json.errors) &&
+        json.errors.length > 0
+      ) {
         const firstError = json.errors[0];
         const errorMessage = firstError?.message || 'GraphQL error';
         const errorCode = firstError?.extensions?.code as string | undefined;
@@ -494,8 +606,8 @@ export class TwentyCrmService {
       const suppressByCode = options?.suppressErrorCodes?.some((code) =>
         message.includes(code),
       );
-      const suppressByMessage = options?.suppressErrorMessageIncludes?.some((substring) =>
-        message.includes(substring),
+      const suppressByMessage = options?.suppressErrorMessageIncludes?.some(
+        (substring) => message.includes(substring),
       );
       if (!suppressByCode && !suppressByMessage) {
         logger.error('GraphQL request error:', error);
@@ -514,25 +626,35 @@ export class TwentyCrmService {
     const variables = { data: meetingData };
 
     if (!this.isTestEnvironment) {
-      logger.debug('createFailedMeeting variables:', JSON.stringify(variables, null, 2));
+      logger.debug(
+        'createFailedMeeting variables:',
+        JSON.stringify(variables, null, 2),
+      );
     }
 
-    const response = await this.gqlRequest<CreateMeetingResponse>(mutation, variables);
+    const response = await this.gqlRequest<CreateMeetingResponse>(
+      mutation,
+      variables,
+    );
     if (!response.data?.createMeeting?.id) {
-      throw new Error('Failed to create failed meeting record: Invalid response from server');
+      throw new Error(
+        'Failed to create failed meeting record: Invalid response from server',
+      );
     }
     return response.data.createMeeting.id;
   }
 
-  async findFailedMeetings(): Promise<Array<{
-    id: string;
-    name: string;
-    firefliesMeetingId: string;
-    importError: string;
-    lastImportAttempt: string;
-    importAttempts: number;
-    createdAt: string;
-  }>> {
+  async findFailedMeetings(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      firefliesMeetingId: string;
+      importError: string;
+      lastImportAttempt: string;
+      importAttempts: number;
+      createdAt: string;
+    }>
+  > {
     const query = `
       query FindFailedMeetings {
         meetings(filter: { importStatus: { eq: "FAILED" } }) {
@@ -551,11 +673,28 @@ export class TwentyCrmService {
       }
     `;
 
-    const response = await this.gqlRequest<{ meetings: { edges: Array<{ node: { id: string; name: string; firefliesMeetingId: string; importError: string; lastImportAttempt: string; importAttempts: number; createdAt: string } }> } }>(query);
+    const response = await this.gqlRequest<{
+      meetings: {
+        edges: Array<{
+          node: {
+            id: string;
+            name: string;
+            firefliesMeetingId: string;
+            importError: string;
+            lastImportAttempt: string;
+            importAttempts: number;
+            createdAt: string;
+          };
+        }>;
+      };
+    }>(query);
     return response.data?.meetings?.edges?.map((edge) => edge.node) || [];
   }
 
-  async retryFailedMeeting(meetingId: string, updatedData: Partial<MeetingCreateInput>): Promise<void> {
+  async retryFailedMeeting(
+    meetingId: string,
+    updatedData: Partial<MeetingCreateInput>,
+  ): Promise<void> {
     const mutation = `
       mutation UpdateMeeting($where: MeetingWhereUniqueInput!, $data: MeetingUpdateInput!) {
         updateMeeting(where: $where, data: $data) { id }
@@ -567,11 +706,13 @@ export class TwentyCrmService {
       data: {
         ...updatedData,
         lastImportAttempt: new Date().toISOString(),
-        importAttempts: { increment: 1 }
-      }
+        importAttempts: { increment: 1 },
+      },
     };
 
-    await this.gqlRequest<{ updateMeeting: { id: string } }>(mutation, variables);
+    await this.gqlRequest<{ updateMeeting: { id: string } }>(
+      mutation,
+      variables,
+    );
   }
 }
-

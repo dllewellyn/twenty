@@ -37,4 +37,3 @@ describe('WebhookHandler log capture', () => {
     expect(result.debug).toBeUndefined();
   });
 });
-

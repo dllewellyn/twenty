@@ -9,7 +9,7 @@ export type SignatureVerificationResult = {
 export const verifyWebhookSignature = (
   body: string,
   signature: string | undefined,
-  secret: string
+  secret: string,
 ): SignatureVerificationResult => {
   if (!signature) {
     return { isValid: false };
@@ -34,7 +34,7 @@ export const getWebhookSecretFingerprint = (secret: string): string => {
 };
 
 export const isValidFirefliesPayload = (
-  params: unknown
+  params: unknown,
 ): params is FirefliesWebhookPayload => {
   if (!params || typeof params !== 'object') {
     return false;
@@ -51,4 +51,3 @@ export const isValidFirefliesPayload = (
       typeof payload['clientReferenceId'] === 'string')
   );
 };
-

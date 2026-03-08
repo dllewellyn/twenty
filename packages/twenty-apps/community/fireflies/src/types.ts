@@ -52,12 +52,12 @@ export type FirefliesMeetingData = {
     action_items: string[];
     keywords?: string[];
     overview: string;
-    notes?: string;           // Detailed AI-generated meeting notes
-    gist?: string;            // 1-sentence summary
-    bullet_gist?: string;     // Bullet point summary with emojis
-    short_summary?: string;   // Single paragraph summary
-    short_overview?: string;  // Brief overview
-    outline?: string;         // Meeting outline with timestamps
+    notes?: string; // Detailed AI-generated meeting notes
+    gist?: string; // 1-sentence summary
+    bullet_gist?: string; // Bullet point summary with emojis
+    short_summary?: string; // Single paragraph summary
+    short_overview?: string; // Brief overview
+    outline?: string; // Meeting outline with timestamps
     shorthand_bullet?: string;
     // Business+ fields
     topics_discussed?: string[];
@@ -84,9 +84,9 @@ export type FirefliesMeetingData = {
   };
   // URLs
   transcript_url: string;
-  audio_url?: string;      // Pro+
-  video_url?: string;      // Business+
-  meeting_link?: string;   // All plans
+  audio_url?: string; // Pro+
+  video_url?: string; // Business+
+  meeting_link?: string; // All plans
   summary_status?: string;
 };
 
@@ -119,7 +119,11 @@ export type FirefliesTranscriptListOptions = {
 };
 
 // Configuration Types
-export type SummaryStrategy = 'immediate_only' | 'immediate_with_retry' | 'delayed_polling' | 'basic_only';
+export type SummaryStrategy =
+  | 'immediate_only'
+  | 'immediate_with_retry'
+  | 'delayed_polling'
+  | 'basic_only';
 
 export type SummaryFetchConfig = {
   strategy: SummaryStrategy;
@@ -136,7 +140,8 @@ export const FIREFLIES_PLANS = {
   ENTERPRISE: 'enterprise',
 } as const;
 
-export type FirefliesPlan = typeof FIREFLIES_PLANS[keyof typeof FIREFLIES_PLANS];
+export type FirefliesPlan =
+  (typeof FIREFLIES_PLANS)[keyof typeof FIREFLIES_PLANS];
 
 export type WebhookConfig = {
   secret: string;
@@ -169,7 +174,7 @@ export type GraphQLResponse<T> = {
   data: T;
   errors?: Array<{
     message?: string;
-    extensions?: { code?: string }
+    extensions?: { code?: string };
   }>;
 };
 
@@ -180,19 +185,21 @@ export type FindMeetingResponse = {
 };
 
 export type FindPeopleResponse = {
-  people: { edges: Array<{ node: { id: string; emails: { primaryEmail: string } } }> };
+  people: {
+    edges: Array<{ node: { id: string; emails: { primaryEmail: string } } }>;
+  };
 };
 
 export type CreatePersonResponse = {
-  createPerson: { id: string }
+  createPerson: { id: string };
 };
 
 export type CreateNoteResponse = {
-  createNote: { id: string }
+  createNote: { id: string };
 };
 
 export type CreateMeetingResponse = {
-  createMeeting: { id: string }
+  createMeeting: { id: string };
 };
 
 export type Contact = {
@@ -227,9 +234,14 @@ export type MeetingCreateInput = {
   neutralPercent?: number | null;
   videoUrl?: { primaryLinkUrl: string; primaryLinkLabel: string } | null;
   // Import tracking
-  importStatus?: 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'PENDING' | 'RETRYING' | null;
+  importStatus?:
+    | 'SUCCESS'
+    | 'PARTIAL'
+    | 'FAILED'
+    | 'PENDING'
+    | 'RETRYING'
+    | null;
   importError?: string | null;
   lastImportAttempt?: string | null;
   importAttempts?: number | null;
 };
-

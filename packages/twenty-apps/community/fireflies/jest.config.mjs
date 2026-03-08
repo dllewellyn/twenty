@@ -10,13 +10,8 @@ const jestConfig = {
     '<rootDir>/src/**/__tests__/**/*.(test|spec).{js,ts}',
     '<rootDir>/src/**/?(*.)(test|spec).{js,ts}',
   ],
-  setupFilesAfterEnv: [
-    '<rootDir>/src/__tests__/setup.ts'
-  ],
-  collectCoverageFrom: [
-    'src/**/*.{ts,js}',
-    '!src/**/*.d.ts',
-  ],
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
+  collectCoverageFrom: ['src/**/*.{ts,js}', '!src/**/*.d.ts'],
   coverageDirectory: './coverage',
 };
 

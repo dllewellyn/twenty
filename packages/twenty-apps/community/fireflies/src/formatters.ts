@@ -1,4 +1,8 @@
-import type { FirefliesMeetingData, FirefliesSentence, MeetingCreateInput } from './types';
+import type {
+  FirefliesMeetingData,
+  FirefliesSentence,
+  MeetingCreateInput,
+} from './types';
 
 export class MeetingFormatter {
   // Format timestamp from seconds to MM:SS
@@ -35,7 +39,8 @@ export class MeetingFormatter {
 
   static formatNoteBody(meetingData: FirefliesMeetingData): string {
     const meetingDate = meetingData.date ? new Date(meetingData.date) : null;
-    const hasValidDate = meetingDate instanceof Date && !Number.isNaN(meetingDate.getTime());
+    const hasValidDate =
+      meetingDate instanceof Date && !Number.isNaN(meetingDate.getTime());
     const formattedDate = hasValidDate
       ? meetingDate.toLocaleString('en-US', {
           weekday: 'long',
@@ -52,7 +57,9 @@ export class MeetingFormatter {
     noteBody += `**Duration:** ${durationMinutes} minutes\n`;
 
     if (meetingData.participants.length > 0) {
-      const participantNames = meetingData.participants.map(p => p.name).join(', ');
+      const participantNames = meetingData.participants
+        .map((p) => p.name)
+        .join(', ');
       noteBody += `**Participants:** ${participantNames}\n`;
     }
 
@@ -72,7 +79,8 @@ export class MeetingFormatter {
     }
 
     // Meeting outline with timestamps (shorthand_bullet contains the timestamped outline)
-    const outline = meetingData.summary?.outline || meetingData.summary?.shorthand_bullet;
+    const outline =
+      meetingData.summary?.outline || meetingData.summary?.shorthand_bullet;
     if (outline) {
       noteBody += `\n## Outline\n${outline}\n`;
     }
@@ -80,7 +88,7 @@ export class MeetingFormatter {
     // Key topics
     if (meetingData.summary?.topics_discussed?.length) {
       noteBody += `\n## Key Topics\n`;
-      meetingData.summary.topics_discussed.forEach(topic => {
+      meetingData.summary.topics_discussed.forEach((topic) => {
         noteBody += `- ${topic}\n`;
       });
     }
@@ -88,7 +96,7 @@ export class MeetingFormatter {
     // Action items
     if (meetingData.summary?.action_items?.length) {
       noteBody += `\n## Action Items\n`;
-      meetingData.summary.action_items.forEach(item => {
+      meetingData.summary.action_items.forEach((item) => {
         noteBody += `- [ ] ${item}\n`;
       });
     }
@@ -124,8 +132,10 @@ export class MeetingFormatter {
       noteBody += `\n### Meeting Metrics\n`;
       noteBody += `- Questions asked: ${cats.questions}\n`;
       noteBody += `- Tasks identified: ${cats.tasks}\n`;
-      if (cats.metrics > 0) noteBody += `- Metrics mentioned: ${cats.metrics}\n`;
-      if (cats.date_times > 0) noteBody += `- Dates/times discussed: ${cats.date_times}\n`;
+      if (cats.metrics > 0)
+        noteBody += `- Metrics mentioned: ${cats.metrics}\n`;
+      if (cats.date_times > 0)
+        noteBody += `- Dates/times discussed: ${cats.date_times}\n`;
     }
 
     // Resources section
@@ -149,10 +159,13 @@ export class MeetingFormatter {
 
   static toMeetingCreateInput(
     meetingData: FirefliesMeetingData,
-    noteId?: string
+    noteId?: string,
   ): MeetingCreateInput {
     const durationMinutes = Math.round(meetingData.duration);
-    const hasSummary = Boolean(meetingData.summary?.overview || meetingData.summary?.action_items?.length);
+    const hasSummary = Boolean(
+      meetingData.summary?.overview ||
+        meetingData.summary?.action_items?.length,
+    );
     const hasAnalytics = Boolean(meetingData.analytics?.sentiments);
 
     // Build input object with only defined values (omit null fields)
@@ -176,13 +189,13 @@ export class MeetingFormatter {
     if (meetingData.transcript_url?.trim()) {
       input.transcriptUrl = {
         primaryLinkUrl: meetingData.transcript_url,
-        primaryLinkLabel: 'View Transcript'
+        primaryLinkLabel: 'View Transcript',
       };
     }
     if (meetingData.meeting_link?.trim()) {
       input.meetingLink = {
         primaryLinkUrl: meetingData.meeting_link,
-        primaryLinkLabel: 'Join Meeting'
+        primaryLinkLabel: 'Join Meeting',
       };
     }
 
@@ -202,7 +215,7 @@ export class MeetingFormatter {
     if (meetingData.audio_url?.trim()) {
       input.audioUrl = {
         primaryLinkUrl: meetingData.audio_url,
-        primaryLinkLabel: 'Listen to Audio'
+        primaryLinkLabel: 'Listen to Audio',
       };
     }
 
@@ -222,7 +235,7 @@ export class MeetingFormatter {
     if (meetingData.video_url?.trim()) {
       input.videoUrl = {
         primaryLinkUrl: meetingData.video_url,
-        primaryLinkLabel: 'Watch Video'
+        primaryLinkLabel: 'Watch Video',
       };
     }
 
@@ -239,7 +252,7 @@ export class MeetingFormatter {
     meetingId: string,
     title: string,
     error: string,
-    attempts: number = 1
+    attempts: number = 1,
   ): MeetingCreateInput {
     const currentDate = new Date().toISOString();
 
@@ -256,4 +269,3 @@ export class MeetingFormatter {
     };
   }
 }
-

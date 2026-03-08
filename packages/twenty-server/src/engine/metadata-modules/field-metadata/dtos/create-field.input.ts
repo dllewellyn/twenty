@@ -1,7 +1,15 @@
 import { Field, HideField, InputType, OmitType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
-import { IsBoolean, IsArray, IsObject, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
+import {
+  IsBoolean,
+  IsArray,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
 import GraphQLJSON from 'graphql-type-json';
 import { RelationCreationPayload } from 'twenty-shared/types';
 

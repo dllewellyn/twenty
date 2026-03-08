@@ -68,11 +68,11 @@ export const typedTokenHelpers = {
           if (arg.type === 'CallExpression') {
             const callee = arg.callee;
             if (callee.type === 'Identifier') {
-              return callee.name.endsWith('PermissionGuard');
+              return typeof callee?.name === 'string' ? callee.name.endsWith('PermissionGuard') : false;
             }
           }
           if (arg.type === 'Identifier') {
-            return arg.name.endsWith('PermissionGuard');
+            return typeof arg?.name === 'string' ? arg.name.endsWith('PermissionGuard') : false;
           }
           return false;
         });

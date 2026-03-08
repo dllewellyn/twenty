@@ -3,6 +3,7 @@
 Automatically captures meeting notes with AI-generated summaries and insights from Fireflies.ai into your Twenty CRM.
 
 ### Current Status
+
 - Doesn't work with Fireflies webhook yet due to missing headers forwarding in twenty serverless func
 - Meeting ingestion utility scripts are available for individual meeting insertion and historical meetings with filters with yarn meeting:all
 
@@ -27,35 +28,38 @@ Fireflies API access varies by subscription tier. This integration automatically
 
 ### Plan Comparison
 
-| Feature | Free | Pro | Business | Enterprise |
-|---------|:----:|:---:|:--------:|:----------:|
-| **API Rate Limit** | 50/day | 50/day | 60/min | 60/min |
-| **Basic Data** (title, date, duration) | ✅ | ✅ | ✅ | ✅ |
-| **Participants List** | ✅ | ✅ | ✅ | ✅ |
-| **Transcript URL** | ✅ | ✅ | ✅ | ✅ |
-| **Speakers** | ❌ | ✅ | ✅ | ✅ |
-| **Summary** (overview, keywords) | ❌ | ✅ | ✅ | ✅ |
-| **Audio URL** | ❌ | ✅ | ✅ | ✅ |
-| **Action Items** | ❌ | ❌ | ✅ | ✅ |
-| **Topics Discussed** | ❌ | ❌ | ✅ | ✅ |
-| **Video URL** | ❌ | ❌ | ✅ | ✅ |
-| **Sentiment Analytics** | ❌ | ❌ | ✅ | ✅ |
-| **Meeting Attendees (detailed)** | ❌ | ❌ | ✅ | ✅ |
+| Feature                                |  Free  |  Pro   | Business | Enterprise |
+| -------------------------------------- | :----: | :----: | :------: | :--------: |
+| **API Rate Limit**                     | 50/day | 50/day |  60/min  |   60/min   |
+| **Basic Data** (title, date, duration) |   ✅   |   ✅   |    ✅    |     ✅     |
+| **Participants List**                  |   ✅   |   ✅   |    ✅    |     ✅     |
+| **Transcript URL**                     |   ✅   |   ✅   |    ✅    |     ✅     |
+| **Speakers**                           |   ❌   |   ✅   |    ✅    |     ✅     |
+| **Summary** (overview, keywords)       |   ❌   |   ✅   |    ✅    |     ✅     |
+| **Audio URL**                          |   ❌   |   ✅   |    ✅    |     ✅     |
+| **Action Items**                       |   ❌   |   ❌   |    ✅    |     ✅     |
+| **Topics Discussed**                   |   ❌   |   ❌   |    ✅    |     ✅     |
+| **Video URL**                          |   ❌   |   ❌   |    ✅    |     ✅     |
+| **Sentiment Analytics**                |   ❌   |   ❌   |    ✅    |     ✅     |
+| **Meeting Attendees (detailed)**       |   ❌   |   ❌   |    ✅    |     ✅     |
 
 ### What You'll Get Per Plan
 
 **Free Plan:**
+
 - Meeting title, date, duration
 - Participant names/emails (basic)
 - Link to transcript
 
 **Pro Plan:**
+
 - Everything in Free, plus:
 - Speaker identification
 - AI summary (overview + keywords)
 - Audio recording URL
 
 **Business Plan:**
+
 - Everything in Pro, plus:
 - Action items extraction
 - Topics discussed
@@ -66,6 +70,7 @@ Fireflies API access varies by subscription tier. This integration automatically
 ### Configuration
 
 Set your plan in `.env`:
+
 ```bash
 FIREFLIES_PLAN=free  # Options: free, pro, business, enterprise
 ```
@@ -75,6 +80,7 @@ FIREFLIES_PLAN=free  # Options: free, pro, business, enterprise
 ## What Gets Captured
 
 ### Summary & Insights
+
 - **Action Items** - Concrete next steps and commitments
 - **Keywords** - Key topics and themes discussed
 - **Overview** - Executive summary of the meeting
@@ -82,10 +88,12 @@ FIREFLIES_PLAN=free  # Options: free, pro, business, enterprise
 - **Meeting Type** - Context (sales call, standup, demo, etc.)
 
 ### Analytics
+
 - **Sentiment Analysis** - Positive/negative/neutral percentages for deal health
 - **Engagement Metrics** - Participation levels (future)
 
 ### Resources
+
 - **Transcript Link** - Quick access to full Fireflies transcript
 - **Recording Link** - Video/audio recording when available
 
@@ -114,6 +122,7 @@ yarn setup:fields
 ⚠️ **Important**: The integration uses **conservative retry settings** to respect Fireflies' 50 requests/day API limit with free/pro plans. You may increase for more reactivity with higher plans.
 
 **Required Environment Variables:**
+
 ```bash
 FIREFLIES_API_KEY=your_api_key          # From Fireflies settings
 TWENTY_API_KEY=your_api_key             # From Twenty CRM settings
@@ -121,6 +130,7 @@ SERVER_URL=https://your-domain.twenty.com
 ```
 
 **Optional (Recommended):**
+
 ```bash
 FIREFLIES_WEBHOOK_SECRET=your_secret    # For webhook security
 ```
@@ -130,28 +140,31 @@ FIREFLIES_WEBHOOK_SECRET=your_secret    # For webhook security
 ### What Gets Created
 
 #### Basic Installation (Step 2)
+
 The `app sync` command creates:
+
 - ✅ Meeting object with basic `name` field
 - ✅ Webhook endpoint at `/s/webhook/fireflies`
 
 #### After Custom Fields Setup (Step 4)
+
 The `setup:fields` script adds 13 custom fields to store rich Fireflies data:
 
-| Field Name | Type | Label | Description |
-|------------|------|-------|-------------|
-| `notes` | RICH_TEXT | Meeting Notes | AI-generated summary with overview, topics, action items, and insights |
-| `meetingDate` | DATE_TIME | Meeting Date | Date and time when the meeting occurred |
-| `duration` | NUMBER | Duration (minutes) | Meeting duration in minutes |
-| `meetingType` | TEXT | Meeting Type | Type of meeting (e.g., Sales Call, Sprint Planning, 1:1) |
-| `keywords` | TEXT | Keywords | Key topics and themes discussed (comma-separated) |
-| `sentimentScore` | NUMBER | Sentiment Score | Overall meeting sentiment (0-1 scale, 1 = most positive) |
-| `positivePercent` | NUMBER | Positive % | Percentage of positive sentiment in conversation |
-| `negativePercent` | NUMBER | Negative % | Percentage of negative sentiment in conversation |
-| `actionItemsCount` | NUMBER | Action Items | Number of action items identified |
-| `transcriptUrl` | LINKS | Transcript URL | Link to full transcript in Fireflies |
-| `recordingUrl` | LINKS | Recording URL | Link to video/audio recording in Fireflies |
-| `firefliesMeetingId` | TEXT | Fireflies Meeting ID | Unique identifier from Fireflies |
-| `organizerEmail` | TEXT | Organizer Email | Email address of the meeting organizer |
+| Field Name           | Type      | Label                | Description                                                            |
+| -------------------- | --------- | -------------------- | ---------------------------------------------------------------------- |
+| `notes`              | RICH_TEXT | Meeting Notes        | AI-generated summary with overview, topics, action items, and insights |
+| `meetingDate`        | DATE_TIME | Meeting Date         | Date and time when the meeting occurred                                |
+| `duration`           | NUMBER    | Duration (minutes)   | Meeting duration in minutes                                            |
+| `meetingType`        | TEXT      | Meeting Type         | Type of meeting (e.g., Sales Call, Sprint Planning, 1:1)               |
+| `keywords`           | TEXT      | Keywords             | Key topics and themes discussed (comma-separated)                      |
+| `sentimentScore`     | NUMBER    | Sentiment Score      | Overall meeting sentiment (0-1 scale, 1 = most positive)               |
+| `positivePercent`    | NUMBER    | Positive %           | Percentage of positive sentiment in conversation                       |
+| `negativePercent`    | NUMBER    | Negative %           | Percentage of negative sentiment in conversation                       |
+| `actionItemsCount`   | NUMBER    | Action Items         | Number of action items identified                                      |
+| `transcriptUrl`      | LINKS     | Transcript URL       | Link to full transcript in Fireflies                                   |
+| `recordingUrl`       | LINKS     | Recording URL        | Link to video/audio recording in Fireflies                             |
+| `firefliesMeetingId` | TEXT      | Fireflies Meeting ID | Unique identifier from Fireflies                                       |
+| `organizerEmail`     | TEXT      | Organizer Email      | Email address of the meeting organizer                                 |
 
 **Note:** Without custom fields, meetings will be created with just the title. The rich summary data will only be stored in Notes for 1-on-1 meetings.
 
@@ -163,18 +176,19 @@ Check [.env.example](./.env.example)
 
 ### Summary Processing Strategies
 
-| Strategy | Description | Use Case |
-|----------|-------------|----------|
-| `immediate_only` | Single fetch attempt, no retries | Fast processing, accept missing summaries if not ready |
-| `immediate_with_retry` | Attempts immediate fetch, retries with backoff | **Recommended** - Balances speed and reliability |
-| `delayed_polling` | Schedules background polling | For heavily loaded systems |
-| `basic_only` | Creates records without waiting for summaries | For basic transcript archival only |
+| Strategy               | Description                                    | Use Case                                               |
+| ---------------------- | ---------------------------------------------- | ------------------------------------------------------ |
+| `immediate_only`       | Single fetch attempt, no retries               | Fast processing, accept missing summaries if not ready |
+| `immediate_with_retry` | Attempts immediate fetch, retries with backoff | **Recommended** - Balances speed and reliability       |
+| `delayed_polling`      | Schedules background polling                   | For heavily loaded systems                             |
+| `basic_only`           | Creates records without waiting for summaries  | For basic transcript archival only                     |
 
 ## Webhook Setup
 
 ### Step 1: Get Your Webhook URL
 
 Your webhook endpoint will be:
+
 ```
 https://your-twenty-instance.com/s/webhook/fireflies
 ```
@@ -183,13 +197,14 @@ https://your-twenty-instance.com/s/webhook/fireflies
 
 1. Log into Fireflies.ai
 2. https://app.fireflies.ai/settings#DeveloperSettings
-4. Enter your webhook URL
-5. Set **Secret**: Generate from there and set value of `FIREFLIES_WEBHOOK_SECRET`
-6. Save configuration
+3. Enter your webhook URL
+4. Set **Secret**: Generate from there and set value of `FIREFLIES_WEBHOOK_SECRET`
+5. Save configuration
 
 ### Step 3: Verify Webhook
 
 The integration uses **HMAC SHA-256 signature verification**:
+
 - Fireflies sends `x-hub-signature` header
 - Twenty verifies signature using your webhook secret
 - Invalid signatures are rejected immediately
@@ -202,10 +217,10 @@ The integration uses **HMAC SHA-256 signature verification**:
 ## Utilities for meeting insertion (workarounds)
 
 - Ingest a specific Fireflies meeting into Twenty:
-`yarn meeting:ingest <meetingId>` or `MEETING_ID=... yarn meeting:ingest`
+  `yarn meeting:ingest <meetingId>` or `MEETING_ID=... yarn meeting:ingest`
 
 - Fetch all/historical Fireflies meetings into Twenty:
-`yarn meeting:all [--from 2024-01-01] [--to 2024-02-01] [--organizer a@x.com] [--participant b@x.com] [--channel <channelId>] [--mine] [--dry-run]`
+  `yarn meeting:all [--from 2024-01-01] [--to 2024-02-01] [--organizer a@x.com] [--participant b@x.com] [--channel <channelId>] [--mine] [--dry-run]`
 
   - Filters (combine as needed):
     - `--from` / `--to`: ISO or date string range filter
@@ -271,26 +286,31 @@ npm test -- --coverage
 **Participants:** Sarah Sales, John Client
 
 ## Overview
+
 Successful product demonstration with positive client feedback.
 Client expressed strong interest in the enterprise plan.
 
 ## Key Topics
+
 - product features
 - pricing discussion
 - integration capabilities
 - support options
 
 ## Action Items
+
 - Follow up with pricing proposal by Friday
 - Schedule technical deep-dive next week
 - Share case studies from similar clients
 
 ## Insights
+
 **Keywords:** product demo, pricing, technical requirements, integration
 **Sentiment:** 75% positive, 10% negative, 15% neutral
 **Meeting Type:** Sales Call
 
 ## Resources
+
 [View Full Transcript](https://app.fireflies.ai/transcript/xxx)
 [Watch Recording](https://app.fireflies.ai/recording/xxx)
 ```
@@ -307,6 +327,7 @@ Client expressed strong interest in the enterprise plan.
 Next iterations would enhance the **intelligence layer** to:
 
 ### AI-Powered Insights
+
 - **Extract pain points, objections & buying signals** automatically from transcripts
 - **Calculate deal health scores** based on conversation sentiment trends
 - **Auto-create contextualized tasks** with AI-suggested next steps and priorities
@@ -314,12 +335,14 @@ Next iterations would enhance the **intelligence layer** to:
 - **Track conversation patterns** that correlate with deal success
 
 ### Enhanced Analytics
+
 - **Action item completion tracking** across deals
 - **Sentiment trend analysis** over time for account health
 - **Speaking time analysis** for meeting engagement insights
 - **Topic clustering** for product/feature interest patterns
 
 ### Workflow Automation
+
 - **Auto-assign follow-up tasks** based on action items
 - **Smart notifications** for urgent follow-ups
 - **Deal stage progression** based on meeting outcomes
@@ -327,5 +350,4 @@ Next iterations would enhance the **intelligence layer** to:
 
 **Integration**: Fireflies webhook → AI processing layer → Enhanced Twenty records
 
-*This would require the current MVP to be stabilized and discussions about intelligence layer architecture and data privacy considerations.*
-
+_This would require the current MVP to be stabilized and discussions about intelligence layer architecture and data privacy considerations._

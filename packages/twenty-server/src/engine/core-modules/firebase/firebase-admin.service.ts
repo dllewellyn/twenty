@@ -1,4 +1,9 @@
-import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { FIREBASE_ADMIN_APP } from './firebase.constants';
 
@@ -16,11 +21,15 @@ export class FirebaseAdminService {
       return this.firebaseApp.auth();
     } catch (error) {
       this.logger.error('Failed to initialize Firebase Auth', error);
-      throw new InternalServerErrorException('Failed to initialize Firebase Auth');
+      throw new InternalServerErrorException(
+        'Failed to initialize Firebase Auth',
+      );
     }
   }
 
-  public async verifyIdToken(token: string): Promise<admin.auth.DecodedIdToken> {
+  public async verifyIdToken(
+    token: string,
+  ): Promise<admin.auth.DecodedIdToken> {
     try {
       return await this.auth.verifyIdToken(token);
     } catch (error) {

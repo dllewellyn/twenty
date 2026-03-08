@@ -60,7 +60,9 @@ describe('FirebaseAdminService', () => {
       const result = await service.verifyIdToken('valid-token');
 
       expect(result).toBe(mockDecodedToken);
-      expect(mockAuthInstance.verifyIdToken).toHaveBeenCalledWith('valid-token');
+      expect(mockAuthInstance.verifyIdToken).toHaveBeenCalledWith(
+        'valid-token',
+      );
     });
 
     it('should throw error when verification fails', async () => {
@@ -70,7 +72,9 @@ describe('FirebaseAdminService', () => {
       };
       mockFirebaseApp.auth.mockReturnValue(mockAuthInstance);
 
-      await expect(service.verifyIdToken('invalid-token')).rejects.toThrow(mockError);
+      await expect(service.verifyIdToken('invalid-token')).rejects.toThrow(
+        mockError,
+      );
     });
   });
 });

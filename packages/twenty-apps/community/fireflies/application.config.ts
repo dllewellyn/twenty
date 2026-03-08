@@ -3,7 +3,8 @@ import { type ApplicationConfig } from 'twenty-sdk';
 const config: ApplicationConfig = {
   universalIdentifier: 'a4df0c0f-c65e-44e5-8436-24814182d4ac',
   displayName: 'Fireflies',
-  description: 'Sync Fireflies meeting summaries, sentiment, and action items into Twenty.',
+  description:
+    'Sync Fireflies meeting summaries, sentiment, and action items into Twenty.',
   icon: 'IconMicrophone',
   applicationVariables: {
     FIREFLIES_WEBHOOK_SECRET: {
@@ -31,7 +32,8 @@ const config: ApplicationConfig = {
     },
     SERVER_URL: {
       universalIdentifier: '9b3a5e8e-5973-4e6b-a059-2966075652aa',
-      description: 'Base URL for the Twenty workspace (default: http://localhost:3000)',
+      description:
+        'Base URL for the Twenty workspace (default: http://localhost:3000)',
       value: 'http://localhost:3000',
     },
     AUTO_CREATE_CONTACTS: {
@@ -41,17 +43,20 @@ const config: ApplicationConfig = {
     },
     LOG_LEVEL: {
       universalIdentifier: '2b019cf1-d198-48dd-943e-110571aa541e',
-      description: 'Log level: silent, error, warn, info, debug (default: error)',
+      description:
+        'Log level: silent, error, warn, info, debug (default: error)',
       value: 'error',
     },
     CAPTURE_LOGS: {
       universalIdentifier: 'adbcc267-309d-49b2-af71-76f1299d863e',
-      description: 'Capture logs in webhook response for debugging (true/false)',
+      description:
+        'Capture logs in webhook response for debugging (true/false)',
       value: 'true',
     },
     FIREFLIES_SUMMARY_STRATEGY: {
       universalIdentifier: '562b43d9-cd47-4ec1-ae16-5cc7ebc9729b',
-      description: 'Summary fetch strategy: immediate_only, immediate_with_retry, delayed_polling, or basic_only',
+      description:
+        'Summary fetch strategy: immediate_only, immediate_with_retry, delayed_polling, or basic_only',
       value: 'immediate_with_retry',
     },
     FIREFLIES_RETRY_ATTEMPTS: {
@@ -71,11 +76,11 @@ const config: ApplicationConfig = {
     },
     FIREFLIES_MAX_POLLS: {
       universalIdentifier: '84d54c97-5572-4c01-9039-764ab3aa87b8',
-      description: 'Maximum number of polling attempts when waiting for summaries',
+      description:
+        'Maximum number of polling attempts when waiting for summaries',
       value: '10',
     },
   },
 };
 
 export default config;
-

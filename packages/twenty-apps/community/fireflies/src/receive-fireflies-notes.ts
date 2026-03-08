@@ -4,7 +4,7 @@ import { WebhookHandler } from './webhook-handler';
 
 export const main = async (
   params: unknown,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
 ): Promise<ProcessResult> => {
   const handler = new WebhookHandler();
   return handler.handle(params, headers);
@@ -26,4 +26,3 @@ export const config: FunctionConfig = {
     },
   ],
 };
-
