@@ -1,4 +1,4 @@
-I will update the `AGENTS.md` file with the lessons learned from the implementation of the Firebase Authentication Guard and Strategy, focusing on hybrid authentication, passport customization, and maintaining type safety.
+I will update the `AGENTS.md` file with the lessons learned from the recent repository-wide lint and formatting fix, focusing on defensive AST traversal, pragmatic type management in infrastructure, and linting best practices.
 
 # Agent Memory & Performance
 
@@ -32,3 +32,9 @@ I will update the `AGENTS.md` file with the lessons learned from the implementat
     - **Reactive Token Updates**: Switched from `onAuthStateChanged` to `onIdTokenChanged` in the `useOnAuthStateChanged` hook to proactively capture background token rotations and keep local state synchronized with Firebase's internal rotation schedule.
     - **Graceful Legacy Interop**: Maintained a fallback to `getTokenPair()` in the `authLink` to provide resilience during the transition phase where some parts of the system might still rely on legacy token storage.
     - **Code Cleanup**: Successfully deprecated legacy `renewToken` and `renewTokenMutation` in `AuthService`, significantly reducing the complexity of the authentication service layer.
+- **2026-03-08**: Conducted a repository-wide lint and formatting cleanup. Key technical insights:
+    - **Defensive AST Traversal**: When writing custom lint rules (e.g., `twenty-oxlint-rules`), utilizing optional chaining for AST node properties (e.g., `node.typeName?.name?.endsWith()`) is essential to prevent `TypeError` when nodes do not match the expected structure (e.g., `TSQualifiedName` vs. `Identifier`).
+    - **Pragmatic Type Management**: In complex TypeORM-to-NoSQL query translation, retaining `any` is occasionally a pragmatic choice to unblock builds when proper type narrowing or generic constraints are missing, provided the implementation is verified by integration tests.
+    - **Infrastructure Logging**: In low-level repositories, using `console.error` with localized `eslint-disable-next-line no-console` can be safer than higher-level `Logger` abstractions to avoid circular dependencies or initialization race conditions during early-stage refactors.
+    - **Lint Compliance via Prefixing**: Prefixing unused but required arguments with `_` (e.g., `_error`) is the standard practice for satisfying `no-unused-vars` rules while maintaining interface or method signature compliance.
+    - **Automated Consistency**: Regular application of `prettier --write` across all workspaces ensures codebase consistency and reduces review friction by eliminating non-functional formatting changes from feature PRs.
