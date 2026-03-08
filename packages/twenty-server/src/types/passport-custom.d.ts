@@ -6,8 +6,11 @@ declare module 'passport-custom' {
     passReqToCallback?: boolean;
   }
 
-  type VerifyCallback = (req: Request, done: (error: any, user?: any, info?: any) => void) => void;
-  type VerifyFunction = (req: Request) => Promise<any> | any;
+  type VerifyCallback = (
+    req: Request,
+    done: (error: unknown, user?: unknown, info?: unknown) => void,
+  ) => void;
+  type VerifyFunction = (req: Request) => Promise<unknown> | unknown;
 
   export class Strategy extends PassportStrategy {
     constructor(verify: VerifyCallback);

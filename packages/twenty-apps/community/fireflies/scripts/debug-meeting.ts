@@ -44,7 +44,7 @@ const main = async (): Promise<void> => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${FIREFLIES_API_KEY}`,
+      Authorization: `Bearer ${FIREFLIES_API_KEY}`,
     },
     body: JSON.stringify({ query, variables: { transcriptId: meetingId } }),
   });
@@ -63,11 +63,20 @@ const main = async (): Promise<void> => {
   if (json.data?.transcript?.summary) {
     const s = json.data.transcript.summary;
     console.log('\n=== Summary Fields Status ===');
-    console.log('overview:', s.overview ? `✓ (${s.overview.length} chars)` : '✗ empty');
+    console.log(
+      'overview:',
+      s.overview ? `✓ (${s.overview.length} chars)` : '✗ empty',
+    );
     console.log('notes:', s.notes ? `✓ (${s.notes.length} chars)` : '✗ empty');
     console.log('gist:', s.gist ? `✓ (${s.gist.length} chars)` : '✗ empty');
-    console.log('bullet_gist:', s.bullet_gist ? `✓ (${s.bullet_gist.length} chars)` : '✗ empty');
-    console.log('outline:', s.outline ? `✓ (${s.outline.length} chars)` : '✗ empty');
+    console.log(
+      'bullet_gist:',
+      s.bullet_gist ? `✓ (${s.bullet_gist.length} chars)` : '✗ empty',
+    );
+    console.log(
+      'outline:',
+      s.outline ? `✓ (${s.outline.length} chars)` : '✗ empty',
+    );
     console.log('action_items:', s.action_items?.length || 0, 'items');
     console.log('topics_discussed:', s.topics_discussed?.length || 0, 'topics');
     console.log('keywords:', s.keywords?.length || 0, 'keywords');

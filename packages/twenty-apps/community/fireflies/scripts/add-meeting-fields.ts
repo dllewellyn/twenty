@@ -119,7 +119,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'TEXT',
     name: 'transcript',
     label: 'Full Transcript',
-    description: 'Full meeting transcript with speaker names and timestamps [Pro+]',
+    description:
+      'Full meeting transcript with speaker names and timestamps [Pro+]',
     icon: 'IconFileText',
     isNullable: true,
   },
@@ -127,7 +128,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'TEXT',
     name: 'overview',
     label: 'Overview',
-    description: 'AI-generated meeting summary (maps to: summary.overview) [Pro+]',
+    description:
+      'AI-generated meeting summary (maps to: summary.overview) [Pro+]',
     icon: 'IconFileDescription',
     isNullable: true,
   },
@@ -135,7 +137,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'TEXT',
     name: 'notes',
     label: 'AI Notes',
-    description: 'Detailed AI-generated meeting notes (maps to: summary.notes) [Pro+]',
+    description:
+      'Detailed AI-generated meeting notes (maps to: summary.notes) [Pro+]',
     icon: 'IconNotes',
     isNullable: true,
   },
@@ -161,7 +164,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'TEXT',
     name: 'meetingType',
     label: 'Meeting Type',
-    description: 'AI-detected meeting type (maps to: summary.meeting_type) [Business+]',
+    description:
+      'AI-detected meeting type (maps to: summary.meeting_type) [Business+]',
     icon: 'IconTag',
     isNullable: true,
   },
@@ -169,7 +173,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'TEXT',
     name: 'topics',
     label: 'Topics Discussed',
-    description: 'Topics covered in meeting (maps to: summary.topics_discussed) [Business+]',
+    description:
+      'Topics covered in meeting (maps to: summary.topics_discussed) [Business+]',
     icon: 'IconListDetails',
     isNullable: true,
   },
@@ -177,7 +182,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'NUMBER',
     name: 'actionItemsCount',
     label: 'Action Items',
-    description: 'Number of action items (count of: summary.action_items) [Business+]',
+    description:
+      'Number of action items (count of: summary.action_items) [Business+]',
     icon: 'IconCheckbox',
     isNullable: true,
   },
@@ -185,7 +191,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'NUMBER',
     name: 'positivePercent',
     label: 'Positive %',
-    description: 'Positive sentiment % (maps to: analytics.sentiments.positive_pct) [Business+]',
+    description:
+      'Positive sentiment % (maps to: analytics.sentiments.positive_pct) [Business+]',
     icon: 'IconThumbUp',
     isNullable: true,
   },
@@ -193,7 +200,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'NUMBER',
     name: 'negativePercent',
     label: 'Negative %',
-    description: 'Negative sentiment % (maps to: analytics.sentiments.negative_pct) [Business+]',
+    description:
+      'Negative sentiment % (maps to: analytics.sentiments.negative_pct) [Business+]',
     icon: 'IconThumbDown',
     isNullable: true,
   },
@@ -201,7 +209,8 @@ const MEETING_FIELDS: FieldDefinition[] = [
     type: 'NUMBER',
     name: 'neutralPercent',
     label: 'Neutral %',
-    description: 'Neutral sentiment % (maps to: analytics.sentiments.neutral_pct) [Business+]',
+    description:
+      'Neutral sentiment % (maps to: analytics.sentiments.neutral_pct) [Business+]',
     icon: 'IconMoodNeutral',
     isNullable: true,
   },
@@ -256,19 +265,24 @@ const MEETING_FIELDS: FieldDefinition[] = [
   },
 ];
 
-const graphqlRequest = async (query: string, variables: Record<string, unknown> = {}) => {
+const graphqlRequest = async (
+  query: string,
+  variables: Record<string, unknown> = {},
+) => {
   const response = await fetch(`${SERVER_URL}/metadata`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_KEY}`,
+      Authorization: `Bearer ${API_KEY}`,
     },
     body: JSON.stringify({ query, variables }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`GraphQL request failed (${response.status}): ${errorText}`);
+    throw new Error(
+      `GraphQL request failed (${response.status}): ${errorText}`,
+    );
   }
 
   const json = await response.json();
@@ -313,7 +327,9 @@ const findMeetingObject = async () => {
   );
 
   if (!meetingEdge) {
-    throw new Error('Meeting object not found. Please run "npx twenty-cli app sync" first.');
+    throw new Error(
+      'Meeting object not found. Please run "npx twenty-cli app sync" first.',
+    );
   }
 
   return meetingEdge.node;
@@ -405,14 +421,18 @@ const main = async () => {
     // Step 1: Find Meeting and Note objects
     console.log('📋 Finding Meeting object...');
     const meetingObject = await findMeetingObject();
-    console.log(`✅ Found Meeting object: ${meetingObject.labelSingular ?? meetingObject.nameSingular ?? 'Meeting'} (ID: ${meetingObject.id})\n`);
+    console.log(
+      `✅ Found Meeting object: ${meetingObject.labelSingular ?? meetingObject.nameSingular ?? 'Meeting'} (ID: ${meetingObject.id})\n`,
+    );
 
     console.log('📋 Finding Note object...');
     const noteObject = await findNoteObject();
-    console.log(`✅ Found Note object: ${noteObject.labelSingular ?? noteObject.nameSingular ?? 'Note'} (ID: ${noteObject.id})\n`);
+    console.log(
+      `✅ Found Note object: ${noteObject.labelSingular ?? noteObject.nameSingular ?? 'Note'} (ID: ${noteObject.id})\n`,
+    );
 
     // Step 2: Update note field with relationCreationPayload
-    const fieldsToCreate = MEETING_FIELDS.map(field => {
+    const fieldsToCreate = MEETING_FIELDS.map((field) => {
       if (field.name === 'note' && field.type === 'RELATION') {
         return {
           ...field,
@@ -428,7 +448,8 @@ const main = async () => {
     });
 
     // Step 3: Check existing fields
-    const existingFields = meetingObject.fields?.edges?.map((edge: any) => edge.node.name) || [];
+    const existingFields =
+      meetingObject.fields?.edges?.map((edge: any) => edge.node.name) || [];
     console.log(`📌 Existing fields: ${existingFields.join(', ')}\n`);
 
     // Step 4: Create custom fields
@@ -456,7 +477,9 @@ const main = async () => {
           skippedCount++;
         }
       } catch (error) {
-        console.error(`   ❌ ${field.name} - failed: ${error instanceof Error ? error.message : String(error)}`);
+        console.error(
+          `   ❌ ${field.name} - failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
         failedCount++;
       }
     }
@@ -470,7 +493,9 @@ const main = async () => {
     console.log('='.repeat(60));
 
     if (failedCount > 0) {
-      console.log('\n⚠️  Some fields failed to create. Please check the errors above.');
+      console.log(
+        '\n⚠️  Some fields failed to create. Please check the errors above.',
+      );
       process.exit(1);
     }
 
@@ -479,16 +504,17 @@ const main = async () => {
     } else if (createdCount > 0) {
       console.log('\n✨ Custom fields added successfully!\n');
     }
-
   } catch (error) {
-    console.error('\n❌ Error:', error instanceof Error ? error.message : String(error));
+    console.error(
+      '\n❌ Error:',
+      error instanceof Error ? error.message : String(error),
+    );
     process.exit(1);
   }
-}
+};
 
 // Run the script
 main().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });
-

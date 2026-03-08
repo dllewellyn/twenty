@@ -55,7 +55,9 @@ if (!twentyApiKey) {
   process.exit(1);
 }
 if (!webhookSecret) {
-  console.error('❌ FIREFLIES_WEBHOOK_SECRET is required to generate signature');
+  console.error(
+    '❌ FIREFLIES_WEBHOOK_SECRET is required to generate signature',
+  );
   process.exit(1);
 }
 
@@ -90,4 +92,3 @@ main().catch((error) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
-

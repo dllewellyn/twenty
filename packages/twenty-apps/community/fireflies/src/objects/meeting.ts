@@ -11,4 +11,3 @@ import { Object } from 'twenty-sdk';
   icon: 'IconVideo',
 })
 export class Meeting {}
-

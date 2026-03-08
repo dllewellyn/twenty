@@ -22,7 +22,10 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 import { FirefliesApiClient } from '../src/fireflies-api-client';
-import { type HistoricalImportFilters, HistoricalImporter } from '../src/historical-importer';
+import {
+  type HistoricalImportFilters,
+  HistoricalImporter,
+} from '../src/historical-importer';
 import { createLogger } from '../src/logger';
 import { TwentyCrmService } from '../src/twenty-crm-service';
 import {
@@ -218,4 +221,3 @@ main().catch((error) => {
   }
   process.exit(1);
 });
-

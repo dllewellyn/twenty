@@ -1,11 +1,10 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
 import { Request } from 'express';
 
 import { AuthException } from 'src/engine/core-modules/auth/auth.exception';
-import { FirebaseAuthGuard } from 'src/engine/core-modules/auth/guards/firebase-auth.guard';
+
 import { FirebaseAuthStrategy } from 'src/engine/core-modules/auth/strategies/firebase.auth.strategy';
 import { FirebaseAdminService } from 'src/engine/core-modules/firebase/firebase-admin.service';
 import { UserWorkspaceEntity } from 'src/engine/core-modules/user-workspace/user-workspace.entity';
@@ -86,9 +85,7 @@ describe('FirebaseAuthStrategy & FirebaseAuthGuard', () => {
 
     it('should throw AuthException if token is missing', async () => {
       const request = { headers: {} } as Request;
-      await expect(strategy.validate(request)).rejects.toThrow(
-        AuthException,
-      );
+      await expect(strategy.validate(request)).rejects.toThrow(AuthException);
     });
 
     it('should throw AuthException if token verification fails', async () => {
@@ -120,7 +117,11 @@ describe('FirebaseAuthStrategy & FirebaseAuthGuard', () => {
       const mockWorkspace = { id: 'workspace-1', activationStatus: 'ACTIVE' };
       workspaceRepository.findOneBy.mockResolvedValue(mockWorkspace);
 
-      const mockUserWorkspace = { id: 'uw-1', userId: 'user-1', workspaceId: 'workspace-1' };
+      const mockUserWorkspace = {
+        id: 'uw-1',
+        userId: 'user-1',
+        workspaceId: 'workspace-1',
+      };
       userWorkspaceRepository.findOne.mockResolvedValue(mockUserWorkspace);
 
       const context = await strategy.validate(validRequest);
@@ -145,11 +146,18 @@ describe('FirebaseAuthStrategy & FirebaseAuthGuard', () => {
       const mockUser = { id: 'user-1', email: 'test@example.com' };
       userRepository.findOne.mockResolvedValue(mockUser);
 
-      const mockFirstUserWorkspace = { id: 'uw-1', userId: 'user-1', workspaceId: 'first-workspace' };
+      const mockFirstUserWorkspace = {
+        id: 'uw-1',
+        userId: 'user-1',
+        workspaceId: 'first-workspace',
+      };
 
       userWorkspaceRepository.findOne.mockResolvedValue(mockFirstUserWorkspace);
 
-      const mockWorkspace = { id: 'first-workspace', activationStatus: 'ACTIVE' };
+      const mockWorkspace = {
+        id: 'first-workspace',
+        activationStatus: 'ACTIVE',
+      };
       workspaceRepository.findOneBy.mockResolvedValue(mockWorkspace);
 
       const context = await strategy.validate(reqWithoutHeader);

@@ -36,11 +36,13 @@ if (existsSync(envPath)) {
 // Configuration
 const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000';
 const TWENTY_API_KEY = process.env.TWENTY_API_KEY;
-const FIREFLIES_WEBHOOK_SECRET = process.env.FIREFLIES_WEBHOOK_SECRET || 'test_secret';
+const FIREFLIES_WEBHOOK_SECRET =
+  process.env.FIREFLIES_WEBHOOK_SECRET || 'test_secret';
 const _FIREFLIES_API_KEY = process.env.FIREFLIES_API_KEY || 'test_api_key';
 
 // Test meeting data (simulating Fireflies API response)
-const TEST_MEETING_ID = process.env.MEETING_ID || 'test-meeting-local-' + Date.now();
+const TEST_MEETING_ID =
+  process.env.MEETING_ID || 'test-meeting-local-' + Date.now();
 const CLIENT_REFERENCE_ID = process.env.CLIENT_REFERENCE_ID;
 
 const TEST_WEBHOOK_PAYLOAD = {
@@ -65,7 +67,8 @@ const MOCK_FIREFLIES_RESPONSE = {
       summary: {
         action_items: ['Complete integration testing', 'Review webhook logs'],
         keywords: ['testing', 'integration', 'webhook'],
-        overview: 'This is a test meeting to verify the Fireflies webhook integration.',
+        overview:
+          'This is a test meeting to verify the Fireflies webhook integration.',
         gist: 'Quick test summary',
         topics_discussed: ['Webhook testing', 'Integration verification'],
         meeting_type: 'Test',
@@ -111,7 +114,9 @@ const main = async () => {
   console.log('🧪 Testing Fireflies Webhook Against Local Twenty Instance\n');
   console.log(`📍 Server URL: ${SERVER_URL}`);
   console.log(`🔑 API Key: ${TWENTY_API_KEY ? '✅ Configured' : '❌ Missing'}`);
-  console.log(`🔐 Webhook Secret: ${FIREFLIES_WEBHOOK_SECRET ? '✅ Configured' : '⚠️  Using test secret'}\n`);
+  console.log(
+    `🔐 Webhook Secret: ${FIREFLIES_WEBHOOK_SECRET ? '✅ Configured' : '⚠️  Using test secret'}\n`,
+  );
 
   // Validation
   if (!TWENTY_API_KEY) {
@@ -122,7 +127,10 @@ const main = async () => {
 
   // Prepare webhook payload
   const unsignedBody = JSON.stringify(TEST_WEBHOOK_PAYLOAD);
-  const signature = generateHMACSignature(unsignedBody, FIREFLIES_WEBHOOK_SECRET);
+  const signature = generateHMACSignature(
+    unsignedBody,
+    FIREFLIES_WEBHOOK_SECRET,
+  );
   const payloadWithSignature = {
     ...TEST_WEBHOOK_PAYLOAD,
     'x-hub-signature': signature,
@@ -131,7 +139,9 @@ const main = async () => {
 
   console.log('📤 Sending webhook payload:');
   console.log(JSON.stringify(payloadWithSignature, null, 2));
-  console.log('\nℹ️  Signature is sent both as header (preferred) and in payload as fallback (headers are not passed to serverless functions)\n');
+  console.log(
+    '\nℹ️  Signature is sent both as header (preferred) and in payload as fallback (headers are not passed to serverless functions)\n',
+  );
   console.log(`\n🔐 HMAC Signature: ${signature}\n`);
 
   // Check if server is reachable
@@ -168,7 +178,7 @@ const main = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${TWENTY_API_KEY}`,
+        Authorization: `Bearer ${TWENTY_API_KEY}`,
         'x-hub-signature': signature,
       },
       body: body,
@@ -182,34 +192,41 @@ const main = async () => {
       responseData = responseText;
     }
 
-    console.log(`📥 Response Status: ${response.status} ${response.statusText}`);
+    console.log(
+      `📥 Response Status: ${response.status} ${response.statusText}`,
+    );
     console.log('📥 Response Body:');
     console.log(JSON.stringify(responseData, null, 2));
 
-  // Report whether the server appears to have received the header signature
-  const debugMessages = Array.isArray((responseData as any)?.debug)
-    ? ((responseData as any).debug as string[])
-    : [];
-  const headerMissing =
-    debugMessages.some((msg) => msg.includes('headerKeys=none')) ||
-    debugMessages.some((msg) => msg.includes('providedSignature=undefined'));
-  const signatureErrors =
-    Array.isArray((responseData as any)?.errors) &&
-    ((responseData as any).errors as unknown[]).some(
-      (err) => typeof err === 'string' && err.toLowerCase().includes('signature'),
-    );
+    // Report whether the server appears to have received the header signature
+    const debugMessages = Array.isArray((responseData as any)?.debug)
+      ? ((responseData as any).debug as string[])
+      : [];
+    const headerMissing =
+      debugMessages.some((msg) => msg.includes('headerKeys=none')) ||
+      debugMessages.some((msg) => msg.includes('providedSignature=undefined'));
+    const signatureErrors =
+      Array.isArray((responseData as any)?.errors) &&
+      ((responseData as any).errors as unknown[]).some(
+        (err) =>
+          typeof err === 'string' && err.toLowerCase().includes('signature'),
+      );
 
-  if (headerMissing) {
-    console.log(
-      '\n⚠️  Server did not report any received headers; it may be using payload fallback for signature verification.',
-    );
-  } else {
-    console.log('\n✅ Server reported headers present (header-based signature should be used).');
-  }
+    if (headerMissing) {
+      console.log(
+        '\n⚠️  Server did not report any received headers; it may be using payload fallback for signature verification.',
+      );
+    } else {
+      console.log(
+        '\n✅ Server reported headers present (header-based signature should be used).',
+      );
+    }
 
-  if (signatureErrors) {
-    console.log('⚠️  Signature was rejected by the server (check webhook secret / payload).');
-  }
+    if (signatureErrors) {
+      console.log(
+        '⚠️  Signature was rejected by the server (check webhook secret / payload).',
+      );
+    }
 
     if (response.ok) {
       console.log('\n✅ Webhook test completed successfully!');
@@ -219,7 +236,9 @@ const main = async () => {
       console.log('   3. Check server logs for any errors');
     } else {
       console.log('\n⚠️  Webhook returned an error status');
-      console.log('   This might be expected if Fireflies API key is not configured');
+      console.log(
+        '   This might be expected if Fireflies API key is not configured',
+      );
       console.log('   or if the meeting data fetch fails.');
     }
   } catch (error) {
@@ -238,4 +257,3 @@ main().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });
-

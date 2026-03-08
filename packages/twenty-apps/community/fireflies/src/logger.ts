@@ -25,7 +25,9 @@ export class AppLogger {
     this.context = context;
     this.config = {
       logLevel: this.parseLogLevel(process.env.LOG_LEVEL || 'error'),
-      isTestEnvironment: process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined,
+      isTestEnvironment:
+        process.env.NODE_ENV === 'test' ||
+        process.env.JEST_WORKER_ID !== undefined,
       captureForResponse: process.env.CAPTURE_LOGS === 'true',
     };
 
@@ -37,7 +39,9 @@ export class AppLogger {
 
   private parseLogLevel(level: string): LogLevel {
     const normalizedLevel = level.toLowerCase() as LogLevel;
-    return Object.keys(LOG_LEVELS).includes(normalizedLevel) ? normalizedLevel : 'error';
+    return Object.keys(LOG_LEVELS).includes(normalizedLevel)
+      ? normalizedLevel
+      : 'error';
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -53,7 +57,11 @@ export class AppLogger {
     }
   }
 
-  private captureLog(level: LogLevel, message: string, ...args: unknown[]): void {
+  private captureLog(
+    level: LogLevel,
+    message: string,
+    ...args: unknown[]
+  ): void {
     if (!this.config.captureForResponse) {
       return;
     }

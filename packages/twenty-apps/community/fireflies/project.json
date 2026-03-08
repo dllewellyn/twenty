@@ -3,15 +3,11 @@
   "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/twenty-apps/community/fireflies/src",
   "projectType": "application",
-  "tags": [
-    "scope:apps"
-  ],
+  "tags": ["scope:apps"],
   "targets": {
     "test": {
       "executor": "@nx/jest:jest",
-      "outputs": [
-        "{workspaceRoot}/coverage/{projectRoot}"
-      ],
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
         "jestConfig": "packages/twenty-apps/community/fireflies/jest.config.mjs",
         "passWithNoTests": true

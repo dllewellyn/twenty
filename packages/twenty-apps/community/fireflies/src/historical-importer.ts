@@ -29,7 +29,12 @@ export type HistoricalImportResult = {
   statuses: Array<{
     meetingId: string;
     title?: string;
-    status: 'imported' | 'skipped_existing' | 'failed' | 'dry_run' | 'pending_summary';
+    status:
+      | 'imported'
+      | 'skipped_existing'
+      | 'failed'
+      | 'dry_run'
+      | 'pending_summary';
     reason?: string;
   }>;
 };
@@ -38,7 +43,10 @@ export class HistoricalImporter {
   private firefliesClient: FirefliesApiClient;
   private twentyService: TwentyCrmService;
 
-  constructor(firefliesClient: FirefliesApiClient, twentyService: TwentyCrmService) {
+  constructor(
+    firefliesClient: FirefliesApiClient,
+    twentyService: TwentyCrmService,
+  ) {
     this.firefliesClient = firefliesClient;
     this.twentyService = twentyService;
   }
@@ -63,9 +71,12 @@ export class HistoricalImporter {
       const meetingId = transcript.id;
 
       try {
-        const existing = await this.twentyService.findMeetingByFirefliesId(meetingId);
+        const existing =
+          await this.twentyService.findMeetingByFirefliesId(meetingId);
         if (existing) {
-          logger.debug(`Skipping ${meetingId}: already exists in Twenty (${existing.id})`);
+          logger.debug(
+            `Skipping ${meetingId}: already exists in Twenty (${existing.id})`,
+          );
           skippedExisting += 1;
           statuses.push({
             meetingId,
@@ -89,7 +100,9 @@ export class HistoricalImporter {
         }
 
         if (dryRun) {
-          logger.info(`[dry-run] Would import meeting "${meetingData.title}" (${meetingId})`);
+          logger.info(
+            `[dry-run] Would import meeting "${meetingData.title}" (${meetingId})`,
+          );
           imported += 1;
           statuses.push({
             meetingId,
@@ -106,9 +119,14 @@ export class HistoricalImporter {
           );
 
         const newContactIds = autoCreateContacts
-          ? await this.twentyService.createContactsForUnmatched(unmatchedParticipants)
+          ? await this.twentyService.createContactsForUnmatched(
+              unmatchedParticipants,
+            )
           : [];
-        const allContactIds = [...matchedContacts.map(({ id }) => id), ...newContactIds];
+        const allContactIds = [
+          ...matchedContacts.map(({ id }) => id),
+          ...newContactIds,
+        ];
 
         const noteBody = MeetingFormatter.formatNoteBody(meetingData);
         const noteId = await this.twentyService.createNoteOnly(
@@ -116,8 +134,12 @@ export class HistoricalImporter {
           noteBody,
         );
 
-        const meetingInput = MeetingFormatter.toMeetingCreateInput(meetingData, noteId);
-        const createdMeetingId = await this.twentyService.createMeeting(meetingInput);
+        const meetingInput = MeetingFormatter.toMeetingCreateInput(
+          meetingData,
+          noteId,
+        );
+        const createdMeetingId =
+          await this.twentyService.createMeeting(meetingInput);
 
         for (const contactId of allContactIds) {
           await this.twentyService.createNoteTarget(noteId, contactId);
@@ -157,4 +179,3 @@ export class HistoricalImporter {
     };
   }
 }
-

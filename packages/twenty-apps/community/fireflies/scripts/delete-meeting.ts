@@ -26,7 +26,7 @@ const main = async (): Promise<void> => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_KEY}`,
+      Authorization: `Bearer ${API_KEY}`,
     },
     body: JSON.stringify({
       query: `mutation DeleteMeeting($id: UUID!) { deleteMeeting(id: $id) { id } }`,
@@ -44,7 +44,8 @@ const main = async (): Promise<void> => {
   const result = await response.json();
   const deletedId = result.data?.deleteMeeting?.id;
   if (result.errors || !deletedId) {
-    const message = result.errors?.[0]?.message || 'deleteMeeting returned null';
+    const message =
+      result.errors?.[0]?.message || 'deleteMeeting returned null';
     console.error('❌ Error:', message);
     process.exit(1);
   }

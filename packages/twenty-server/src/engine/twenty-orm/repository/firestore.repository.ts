@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import Ajv, { AnySchema, ValidateFunction } from 'ajv';
 import { FIREBASE_ADMIN_APP } from '../../core-modules/firebase/firebase.constants';
@@ -31,20 +31,28 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     schemaOrName: AnySchema | string,
     @Inject(FIREBASE_ADMIN_APP) protected readonly firebaseApp?: admin.app.App,
   ) {
-    this.db = this.firebaseApp ? this.firebaseApp.firestore() : admin.firestore();
+    this.db = this.firebaseApp
+      ? this.firebaseApp.firestore()
+      : admin.firestore();
     this.collection = this.db.collection(this.collectionName);
 
     this.ajv = new Ajv({ allErrors: true, strict: false });
     addFormats(this.ajv);
 
     // Load all schemas from the json-schemas directory dynamically
-    const schemasPath = path.join(__dirname, '../../metadata-modules/json-schemas');
+    const schemasPath = path.join(
+      __dirname,
+      '../../metadata-modules/json-schemas',
+    );
     if (fs.existsSync(schemasPath)) {
       const files = fs.readdirSync(schemasPath);
       for (const file of files) {
         if (file.endsWith('.json')) {
           try {
-            const rawSchema = fs.readFileSync(path.join(schemasPath, file), 'utf8');
+            const rawSchema = fs.readFileSync(
+              path.join(schemasPath, file),
+              'utf8',
+            );
             const parsedSchema = JSON.parse(rawSchema);
             if (parsedSchema.$id) {
               // Ensure we don't add the same schema twice if ajv automatically handles some
@@ -52,14 +60,15 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
                 this.ajv.addSchema(parsedSchema);
               }
             } else {
-               // Fallback if schema doesn't have an ID, use filename
-               const id = file.replace('.json', '');
-               parsedSchema.$id = id;
-               if (!this.ajv.getSchema(id)) {
-                 this.ajv.addSchema(parsedSchema);
-               }
+              // Fallback if schema doesn't have an ID, use filename
+              const id = file.replace('.json', '');
+              parsedSchema.$id = id;
+              if (!this.ajv.getSchema(id)) {
+                this.ajv.addSchema(parsedSchema);
+              }
             }
           } catch (e) {
+            // eslint-disable-next-line no-console
             console.error(`Error loading schema from ${file}:`, e);
           }
         }
@@ -67,7 +76,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     }
 
     if (typeof schemaOrName === 'string') {
-      const rawSchema = fs.readFileSync(path.join(schemasPath, `${schemaOrName}.json`), 'utf8');
+      const rawSchema = fs.readFileSync(
+        path.join(schemasPath, `${schemaOrName}.json`),
+        'utf8',
+      );
       this.schema = JSON.parse(rawSchema);
     } else {
       this.schema = schemaOrName;
@@ -77,7 +89,9 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
 
     // Create a partial schema for update validation
     // Removing the 'required' field from the schema properties to allow partial updates
-    const partialSchema = { ...this.schema } as any;
+    const partialSchema = { ...this.schema } as Record<string, unknown> & {
+      required?: string[];
+    };
     if (partialSchema.required) {
       delete partialSchema.required;
     }
@@ -90,16 +104,23 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   async create(data: T): Promise<admin.firestore.DocumentReference> {
     const isValid = this.validator(data);
     if (!isValid) {
-      throw new Error(`Validation failed: ${this.ajv.errorsText(this.validator.errors)}`);
+      throw new Error(
+        `Validation failed: ${this.ajv.errorsText(this.validator.errors)}`,
+      );
     }
 
     return this.collection.add(data);
   }
 
-  async update(id: string, data: Partial<T>): Promise<admin.firestore.WriteResult> {
+  async update(
+    id: string,
+    data: Partial<T>,
+  ): Promise<admin.firestore.WriteResult> {
     const isValid = this.partialValidator(data);
     if (!isValid) {
-      throw new Error(`Partial validation failed: ${this.ajv.errorsText(this.partialValidator.errors)}`);
+      throw new Error(
+        `Partial validation failed: ${this.ajv.errorsText(this.partialValidator.errors)}`,
+      );
     }
 
     return this.collection.doc(id).update(data);
@@ -118,28 +139,34 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     }
   }
 
-  private applyOptionsToQuery(qs: admin.firestore.Query, options?: any): admin.firestore.Query {
+  private applyOptionsToQuery(
+    qs: admin.firestore.Query,
+    options?: any,
+  ): admin.firestore.Query {
     if (options) {
       if (options.where) {
         // Handle basic where clauses
         for (const [key, value] of Object.entries(options.where)) {
-           // If it's a simple equality (including nulls)
-           if (value !== undefined && (typeof value !== 'object' || value === null)) {
-             qs = qs.where(key, '==', value);
-           } else if (value && typeof value === 'object') {
-             // Handle some basic TypeORM-like objects if they match basic shape
-             if ('_type' in value) {
-               const opType = (value as any)._type;
-               const opValue = (value as any)._value;
-               if (opType === 'moreThan') {
-                 qs = qs.where(key, '>', opValue);
-               } else if (opType === 'lessThan') {
-                 qs = qs.where(key, '<', opValue);
-               } else if (opType === 'in') {
-                 qs = qs.where(key, 'in', opValue);
-               }
-             }
-           }
+          // If it's a simple equality (including nulls)
+          if (
+            value !== undefined &&
+            (typeof value !== 'object' || value === null)
+          ) {
+            qs = qs.where(key, '==', value);
+          } else if (value && typeof value === 'object') {
+            // Handle some basic TypeORM-like objects if they match basic shape
+            if ('_type' in value) {
+              const opType = (value as any)._type;
+              const opValue = (value as any)._value;
+              if (opType === 'moreThan') {
+                qs = qs.where(key, '>', opValue);
+              } else if (opType === 'lessThan') {
+                qs = qs.where(key, '<', opValue);
+              } else if (opType === 'in') {
+                qs = qs.where(key, 'in', opValue);
+              }
+            }
+          }
         }
       }
 
@@ -148,7 +175,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       }
 
       if (options.skip) {
-         qs = qs.offset(options.skip);
+        qs = qs.offset(options.skip);
       }
     }
     return qs;
@@ -159,7 +186,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     qs = this.applyOptionsToQuery(qs, options);
 
     const snapshot = await qs.get();
-    return snapshot.docs.map(doc => doc.data() as T);
+    return snapshot.docs.map((doc) => doc.data() as T);
   }
 
   async delete(id: string): Promise<admin.firestore.WriteResult> {
@@ -171,7 +198,9 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       for (const item of data) {
         const isValid = this.validator(item);
         if (!isValid) {
-          throw new Error(`Validation failed: ${this.ajv.errorsText(this.validator.errors)}`);
+          throw new Error(
+            `Validation failed: ${this.ajv.errorsText(this.validator.errors)}`,
+          );
         }
       }
 
@@ -179,7 +208,9 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       for (const item of data) {
         // If the item already has an ID field, use it as the document ID
         // Note: The TypeORM save uses `id` primarily.
-        const docRef = item.id ? this.collection.doc(item.id) : this.collection.doc();
+        const docRef = item.id
+          ? this.collection.doc(item.id)
+          : this.collection.doc();
         if (!item.id) {
           item.id = docRef.id;
         }
@@ -190,9 +221,13 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     } else {
       const isValid = this.validator(data);
       if (!isValid) {
-        throw new Error(`Validation failed: ${this.ajv.errorsText(this.validator.errors)}`);
+        throw new Error(
+          `Validation failed: ${this.ajv.errorsText(this.validator.errors)}`,
+        );
       }
-      const docRef = data.id ? this.collection.doc(data.id) : this.collection.doc();
+      const docRef = data.id
+        ? this.collection.doc(data.id)
+        : this.collection.doc();
       if (!data.id) {
         data.id = docRef.id;
       }
@@ -209,14 +244,19 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     return snapshot.data().count;
   }
 
-  async upsert(data: any, conflictPathsOrOptions: string[] | any): Promise<any> {
+  async upsert(
+    data: any,
+    _conflictPathsOrOptions: string[] | any,
+  ): Promise<any> {
     // Basic upsert logic. TypeORM's Upsert requires data and options.
     const items = Array.isArray(data) ? data : [data];
     const batch = this.db.batch();
 
     for (const item of items) {
       if (!item.id) {
-         throw new Error("Upsert requires an 'id' field in the data to be able to upsert in Firestore.");
+        throw new Error(
+          "Upsert requires an 'id' field in the data to be able to upsert in Firestore.",
+        );
       }
       const docRef = this.collection.doc(item.id);
       batch.set(docRef, item, { merge: true });
@@ -227,7 +267,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     return {
       raw: [],
       generatedMaps: [],
-      identifiers: items.map(item => ({ id: item.id })),
+      identifiers: items.map((item) => ({ id: item.id })),
     };
   }
 
@@ -237,13 +277,17 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     for (const item of items) {
       const isValid = this.validator(item);
       if (!isValid) {
-        throw new Error(`Validation failed: ${this.ajv.errorsText(this.validator.errors)}`);
+        throw new Error(
+          `Validation failed: ${this.ajv.errorsText(this.validator.errors)}`,
+        );
       }
     }
 
     const batch = this.db.batch();
     for (const item of items) {
-      const docRef = item.id ? this.collection.doc(item.id) : this.collection.doc();
+      const docRef = item.id
+        ? this.collection.doc(item.id)
+        : this.collection.doc();
       if (!item.id) {
         item.id = docRef.id;
       }
@@ -254,7 +298,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     return {
       raw: [],
       generatedMaps: [],
-      identifiers: items.map(item => ({ id: item.id })),
+      identifiers: items.map((item) => ({ id: item.id })),
     };
   }
 }

@@ -3,12 +3,12 @@ export { config, main } from './receive-fireflies-notes';
 
 // Types
 export type {
-    FirefliesMeetingData,
-    FirefliesParticipant,
-    FirefliesWebhookPayload,
-    ProcessResult,
-    SummaryFetchConfig,
-    SummaryStrategy
+  FirefliesMeetingData,
+  FirefliesParticipant,
+  FirefliesWebhookPayload,
+  ProcessResult,
+  SummaryFetchConfig,
+  SummaryStrategy,
 } from './types';
 
 // Services (for advanced usage)
@@ -22,10 +22,14 @@ export { Meeting } from './objects';
 
 // Utilities
 export { createLogger } from './logger';
-export { getApiUrl, getSummaryFetchConfig, shouldAutoCreateContacts, toBoolean } from './utils';
 export {
-    getWebhookSecretFingerprint,
-    isValidFirefliesPayload,
-    verifyWebhookSignature
+  getApiUrl,
+  getSummaryFetchConfig,
+  shouldAutoCreateContacts,
+  toBoolean,
+} from './utils';
+export {
+  getWebhookSecretFingerprint,
+  isValidFirefliesPayload,
+  verifyWebhookSignature,
 } from './webhook-validator';
-

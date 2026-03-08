@@ -32,12 +32,24 @@ const mockFirefliesApiResponseWithSummary = {
       'Schedule technical deep-dive next week',
       'Share case studies from similar clients',
     ],
-    keywords: ['product demo', 'pricing', 'technical requirements', 'integration'],
-    overview: 'Successful product demonstration with positive client feedback. Client expressed strong interest in the enterprise plan and requested technical documentation for their IT team.',
+    keywords: [
+      'product demo',
+      'pricing',
+      'technical requirements',
+      'integration',
+    ],
+    overview:
+      'Successful product demonstration with positive client feedback. Client expressed strong interest in the enterprise plan and requested technical documentation for their IT team.',
     gist: 'Product demo went well, client interested in enterprise plan, next steps identified',
-    topics_discussed: ['product features', 'pricing discussion', 'integration capabilities', 'support options'],
+    topics_discussed: [
+      'product features',
+      'pricing discussion',
+      'integration capabilities',
+      'support options',
+    ],
     meeting_type: 'Sales Call',
-    bullet_gist: '• Demonstrated core product features\n• Discussed enterprise pricing\n• Addressed integration questions',
+    bullet_gist:
+      '• Demonstrated core product features\n• Discussed enterprise pricing\n• Addressed integration questions',
   },
   analytics: {
     sentiments: {
@@ -56,7 +68,7 @@ const mockMeetingWithFullSummary: FirefliesMeetingData = {
   id: 'test-meeting-001',
   title: 'Product Demo with Client',
   date: '2024-11-02T14:00:00Z',
-        duration: 1800,
+  duration: 1800,
   participants: [
     { email: 'sales@company.com', name: 'Sarah Sales' },
     { email: 'client@customer.com', name: 'John Client' },
@@ -68,12 +80,24 @@ const mockMeetingWithFullSummary: FirefliesMeetingData = {
       'Schedule technical deep-dive next week',
       'Share case studies from similar clients',
     ],
-    keywords: ['product demo', 'pricing', 'technical requirements', 'integration'],
-    overview: 'Successful product demonstration with positive client feedback. Client expressed strong interest in the enterprise plan and requested technical documentation for their IT team.',
+    keywords: [
+      'product demo',
+      'pricing',
+      'technical requirements',
+      'integration',
+    ],
+    overview:
+      'Successful product demonstration with positive client feedback. Client expressed strong interest in the enterprise plan and requested technical documentation for their IT team.',
     gist: 'Product demo went well, client interested in enterprise plan, next steps identified',
-    topics_discussed: ['product features', 'pricing discussion', 'integration capabilities', 'support options'],
+    topics_discussed: [
+      'product features',
+      'pricing discussion',
+      'integration capabilities',
+      'support options',
+    ],
     meeting_type: 'Sales Call',
-    bullet_gist: '• Demonstrated core product features\n• Discussed enterprise pricing\n• Addressed integration questions',
+    bullet_gist:
+      '• Demonstrated core product features\n• Discussed enterprise pricing\n• Addressed integration questions',
   },
   analytics: {
     sentiments: {
@@ -153,7 +177,7 @@ const _mockTeamMeeting = {
   ...mockMeetingWithFullSummary,
   id: 'test-team-003',
   title: 'Sprint Planning',
-        participants: [
+  participants: [
     { email: 'scrum@company.com', name: 'Alice Scrum' },
     { email: 'dev1@company.com', name: 'Bob Developer' },
     { email: 'dev2@company.com', name: 'Carol Coder' },
@@ -204,29 +228,34 @@ describe('Fireflies Webhook Integration v2', () => {
         if (url === 'https://api.fireflies.ai/graphql') {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              data: {
-                transcript: mockFirefliesApiResponseWithSummary, // Use raw API format
-              },
-            }),
+            json: () =>
+              Promise.resolve({
+                data: {
+                  transcript: mockFirefliesApiResponseWithSummary, // Use raw API format
+                },
+              }),
           });
         }
         // Twenty API mocks
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            data: {
-              meetings: { edges: [] },
-              people: { edges: [] },
-              createPerson: { id: 'new-person-id' },
-              createNote: { id: 'new-note-id' },
-              createMeeting: { id: 'new-meeting-id' },
-            },
-          }),
+          json: () =>
+            Promise.resolve({
+              data: {
+                meetings: { edges: [] },
+                people: { edges: [] },
+                createPerson: { id: 'new-person-id' },
+                createNote: { id: 'new-note-id' },
+                createMeeting: { id: 'new-meeting-id' },
+              },
+            }),
         });
       });
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       expect(result.success).toBe(true);
     });
@@ -240,7 +269,10 @@ describe('Fireflies Webhook Integration v2', () => {
       const body = JSON.stringify(payload);
       const invalidSignature = 'sha256=invalid_signature_here';
 
-      const result = await main(payload, { 'x-hub-signature': invalidSignature, body });
+      const result = await main(payload, {
+        'x-hub-signature': invalidSignature,
+        body,
+      });
 
       expect(result.success).toBe(false);
       expect(result.errors).toContain('Invalid webhook signature');
@@ -289,29 +321,34 @@ describe('Fireflies Webhook Integration v2', () => {
           firefliesApiMock();
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              data: {
-                transcript: mockFirefliesApiResponseWithSummary, // Use raw API format
-              },
-            }),
+            json: () =>
+              Promise.resolve({
+                data: {
+                  transcript: mockFirefliesApiResponseWithSummary, // Use raw API format
+                },
+              }),
           });
         }
         // Twenty API mocks
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            data: {
-              meetings: { edges: [] },
-              people: { edges: [] },
-              createPerson: { id: 'new-person-id' },
-              createNote: { id: 'new-note-id' },
-              createMeeting: { id: 'new-meeting-id' },
-            },
-          }),
+          json: () =>
+            Promise.resolve({
+              data: {
+                meetings: { edges: [] },
+                people: { edges: [] },
+                createPerson: { id: 'new-person-id' },
+                createNote: { id: 'new-note-id' },
+                createMeeting: { id: 'new-meeting-id' },
+              },
+            }),
         });
       });
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       expect(firefliesApiMock).toHaveBeenCalled();
       expect(result.success).toBe(true);
@@ -330,10 +367,16 @@ describe('Fireflies Webhook Integration v2', () => {
         if (url === 'https://api.fireflies.ai/graphql') {
           return Promise.reject(new Error('Fireflies API unavailable'));
         }
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ data: {} }) });
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: {} }),
+        });
       });
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       expect(result.success).toBe(false);
       expect(result.errors?.[0]).toContain('Fireflies API');
@@ -352,18 +395,27 @@ describe('Fireflies Webhook Integration v2', () => {
         if (url === 'https://api.fireflies.ai/graphql') {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              data: { malformed: 'response' },
-            }),
+            json: () =>
+              Promise.resolve({
+                data: { malformed: 'response' },
+              }),
           });
         }
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ data: {} }) });
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: {} }),
+        });
       });
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       expect(result.success).toBe(false);
-      expect(result.errors?.[0]).toContain('Invalid response from Fireflies API');
+      expect(result.errors?.[0]).toContain(
+        'Invalid response from Fireflies API',
+      );
     });
   });
 
@@ -381,27 +433,32 @@ describe('Fireflies Webhook Integration v2', () => {
         if (url === 'https://api.fireflies.ai/graphql') {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              data: { transcript: mockFirefliesApiResponseWithSummary }, // Use raw API format
-            }),
+            json: () =>
+              Promise.resolve({
+                data: { transcript: mockFirefliesApiResponseWithSummary }, // Use raw API format
+              }),
           });
         }
         // Twenty API mocks
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            data: {
-              meetings: { edges: [] },
-              people: { edges: [] },
-              createPerson: { id: 'new-person-id' },
-              createNote: { id: 'new-note-id' },
-              createMeeting: { id: 'new-meeting-id' },
-            },
-          }),
+          json: () =>
+            Promise.resolve({
+              data: {
+                meetings: { edges: [] },
+                people: { edges: [] },
+                createPerson: { id: 'new-person-id' },
+                createNote: { id: 'new-note-id' },
+                createMeeting: { id: 'new-meeting-id' },
+              },
+            }),
         });
       });
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       expect(result.success).toBe(true);
       expect(result.summaryReady).toBe(true);
@@ -412,7 +469,12 @@ describe('Fireflies Webhook Integration v2', () => {
         neutral_pct: 15,
       });
       expect(result.meetingType).toBe('Sales Call');
-      expect(result.keyTopics).toEqual(['product features', 'pricing discussion', 'integration capabilities', 'support options']);
+      expect(result.keyTopics).toEqual([
+        'product features',
+        'pricing discussion',
+        'integration capabilities',
+        'support options',
+      ]);
     });
 
     it('should create basic records when summary is pending', async () => {
@@ -428,27 +490,32 @@ describe('Fireflies Webhook Integration v2', () => {
         if (url === 'https://api.fireflies.ai/graphql') {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              data: { transcript: mockFirefliesApiResponseWithoutSummary }, // Use raw API format
-            }),
+            json: () =>
+              Promise.resolve({
+                data: { transcript: mockFirefliesApiResponseWithoutSummary }, // Use raw API format
+              }),
           });
         }
         // Twenty API mocks
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            data: {
-              meetings: { edges: [] },
-              people: { edges: [] },
-              createPerson: { id: 'new-person-id' },
-              createNote: { id: 'new-note-id' },
-              createMeeting: { id: 'new-meeting-id' },
-            },
-          }),
+          json: () =>
+            Promise.resolve({
+              data: {
+                meetings: { edges: [] },
+                people: { edges: [] },
+                createPerson: { id: 'new-person-id' },
+                createNote: { id: 'new-note-id' },
+                createMeeting: { id: 'new-meeting-id' },
+              },
+            }),
         });
       });
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       expect(result.success).toBe(true);
       expect(result.summaryPending).toBe(true);
@@ -473,34 +540,40 @@ describe('Fireflies Webhook Integration v2', () => {
           if (attemptCount < 3) {
             return Promise.resolve({
               ok: true,
-              json: () => Promise.resolve({
-                data: { transcript: mockFirefliesApiResponseWithoutSummary }, // Use raw API format
-              }),
+              json: () =>
+                Promise.resolve({
+                  data: { transcript: mockFirefliesApiResponseWithoutSummary }, // Use raw API format
+                }),
             });
           }
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              data: { transcript: mockFirefliesApiResponseWithSummary }, // Use raw API format
-            }),
+            json: () =>
+              Promise.resolve({
+                data: { transcript: mockFirefliesApiResponseWithSummary }, // Use raw API format
+              }),
           });
         }
         // Twenty API mocks
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            data: {
-              meetings: { edges: [] },
-              people: { edges: [] },
-              createPerson: { id: 'new-person-id' },
-              createNote: { id: 'new-note-id' },
-              createMeeting: { id: 'new-meeting-id' },
-            },
-          }),
+          json: () =>
+            Promise.resolve({
+              data: {
+                meetings: { edges: [] },
+                people: { edges: [] },
+                createPerson: { id: 'new-person-id' },
+                createNote: { id: 'new-note-id' },
+                createMeeting: { id: 'new-meeting-id' },
+              },
+            }),
         });
       });
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       expect(attemptCount).toBe(3);
       expect(result.success).toBe(true);
@@ -524,30 +597,35 @@ describe('Fireflies Webhook Integration v2', () => {
           // Return summary not ready
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              data: { transcript: mockFirefliesApiResponseWithoutSummary },
-            }),
+            json: () =>
+              Promise.resolve({
+                data: { transcript: mockFirefliesApiResponseWithoutSummary },
+              }),
           });
         }
         // Twenty API mocks
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            data: {
-              meetings: { edges: [] },
-              people: { edges: [] },
-              createPerson: { id: 'new-person-id' },
-              createNote: { id: 'new-note-id' },
-              createMeeting: { id: 'new-meeting-id' },
-            },
-          }),
+          json: () =>
+            Promise.resolve({
+              data: {
+                meetings: { edges: [] },
+                people: { edges: [] },
+                createPerson: { id: 'new-person-id' },
+                createNote: { id: 'new-note-id' },
+                createMeeting: { id: 'new-meeting-id' },
+              },
+            }),
         });
       });
 
       // Override strategy for this test
       process.env.FIREFLIES_SUMMARY_STRATEGY = 'immediate_only';
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       // Should only fetch once with immediate_only strategy
       expect(fetchCount).toBe(1);
@@ -571,42 +649,52 @@ describe('Fireflies Webhook Integration v2', () => {
 
       const createNoteMock = jest.fn();
 
-      global.fetch = jest.fn().mockImplementation((url: string, options?: RequestInit) => {
-        if (url === 'https://api.fireflies.ai/graphql') {
+      global.fetch = jest
+        .fn()
+        .mockImplementation((url: string, options?: RequestInit) => {
+          if (url === 'https://api.fireflies.ai/graphql') {
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  data: { transcript: mockFirefliesApiResponseWithSummary }, // Use raw API format
+                }),
+            });
+          }
+
+          // Twenty API
+          const requestBody = options?.body
+            ? JSON.parse(options.body as string)
+            : {};
+          if (requestBody.query?.includes('createNote')) {
+            createNoteMock(requestBody.variables);
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  data: { createNote: { id: 'new-note-id' } },
+                }),
+            });
+          }
+
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              data: { transcript: mockFirefliesApiResponseWithSummary }, // Use raw API format
-            }),
+            json: () =>
+              Promise.resolve({
+                data: {
+                  meetings: { edges: [] },
+                  people: { edges: [] },
+                  createPerson: { id: 'new-person-id' },
+                  createMeeting: { id: 'new-meeting-id' },
+                },
+              }),
           });
-        }
-
-        // Twenty API
-        const requestBody = options?.body ? JSON.parse(options.body as string) : {};
-        if (requestBody.query?.includes('createNote')) {
-          createNoteMock(requestBody.variables);
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({
-              data: { createNote: { id: 'new-note-id' } },
-            }),
         });
-      }
 
-      return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            data: {
-              meetings: { edges: [] },
-              people: { edges: [] },
-              createPerson: { id: 'new-person-id' },
-              createMeeting: { id: 'new-meeting-id' },
-            },
-          }),
-        });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
       });
-
-      const result = await main(payload, { 'x-hub-signature': signature, body });
 
       expect(result.success).toBe(true);
       expect(createNoteMock).toHaveBeenCalled();
@@ -616,7 +704,9 @@ describe('Fireflies Webhook Integration v2', () => {
       expect(noteData.data.bodyV2.markdown).toContain('## Overview'); // Markdown header, not bold
       expect(noteData.data.bodyV2.markdown).toContain('## Action Items'); // Markdown header, not bold
       expect(noteData.data.bodyV2.markdown).toContain('**Sentiment:**'); // This is bold
-      expect(noteData.data.bodyV2.markdown).toContain('View Full Transcript on Fireflies');
+      expect(noteData.data.bodyV2.markdown).toContain(
+        'View Full Transcript on Fireflies',
+      );
     });
 
     it('should create meeting records for multi-party meetings', async () => {
@@ -630,49 +720,60 @@ describe('Fireflies Webhook Integration v2', () => {
 
       const createMeetingMock = jest.fn();
 
-      global.fetch = jest.fn().mockImplementation((url: string, options?: RequestInit) => {
-        if (url === 'https://api.fireflies.ai/graphql') {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({
-              data: { transcript: mockFirefliesApiResponseTeamMeeting }, // Use raw API format
-            }),
-          });
-        }
+      global.fetch = jest
+        .fn()
+        .mockImplementation((url: string, options?: RequestInit) => {
+          if (url === 'https://api.fireflies.ai/graphql') {
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  data: { transcript: mockFirefliesApiResponseTeamMeeting }, // Use raw API format
+                }),
+            });
+          }
 
-        // Twenty API
-        const requestBody = options?.body ? JSON.parse(options.body as string) : {};
-        if (requestBody.query?.includes('createMeeting')) {
-          createMeetingMock(requestBody.variables);
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({
-              data: { createMeeting: { id: 'new-meeting-id' } },
-            }),
-          });
-        }
-        if (requestBody.query?.includes('createNote')) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve({
-              data: { createNote: { id: 'new-note-id' } },
-            }),
-          });
-        }
+          // Twenty API
+          const requestBody = options?.body
+            ? JSON.parse(options.body as string)
+            : {};
+          if (requestBody.query?.includes('createMeeting')) {
+            createMeetingMock(requestBody.variables);
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  data: { createMeeting: { id: 'new-meeting-id' } },
+                }),
+            });
+          }
+          if (requestBody.query?.includes('createNote')) {
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  data: { createNote: { id: 'new-note-id' } },
+                }),
+            });
+          }
 
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            data: {
-              meetings: { edges: [] },
-              people: { edges: [] },
-              createPerson: { id: 'new-person-id' },
-            },
-          }),
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                data: {
+                  meetings: { edges: [] },
+                  people: { edges: [] },
+                  createPerson: { id: 'new-person-id' },
+                },
+              }),
+          });
         });
-      });
 
-      const result = await main(payload, { 'x-hub-signature': signature, body });
+      const result = await main(payload, {
+        'x-hub-signature': signature,
+        body,
+      });
 
       expect(result.success).toBe(true);
       expect(result.meetingId).toBeDefined();
@@ -694,8 +795,10 @@ describe('Fireflies Webhook Integration v2', () => {
         throw new Error('Critical failure');
       });
 
-      await expect(main(payload, { 'x-hub-signature': signature, body })).resolves.toEqual(
-        expect.objectContaining({ success: false, errors: expect.any(Array) })
+      await expect(
+        main(payload, { 'x-hub-signature': signature, body }),
+      ).resolves.toEqual(
+        expect.objectContaining({ success: false, errors: expect.any(Array) }),
       );
     });
 
@@ -713,6 +816,6 @@ describe('Fireflies Webhook Integration v2', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors).toBeDefined();
+    });
   });
-});
 });

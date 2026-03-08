@@ -6,7 +6,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Load a real schema to test with
-const schemaPath = path.join(__dirname, '../../../metadata-modules/json-schemas/CreateFieldInput.json');
+const schemaPath = path.join(
+  __dirname,
+  '../../../metadata-modules/json-schemas/CreateFieldInput.json',
+);
 const rawSchema = fs.readFileSync(schemaPath, 'utf8');
 const createFieldSchema = JSON.parse(rawSchema);
 
@@ -32,7 +35,11 @@ describe('BaseFirestoreRepository Integration', () => {
       ssl: false,
     });
 
-    repository = new BaseFirestoreRepository('test_fields', createFieldSchema, admin.app());
+    repository = new BaseFirestoreRepository(
+      'test_fields',
+      createFieldSchema,
+      admin.app(),
+    );
   });
 
   afterAll(async () => {
@@ -60,7 +67,9 @@ describe('BaseFirestoreRepository Integration', () => {
       universalIdentifier: 123, // wrong type
     };
 
-    await expect(repository.create(invalidData)).rejects.toThrow(/Validation failed/);
+    await expect(repository.create(invalidData)).rejects.toThrow(
+      /Validation failed/,
+    );
   });
 
   it('should successfully create, read, update, and delete a document', async () => {
@@ -100,7 +109,11 @@ describe('BaseFirestoreRepository Integration', () => {
     // 4. Read (find)
     const allDocs = await repository.find();
     expect(allDocs.length).toBeGreaterThan(0);
-    expect(allDocs.some(doc => doc.universalIdentifier === validData.universalIdentifier)).toBe(true);
+    expect(
+      allDocs.some(
+        (doc) => doc.universalIdentifier === validData.universalIdentifier,
+      ),
+    ).toBe(true);
 
     // 5. Delete
     await repository.delete(createdDocId);
@@ -124,10 +137,12 @@ describe('BaseFirestoreRepository Integration', () => {
     const id = docRef.id;
 
     const invalidUpdateData = {
-      label: 12345 // Should be string
+      label: 12345, // Should be string
     };
 
-    await expect(repository.update(id, invalidUpdateData)).rejects.toThrow(/Partial validation failed/);
+    await expect(repository.update(id, invalidUpdateData)).rejects.toThrow(
+      /Partial validation failed/,
+    );
 
     await repository.delete(id);
   });
@@ -144,7 +159,7 @@ describe('BaseFirestoreRepository Integration', () => {
       label: 'Count Field 1',
       type: 'TEXT',
     });
-    const doc2 = await repository.create({
+    await repository.create({
       objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
       universalIdentifier: 'count_field_2',
       name: 'count_field_2',
@@ -155,7 +170,9 @@ describe('BaseFirestoreRepository Integration', () => {
     const newCount = await repository.count();
     expect(newCount).toBe(initialCount + 2);
 
-    const countWithFilters = await repository.count({ where: { name: 'count_field_1' }});
+    const countWithFilters = await repository.count({
+      where: { name: 'count_field_1' },
+    });
     expect(countWithFilters).toBe(1);
   });
 
@@ -174,12 +191,12 @@ describe('BaseFirestoreRepository Integration', () => {
         name: 'save_field_2',
         label: 'Save Field 2',
         type: 'TEXT',
-      }
+      },
     ];
 
     await repository.save(docsToSave);
 
-    const found = await repository.find({ where: { name: 'save_field_1' }});
+    const found = await repository.find({ where: { name: 'save_field_1' } });
     expect(found.length).toBe(1);
     expect(found[0].label).toBe('Save Field 1');
   });
@@ -194,7 +211,7 @@ describe('BaseFirestoreRepository Integration', () => {
       isActive: true,
     });
 
-    const results = await repository.find({ where: { name: 'find_filter_1' }});
+    const results = await repository.find({ where: { name: 'find_filter_1' } });
     expect(results.length).toBe(1);
     expect(results[0].name).toBe('find_filter_1');
     expect(results[0].isActive).toBe(true);
@@ -207,24 +224,30 @@ describe('BaseFirestoreRepository Integration', () => {
   it('should implement upsert', async () => {
     // Requires an ID usually, let's create one manually.
     const customId = 'custom-upsert-id-123';
-    await repository.upsert({
-      id: customId,
-      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
-      universalIdentifier: 'upsert_field_1',
-      name: 'upsert_field_1',
-      label: 'Upsert Field 1',
-      type: 'TEXT',
-    }, ['id']);
+    await repository.upsert(
+      {
+        id: customId,
+        objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+        universalIdentifier: 'upsert_field_1',
+        name: 'upsert_field_1',
+        label: 'Upsert Field 1',
+        type: 'TEXT',
+      },
+      ['id'],
+    );
 
     let fetched = await repository.findOne(customId);
     expect(fetched).toBeDefined();
     expect(fetched?.name).toBe('upsert_field_1');
 
     // Update it
-    await repository.upsert({
-      id: customId,
-      label: 'Updated Upsert Field 1',
-    }, ['id']);
+    await repository.upsert(
+      {
+        id: customId,
+        label: 'Updated Upsert Field 1',
+      },
+      ['id'],
+    );
 
     fetched = await repository.findOne(customId);
     expect(fetched?.label).toBe('Updated Upsert Field 1');

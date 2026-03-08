@@ -42,7 +42,9 @@ describe('HistoricalImporter', () => {
     const { firefliesClient, twentyService } = buildImporter();
 
     firefliesClient.listTranscripts.mockResolvedValue([{ id: 'existing' }]);
-    twentyService.findMeetingByFirefliesId.mockResolvedValue({ id: 'twenty-id' });
+    twentyService.findMeetingByFirefliesId.mockResolvedValue({
+      id: 'twenty-id',
+    });
 
     const importer = new HistoricalImporter(firefliesClient, twentyService);
     const result = await importer.run(
@@ -80,4 +82,3 @@ describe('HistoricalImporter', () => {
     expect(result.statuses[0].status).toBe('pending_summary');
   });
 });
-

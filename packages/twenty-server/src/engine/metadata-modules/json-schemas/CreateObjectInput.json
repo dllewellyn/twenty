@@ -54,12 +54,7 @@
     }
   },
   "type": "object",
-  "required": [
-    "nameSingular",
-    "namePlural",
-    "labelSingular",
-    "labelPlural"
-  ],
+  "required": ["nameSingular", "namePlural", "labelSingular", "labelPlural"],
   "definitions": {
     "CreateObjectInput": {
       "properties": {
@@ -114,12 +109,7 @@
         }
       },
       "type": "object",
-      "required": [
-        "nameSingular",
-        "namePlural",
-        "labelSingular",
-        "labelPlural"
-      ]
+      "required": ["nameSingular", "namePlural", "labelSingular", "labelPlural"]
     },
     "CreateOneObjectInput": {
       "properties": {
@@ -128,9 +118,7 @@
         }
       },
       "type": "object",
-      "required": [
-        "object"
-      ]
+      "required": ["object"]
     },
     "FieldStandardOverridesDTO": {
       "properties": {
@@ -176,13 +164,7 @@
         }
       },
       "type": "object",
-      "required": [
-        "id",
-        "fieldMetadataId",
-        "order",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "fieldMetadataId", "order", "createdAt", "updatedAt"]
     },
     "IndexMetadataDTO": {
       "properties": {
@@ -208,10 +190,7 @@
         "indexType": {
           "minLength": 1,
           "type": "string",
-          "enum": [
-            "BTREE",
-            "GIN"
-          ]
+          "enum": ["BTREE", "GIN"]
         },
         "createdAt": {
           "oneOf": [
@@ -450,11 +429,7 @@
         }
       },
       "type": "object",
-      "required": [
-        "type",
-        "name",
-        "label"
-      ]
+      "required": ["type", "name", "label"]
     },
     "CreateFieldInput": {
       "properties": {
@@ -550,12 +525,7 @@
         }
       },
       "type": "object",
-      "required": [
-        "objectMetadataId",
-        "type",
-        "name",
-        "label"
-      ]
+      "required": ["objectMetadataId", "type", "name", "label"]
     },
     "CreateOneFieldMetadataInput": {
       "properties": {
@@ -564,9 +534,7 @@
         }
       },
       "type": "object",
-      "required": [
-        "field"
-      ]
+      "required": ["field"]
     },
     "CreateViewInput": {
       "properties": {
@@ -583,18 +551,11 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "TABLE",
-            "KANBAN",
-            "CALENDAR",
-            "FIELDS_WIDGET"
-          ],
+          "enum": ["TABLE", "KANBAN", "CALENDAR", "FIELDS_WIDGET"],
           "type": "string"
         },
         "key": {
-          "enum": [
-            "INDEX"
-          ],
+          "enum": ["INDEX"],
           "type": "string"
         },
         "icon": {
@@ -610,10 +571,7 @@
           "type": "boolean"
         },
         "openRecordIn": {
-          "enum": [
-            "SIDE_PANEL",
-            "RECORD_PAGE"
-          ],
+          "enum": ["SIDE_PANEL", "RECORD_PAGE"],
           "type": "string"
         },
         "kanbanAggregateOperation": {
@@ -641,11 +599,7 @@
           "type": "string"
         },
         "calendarLayout": {
-          "enum": [
-            "DAY",
-            "WEEK",
-            "MONTH"
-          ],
+          "enum": ["DAY", "WEEK", "MONTH"],
           "type": "string"
         },
         "calendarFieldMetadataId": {
@@ -657,10 +611,7 @@
           "type": "string"
         },
         "visibility": {
-          "enum": [
-            "WORKSPACE",
-            "UNLISTED"
-          ],
+          "enum": ["WORKSPACE", "UNLISTED"],
           "type": "string"
         },
         "universalIdentifier": {
@@ -671,12 +622,7 @@
         }
       },
       "type": "object",
-      "required": [
-        "name",
-        "objectMetadataId",
-        "type",
-        "icon"
-      ]
+      "required": ["name", "objectMetadataId", "type", "icon"]
     },
     "CreateWebhookInput": {
       "properties": {
@@ -700,10 +646,7 @@
         }
       },
       "type": "object",
-      "required": [
-        "targetUrl",
-        "operations"
-      ]
+      "required": ["targetUrl", "operations"]
     }
   }
 }

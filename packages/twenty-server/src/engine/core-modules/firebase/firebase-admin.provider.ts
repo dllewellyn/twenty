@@ -14,7 +14,9 @@ export const FirebaseAdminProvider: Provider = {
 
     const projectId = configService.get('FIREBASE_PROJECT_ID');
     const serviceAccountKey = configService.get('FIREBASE_SERVICE_ACCOUNT_KEY');
-    const serviceAccountKeyPath = configService.get('FIREBASE_SERVICE_ACCOUNT_KEY_PATH');
+    const serviceAccountKeyPath = configService.get(
+      'FIREBASE_SERVICE_ACCOUNT_KEY_PATH',
+    );
     const databaseURL = configService.get('FIREBASE_DATABASE_URL');
 
     let credential;
