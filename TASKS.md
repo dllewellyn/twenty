@@ -1,11 +1,11 @@
-I will move the "Token Management" task to the COMPLETED WORK section and update TASKS.md accordingly.
 # Task Backlog
 
 ## Phase 2: Auth Migration
 - [ ] **Legacy Auth Decommissioning**: Remove `JwtAuthStrategy`, related entities, and Passport JWT configuration once the frontend migration is verified.
 
 ## Phase 3: Data Migration
-- [ ] **Metadata Migration**: Move the "Object Metadata" definitions from Postgres to a `_metadata` collection in Firestore.
+- [ ] **Metadata Migration Strategy**: Design a Firestore-compatible structure for storing and retrieving object metadata (People, Companies, etc.) that replaces the Postgres-based metadata engine.
+- [ ] **Metadata Extraction and Seeding**: Extract existing object definitions from Postgres and seed the `_metadata` collection in Firestore according to the new strategy.
 - [ ] **Collection Migration**: Port "People" and "Companies" data using the JSON schemas for validation and structure.
 - [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
 
