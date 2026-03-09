@@ -1,6 +1,4 @@
-I will update the AGENTS.md file with the new lessons learned from the recent migration of people records from Postgres to Firestore, focusing on the standardized migration pattern, bulk persistence, and testing strategies.
-
-# Agent Memory & Performance
+I'll remove the erroneous introductory sentence from `AGENTS.md` and add a new entry for 2026-03-09 detailing the "Metadata Parity Tooling," specifically the `database:validate-metadata` CLI command and its role in ensuring data integrity during migration.# Agent Memory & Performance
 
 ## Lessons Learned
 - **2026-03-06**: Initialized ADL environment.
@@ -64,3 +62,7 @@ I will update the AGENTS.md file with the new lessons learned from the recent mi
     - **Dry-Run Safety**: Implementing a `--dry-run` flag in migration commands is a critical safety measure, allowing for the verification of migration scope and potential record counts before any data is committed to the NoSQL store.
     - **Entity-to-Plain Mapping**: When migrating from TypeORM, mapping entities to plain objects (e.g., via spread operator or explicit property mapping) is necessary to ensure Firestore-compatible data structures, especially when dealing with relational fields.
     - **Mocking Generic Repositories in Tests**: In unit tests for migration commands, mocking the `BaseFirestoreRepository` using `jest.mock` and `mockImplementation` allows for verifying migration logic without requiring a live Firebase environment or complex SDK mocking.
+- **2026-03-09**: Introduced **Metadata Parity Tooling** for cross-database verification.
+    - **CLI Validation Command**: Implementation of `database:validate-metadata` enables systematic comparison of PostgreSQL and Firestore metadata, verifying field counts, nullability, data types, and enum consistency before migration.
+    - **Mapping Parity Verification**: Explicitly verifies the translation of relational constraints (e.g., `isNullable: false`) to NoSQL equivalents (e.g., JSON schema `required` array) to prevent data integrity regressions.
+    - **Strict Interface Typing for Validation**: Leveraging strict interfaces over `any` for complex metadata structures (like `FieldMetadataType` mappings) ensures that the validation tool remains robust even as the metadata engine evolves.
