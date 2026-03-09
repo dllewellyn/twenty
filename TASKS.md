@@ -1,16 +1,18 @@
 # Task Backlog
 
-## Phase 3: Data Migration
-- [ ] **Collection Migration: 'People'**: Develop and run a script to migrate all 'People' records from PostgreSQL to the Firestore 'people' collection.
-- [ ] **Collection Migration: 'Companies'**: Develop and run a script to migrate all 'Companies' records from PostgreSQL to the Firestore 'companies' collection.
-- [ ] **Collection Migration: 'Users'**: Migrate current 'Users' from PostgreSQL to the Firestore 'users' collection and ensure data parity for Authentication.
-- [ ] **Manual Metadata Validation**: Conduct a final manual review of sensitive metadata fields (e.g., custom field types, relationship mappings) before starting the full data migration.
-- [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
-- [ ] **Deprecate PostgreSQL**: Drop remaining PostgreSQL connections, TypeORM logic, and related services to enforce full reliance on Firestore.
-
 ## Phase 2: Auth Migration
 - [ ] **Complete Firebase Auth Transition**: Update remaining dependencies across the application (e.g. `twenty-front`, `twenty-server`, extensions) to exclusively rely on Firebase Authentication.
 - [ ] **Legacy Auth Decommissioning**: Remove `JwtAuthStrategy`, related entities, and Passport JWT configuration once the frontend migration is verified.
+
+## Phase 3: Data Migration
+- [ ] **Manual Metadata Validation**: Conduct a final manual review of sensitive metadata fields (e.g., custom field types, relationship mappings) before starting the full data migration.
+- [ ] **Collection Migration: 'Companies'**: Develop and run a script to migrate all 'Companies' records from PostgreSQL to the Firestore 'companies' collection.
+- [ ] **Collection Migration: 'Notes'**: Develop and run a script to migrate all 'Note' records from PostgreSQL to the Firestore 'notes' collection.
+- [ ] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.
+- [ ] **Collection Migration: 'Opportunities'**: Develop and run a script to migrate all 'Opportunity' records from PostgreSQL to the Firestore 'opportunities' collection.
+- [ ] **Collection Migration: 'Users'**: Migrate current 'Users' from PostgreSQL to the Firestore 'users' collection and ensure data parity for Authentication.
+- [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
+- [ ] **Deprecate PostgreSQL**: Drop remaining PostgreSQL connections, TypeORM logic, and related services to enforce full reliance on Firestore.
 
 ## Phase 4: Serverless Transition
 - [ ] **Cloud Functions Migration**: Port core business logic from NestJS controllers to Firebase Cloud Functions.
@@ -22,6 +24,7 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Collection Migration: 'People'**: Develop and run a script to migrate all 'People' records from PostgreSQL to the Firestore 'people' collection.
 - [x] **Verify Firestore Metadata Structure**: Perform automated and manual validation to ensure the seeded Firestore metadata is complete and accurately reflects the original Postgres definitions.
 - [x] **Metadata Extraction and Seeding**: Extract existing object definitions from Postgres and seed the `_metadata` collection in Firestore according to the new strategy.
 - [x] **Metadata Migration Strategy**: Design a Firestore-compatible structure for storing and retrieving object metadata (People, Companies, etc.) that replaces the Postgres-based metadata engine.
