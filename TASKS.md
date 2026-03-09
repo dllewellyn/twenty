@@ -4,9 +4,11 @@
 - [ ] **Verify Firestore Metadata Structure**: Perform automated and manual validation to ensure the seeded Firestore metadata is complete and accurately reflects the original Postgres definitions.
 - [ ] **Collection Migration**: Port "People" and "Companies" data using the JSON schemas for validation and structure.
 - [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
+- [ ] **Deprecate PostgreSQL**: Drop remaining PostgreSQL connections, TypeORM logic, and related services to enforce full reliance on Firestore.
 
 ## Phase 2: Auth Migration
 - [ ] **Legacy Auth Decommissioning**: Remove `JwtAuthStrategy`, related entities, and Passport JWT configuration once the frontend migration is verified.
+- [ ] **Complete Firebase Auth Transition**: Update remaining dependencies across the application (e.g. `twenty-front`, `twenty-server`, extensions) to exclusively rely on Firebase Authentication.
 
 ## Phase 4: Serverless Transition
 - [ ] **Cloud Functions Migration**: Port core business logic from NestJS controllers to Firebase Cloud Functions.
