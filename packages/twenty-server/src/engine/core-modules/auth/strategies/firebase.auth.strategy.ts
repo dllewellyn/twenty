@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { msg } from '@lingui/core/macro';
 import { Request } from 'express';
 import { Strategy } from 'passport-custom';
-import { ExtractJwt } from 'passport-jwt';
 import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { Repository } from 'typeorm';
@@ -43,7 +42,9 @@ export class FirebaseAuthStrategy extends PassportStrategy(
   }
 
   async validate(request: Request): Promise<AuthContext> {
-    const rawToken = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+    const authorization = request.headers.authorization;
+    const match = authorization?.match(/^Bearer\s+(.*)$/i);
+    const rawToken = match ? match[1] : undefined;
 
     if (!rawToken) {
       throw new AuthException(

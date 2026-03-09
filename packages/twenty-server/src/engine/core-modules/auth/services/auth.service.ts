@@ -39,10 +39,6 @@ import { AuthSsoService } from 'src/engine/core-modules/auth/services/auth-sso.s
 import { SignInUpService } from 'src/engine/core-modules/auth/services/sign-in-up.service';
 import { type GoogleRequest } from 'src/engine/core-modules/auth/strategies/google.auth.strategy';
 import { type MicrosoftRequest } from 'src/engine/core-modules/auth/strategies/microsoft.auth.strategy';
-import { AccessTokenService } from 'src/engine/core-modules/auth/token/services/access-token.service';
-import { LoginTokenService } from 'src/engine/core-modules/auth/token/services/login-token.service';
-import { RefreshTokenService } from 'src/engine/core-modules/auth/token/services/refresh-token.service';
-import { WorkspaceAgnosticTokenService } from 'src/engine/core-modules/auth/token/services/workspace-agnostic-token.service';
 import {
   AuthContextUser,
   JwtTokenTypeEnum,
@@ -74,12 +70,8 @@ import { PermissionsService } from 'src/engine/metadata-modules/permissions/perm
 // oxlint-disable-next-line twenty/inject-workspace-repository
 export class AuthService {
   constructor(
-    private readonly accessTokenService: AccessTokenService,
-    private readonly workspaceAgnosticTokenService: WorkspaceAgnosticTokenService,
     private readonly workspaceDomainsService: WorkspaceDomainsService,
     private readonly domainServerConfigService: DomainServerConfigService,
-    private readonly refreshTokenService: RefreshTokenService,
-    private readonly loginTokenService: LoginTokenService,
     private readonly guardRedirectService: GuardRedirectService,
     private readonly userWorkspaceService: UserWorkspaceService,
     private readonly workspaceInvitationService: WorkspaceInvitationService,
@@ -360,110 +352,6 @@ export class AuthService {
         existingUser: params.userData.existingUser,
       },
     });
-  }
-
-  async verify(
-    email: string,
-    workspaceId: string,
-    authProvider: AuthProviderEnum,
-  ): Promise<AuthTokens> {
-    if (!email) {
-      throw new AuthException(
-        'Email is required',
-        AuthExceptionCode.INVALID_INPUT,
-        {
-          userFriendlyMessage: msg`Email is required.`,
-        },
-      );
-    }
-
-    const user = await this.userService.findUserByEmail(email);
-
-    assertIsDefinedOrThrow(
-      user,
-      new AuthException('User not found', AuthExceptionCode.USER_NOT_FOUND),
-    );
-
-    // passwordHash is hidden for security reasons
-    user.passwordHash = '';
-
-    const accessToken = await this.accessTokenService.generateAccessToken({
-      userId: user.id,
-      workspaceId,
-      authProvider,
-    });
-    const refreshToken = await this.refreshTokenService.generateRefreshToken({
-      userId: user.id,
-      workspaceId,
-      authProvider,
-      targetedTokenType: JwtTokenTypeEnum.ACCESS,
-    });
-
-    return {
-      tokens: {
-        accessOrWorkspaceAgnosticToken: accessToken,
-        refreshToken,
-      },
-    };
-  }
-
-  async generateImpersonationAccessTokenAndRefreshToken({
-    workspaceId,
-    impersonatorUserWorkspaceId,
-    impersonatedUserWorkspaceId,
-    _impersonatorUserId,
-    impersonatedUserId,
-  }: {
-    workspaceId: string;
-    impersonatorUserWorkspaceId: string;
-    impersonatedUserWorkspaceId: string;
-    _impersonatorUserId: string;
-    impersonatedUserId: string;
-  }): Promise<AuthTokens> {
-    const correlationId = randomUUID();
-
-    const analytics = this.auditService.createContext({
-      workspaceId,
-      userId: _impersonatorUserId,
-    });
-
-    analytics.insertWorkspaceEvent('Monitoring', {
-      eventName: 'workspace.impersonation.attempted',
-      message: `correlationId=${correlationId}; impersonatorUserWorkspaceId=${impersonatorUserWorkspaceId}; targetUserWorkspaceId=${impersonatedUserWorkspaceId}; workspaceId=${workspaceId}`,
-    });
-
-    const accessToken = await this.accessTokenService.generateAccessToken({
-      userId: impersonatedUserId,
-      workspaceId,
-      authProvider: AuthProviderEnum.Impersonation,
-      isImpersonating: true,
-      impersonatorUserWorkspaceId,
-      impersonatedUserWorkspaceId,
-    });
-    const refreshToken = await this.refreshTokenService.generateRefreshToken(
-      {
-        userId: impersonatedUserId,
-        workspaceId,
-        authProvider: AuthProviderEnum.Impersonation,
-        targetedTokenType: JwtTokenTypeEnum.ACCESS,
-        isImpersonating: true,
-        impersonatorUserWorkspaceId,
-        impersonatedUserWorkspaceId,
-      },
-      true,
-    );
-
-    analytics.insertWorkspaceEvent('Monitoring', {
-      eventName: 'workspace.impersonation.issued',
-      message: `correlationId=${correlationId}; impersonatorUserWorkspaceId=${impersonatorUserWorkspaceId}; targetUserWorkspaceId=${impersonatedUserWorkspaceId}; workspaceId=${workspaceId}`,
-    });
-
-    return {
-      tokens: {
-        accessOrWorkspaceAgnosticToken: accessToken,
-        refreshToken,
-      },
-    };
   }
 
   async countAvailableWorkspacesByEmail(email: string): Promise<number> {
@@ -915,38 +803,23 @@ export class AuthService {
       action === 'list-available-workspaces' &&
       availableWorkspacesCount > 1
     ) {
-      const user =
-        existingUser ??
-        (await this.signInUpService.signUpWithoutWorkspace(
-          {
-            firstName,
-            lastName,
-            email,
-            picture,
-            isEmailAlreadyVerified: true,
-          },
-          {
-            provider: authProvider,
-          },
-        ));
+      await this.signInUpService.signUpWithoutWorkspace(
+        {
+          firstName,
+          lastName,
+          email,
+          picture,
+          isEmailAlreadyVerified: true,
+        },
+        {
+          provider: authProvider,
+        },
+      );
 
       const url = this.domainServerConfigService.buildBaseUrl({
         pathname: AppPath.SignInUp,
         searchParams: {
-          tokenPair: JSON.stringify({
-            accessOrWorkspaceAgnosticToken:
-              await this.workspaceAgnosticTokenService.generateWorkspaceAgnosticToken(
-                {
-                  userId: user.id,
-                  authProvider,
-                },
-              ),
-            refreshToken: await this.refreshTokenService.generateRefreshToken({
-              userId: user.id,
-              authProvider,
-              targetedTokenType: JwtTokenTypeEnum.WORKSPACE_AGNOSTIC,
-            }),
-          }),
+          // Token legacy login flow removed
         },
       });
 
@@ -1001,14 +874,8 @@ export class AuthService {
         billingCheckoutSessionState,
       });
 
-      const loginToken = await this.loginTokenService.generateLoginToken(
-        user.email,
-        workspace.id,
-        authProvider,
-      );
-
       return this.computeRedirectURI({
-        loginToken: loginToken.token,
+        loginToken: '',
         workspace,
         billingCheckoutSessionState,
       });

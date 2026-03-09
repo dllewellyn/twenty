@@ -18,7 +18,7 @@ import { ApiKeyRoleService } from 'src/engine/core-modules/api-key/services/api-
 import { isApiKeyAuthContext } from 'src/engine/core-modules/auth/guards/is-api-key-auth-context.guard';
 import { isUserAuthContext } from 'src/engine/core-modules/auth/guards/is-user-auth-context.guard';
 import { getWorkspaceAuthContext } from 'src/engine/core-modules/auth/storage/workspace-auth-context.storage';
-import { AccessTokenService } from 'src/engine/core-modules/auth/token/services/access-token.service';
+import { FirebaseAuthStrategy } from 'src/engine/core-modules/auth/strategies/firebase.auth.strategy';
 import { WorkspaceAuthContext } from 'src/engine/core-modules/auth/types/workspace-auth-context.type';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { FeatureFlagService } from 'src/engine/core-modules/feature-flag/services/feature-flag.service';
@@ -70,7 +70,7 @@ export abstract class RestApiBaseHandler {
   @Inject()
   protected readonly userRoleService: UserRoleService;
   @Inject()
-  protected readonly accessTokenService: AccessTokenService;
+  protected readonly firebaseAuthStrategy: FirebaseAuthStrategy;
   @Inject()
   protected readonly workspaceDomainsService: WorkspaceDomainsService;
   @Inject()
@@ -177,8 +177,7 @@ export abstract class RestApiBaseHandler {
     flatIndexMaps: FlatEntityMaps<FlatIndexMetadata>;
     objectIdByNameSingular: Record<string, string>;
   }> {
-    const { workspace } =
-      await this.accessTokenService.validateTokenByRequest(request);
+    const { workspace } = await this.firebaseAuthStrategy.validate(request);
 
     assertIsDefinedOrThrow(workspace, WorkspaceNotFoundDefaultError);
 

@@ -9,7 +9,7 @@ import {
 } from 'twenty-shared/utils';
 
 import { DatabaseEventAction } from 'src/engine/api/graphql/graphql-query-runner/enums/database-event-action';
-import { AccessTokenService } from 'src/engine/core-modules/auth/token/services/access-token.service';
+import { FirebaseAuthStrategy } from 'src/engine/core-modules/auth/strategies/firebase.auth.strategy';
 import { baseSchema } from 'src/engine/core-modules/open-api/utils/base-schema.utils';
 import {
   computeMetadataSchemaComponents,
@@ -52,15 +52,14 @@ import { getServerUrl } from 'src/utils/get-server-url';
 @Injectable()
 export class OpenApiService {
   constructor(
-    private readonly accessTokenService: AccessTokenService,
+    private readonly firebaseAuthStrategy: FirebaseAuthStrategy,
     private readonly twentyConfigService: TwentyConfigService,
     private readonly flatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
   ) {}
 
   private async getWorkspaceFromRequest(request: Request) {
     try {
-      const { workspace } =
-        await this.accessTokenService.validateTokenByRequest(request);
+      const { workspace } = await this.firebaseAuthStrategy.validate(request);
 
       assertIsDefinedOrThrow(workspace, WorkspaceNotFoundDefaultError);
 

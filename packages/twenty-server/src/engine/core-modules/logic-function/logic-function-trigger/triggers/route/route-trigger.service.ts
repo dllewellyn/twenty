@@ -7,7 +7,7 @@ import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
 import { IsNull, Not, Repository } from 'typeorm';
 import { HTTPMethod } from 'twenty-shared/types';
 
-import { AccessTokenService } from 'src/engine/core-modules/auth/token/services/access-token.service';
+import { FirebaseAuthStrategy } from 'src/engine/core-modules/auth/strategies/firebase.auth.strategy';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import {
   RouteTriggerException,
@@ -20,7 +20,7 @@ import { LogicFunctionExecutorService } from 'src/engine/core-modules/logic-func
 @Injectable()
 export class RouteTriggerService {
   constructor(
-    private readonly accessTokenService: AccessTokenService,
+    private readonly firebaseAuthStrategy: FirebaseAuthStrategy,
     private readonly logicFunctionExecutorService: LogicFunctionExecutorService,
     private readonly workspaceDomainsService: WorkspaceDomainsService,
     @InjectRepository(LogicFunctionEntity)
@@ -98,8 +98,7 @@ export class RouteTriggerService {
     request: Request;
     workspaceId: string;
   }) {
-    const authContext =
-      await this.accessTokenService.validateTokenByRequest(request);
+    const authContext = await this.firebaseAuthStrategy.validate(request);
 
     if (!isDefined(authContext.workspace)) {
       throw new RouteTriggerException(

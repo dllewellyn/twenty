@@ -28,9 +28,6 @@ import { ResetPasswordService } from 'src/engine/core-modules/auth/services/rese
 import { SignInUpService } from 'src/engine/core-modules/auth/services/sign-in-up.service';
 import { UpdateConnectedAccountOnReconnectService } from 'src/engine/core-modules/auth/services/update-connected-account-on-reconnect.service';
 import { SamlAuthStrategy } from 'src/engine/core-modules/auth/strategies/saml.auth.strategy';
-import { AccessTokenService } from 'src/engine/core-modules/auth/token/services/access-token.service';
-import { LoginTokenService } from 'src/engine/core-modules/auth/token/services/login-token.service';
-import { RefreshTokenService } from 'src/engine/core-modules/auth/token/services/refresh-token.service';
 import { TransientTokenService } from 'src/engine/core-modules/auth/token/services/transient-token.service';
 import { TokenModule } from 'src/engine/core-modules/auth/token/token.module';
 import { DomainServerConfigModule } from 'src/engine/core-modules/domain/domain-server-config/domain-server-config.module';
@@ -74,7 +71,6 @@ import { AuthResolver } from './auth.resolver';
 
 import { AuthService } from './services/auth.service';
 import { FirebaseAuthStrategy } from './strategies/firebase.auth.strategy';
-import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
 
 @Module({
   imports: [
@@ -137,7 +133,6 @@ import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
     SignInUpService,
     AuthService,
     FirebaseAuthStrategy,
-    JwtAuthStrategy,
     SamlAuthStrategy,
     AuthResolver,
     GoogleAPIsService,
@@ -145,9 +140,6 @@ import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
     GoogleApisServiceAvailabilityService,
     MicrosoftAPIsService,
     AppTokenService,
-    AccessTokenService,
-    RefreshTokenService,
-    LoginTokenService,
     ResetPasswordService,
     // So far, it's not possible to have controllers in business modules
     // which forces us to have these services in the auth module
@@ -161,11 +153,9 @@ import { JwtAuthStrategy } from './strategies/jwt.auth.strategy';
     AuthSsoService,
   ],
   exports: [
-    AccessTokenService,
-    LoginTokenService,
-    RefreshTokenService,
     CreateMessageChannelService,
     CreateCalendarChannelService,
+    FirebaseAuthStrategy,
   ],
 })
 export class AuthModule {}

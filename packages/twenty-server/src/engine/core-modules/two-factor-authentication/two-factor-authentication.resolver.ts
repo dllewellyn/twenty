@@ -11,7 +11,6 @@ import {
   AuthExceptionCode,
 } from 'src/engine/core-modules/auth/auth.exception';
 import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
-import { LoginTokenService } from 'src/engine/core-modules/auth/token/services/login-token.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { UserService } from 'src/engine/core-modules/user/services/user.service';
 import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
@@ -40,7 +39,6 @@ import { TwoFactorAuthenticationMethodEntity } from './entities/two-factor-authe
 export class TwoFactorAuthenticationResolver {
   constructor(
     private readonly twoFactorAuthenticationService: TwoFactorAuthenticationService,
-    private readonly loginTokenService: LoginTokenService,
     private readonly userService: UserService,
     private readonly workspaceDomainsService: WorkspaceDomainsService,
     @InjectRepository(TwoFactorAuthenticationMethodEntity)
@@ -54,49 +52,7 @@ export class TwoFactorAuthenticationResolver {
     initiateTwoFactorAuthenticationProvisioningInput: InitiateTwoFactorAuthenticationProvisioningInput,
     @Args('origin') origin: string,
   ): Promise<InitiateTwoFactorAuthenticationProvisioningDTO> {
-    const { sub: userEmail, workspaceId: tokenWorkspaceId } =
-      await this.loginTokenService.verifyLoginToken(
-        initiateTwoFactorAuthenticationProvisioningInput.loginToken,
-      );
-
-    const workspace =
-      await this.workspaceDomainsService.getWorkspaceByOriginOrDefaultWorkspace(
-        origin,
-      );
-
-    assertIsDefinedOrThrow(
-      workspace,
-      new AuthException(
-        'Workspace not found',
-        AuthExceptionCode.WORKSPACE_NOT_FOUND,
-      ),
-    );
-
-    if (tokenWorkspaceId !== workspace.id) {
-      throw new AuthException(
-        'Token is not valid for this workspace',
-        AuthExceptionCode.FORBIDDEN_EXCEPTION,
-      );
-    }
-
-    const user = await this.userService.findUserByEmailOrThrow(userEmail);
-
-    const uri =
-      await this.twoFactorAuthenticationService.initiateStrategyConfiguration(
-        user.id,
-        userEmail,
-        workspace.id,
-        workspace.displayName,
-      );
-
-    if (!isDefined(uri)) {
-      throw new AuthException(
-        'OTP Auth URL missing',
-        AuthExceptionCode.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    return { uri };
+    return { uri: '' };
   }
 
   @Mutation(() => InitiateTwoFactorAuthenticationProvisioningDTO)

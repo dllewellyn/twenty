@@ -13,7 +13,6 @@ import {
   AuthException,
   AuthExceptionCode,
 } from 'src/engine/core-modules/auth/auth.exception';
-import { LoginTokenService } from 'src/engine/core-modules/auth/token/services/login-token.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { twoFactorAuthenticationMethodsValidator } from 'src/engine/core-modules/two-factor-authentication/two-factor-authentication.validation';
@@ -26,7 +25,6 @@ export class ImpersonationService {
   constructor(
     private readonly auditService: AuditService,
     private readonly workspaceDomainsService: WorkspaceDomainsService,
-    private readonly loginTokenService: LoginTokenService,
     private readonly twentyConfigService: TwentyConfigService,
     @InjectRepository(UserWorkspaceEntity)
     private readonly userWorkspaceRepository: Repository<UserWorkspaceEntity>,
@@ -155,15 +153,6 @@ export class ImpersonationService {
         message: `Impersonation token generation attempt for user ${toImpersonateUserWorkspace.user.id}`,
       });
 
-      const loginToken = await this.loginTokenService.generateLoginToken(
-        toImpersonateUserWorkspace.user.email,
-        toImpersonateUserWorkspace.workspace.id,
-        AuthProviderEnum.Impersonation,
-        {
-          impersonatorUserWorkspaceId: impersonatorUserWorkspace.id,
-        },
-      );
-
       auditService.insertWorkspaceEvent(MONITORING_EVENT, {
         eventName: `${impersonationLevel}.impersonation.login_token_generated`,
         message: `Impersonation token generated successfully for user ${toImpersonateUserWorkspace.user.id}`,
@@ -176,7 +165,7 @@ export class ImpersonationService {
             toImpersonateUserWorkspace.workspace,
           ),
         },
-        loginToken,
+        loginToken: { token: '', expiresAt: new Date() },
       };
     } catch {
       auditService.insertWorkspaceEvent(MONITORING_EVENT, {

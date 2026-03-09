@@ -24781,15 +24781,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jsonwebtoken@npm:*":
-  version: 9.0.6
-  resolution: "@types/jsonwebtoken@npm:9.0.6"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/9c29e3896e5fb6056e54d87514643e59e0cfb966ae25171a107776270195bba955f0373e98c8ed6450c145b18984f5df9cf0fcac360f382cec3c7c4d3510b202
-  languageName: node
-  linkType: hard
-
 "@types/jsonwebtoken@npm:9.0.10, @types/jsonwebtoken@npm:^9.0.4":
   version: 9.0.10
   resolution: "@types/jsonwebtoken@npm:9.0.10"
@@ -25387,17 +25378,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/passport-jwt@npm:^3.0.8":
-  version: 3.0.13
-  resolution: "@types/passport-jwt@npm:3.0.13"
-  dependencies:
-    "@types/express": "npm:*"
-    "@types/jsonwebtoken": "npm:*"
-    "@types/passport-strategy": "npm:*"
-  checksum: 10c0/39aeafa92d869f38f17994dd02f8124d88dc6977b0fee56d8ef4c6d4ff86378456a4904644a83dabc8d3fd69c23d0503c8af14ee51a7ced5d54c3c0115c1422c
-  languageName: node
-  linkType: hard
-
 "@types/passport-microsoft@npm:^2.1.0":
   version: 2.1.0
   resolution: "@types/passport-microsoft@npm:2.1.0"
@@ -25418,7 +25398,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/passport-strategy@npm:*, @types/passport-strategy@npm:^0.2.38":
+"@types/passport-strategy@npm:^0.2.38":
   version: 0.2.38
   resolution: "@types/passport-strategy@npm:0.2.38"
   dependencies:
@@ -50131,16 +50111,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"passport-jwt@npm:4.0.1":
-  version: 4.0.1
-  resolution: "passport-jwt@npm:4.0.1"
-  dependencies:
-    jsonwebtoken: "npm:^9.0.0"
-    passport-strategy: "npm:^1.0.0"
-  checksum: 10c0/d7e2b472d399f596a1db31310f8e63d10777ab7468b9a378c964156e5f0a772598b007417356ead578cfdaf60dc2bba39a55f0033ca865186fdb2a2b198e2e7e
-  languageName: node
-  linkType: hard
-
 "passport-microsoft@npm:2.1.0":
   version: 2.1.0
   resolution: "passport-microsoft@npm:2.1.0"
@@ -58657,7 +58627,6 @@ __metadata:
     "@types/nodemailer": "npm:^7.0.3"
     "@types/openid-client": "npm:^3.7.0"
     "@types/passport-google-oauth20": "npm:^2.0.11"
-    "@types/passport-jwt": "npm:^3.0.8"
     "@types/passport-microsoft": "npm:^2.1.0"
     "@types/pluralize": "npm:^0.0.33"
     "@types/psl": "npm:^1.1.3"
@@ -58745,7 +58714,6 @@ __metadata:
     passport: "npm:^0.7.0"
     passport-custom: "npm:^1.1.1"
     passport-google-oauth20: "npm:2.0.0"
-    passport-jwt: "npm:4.0.1"
     passport-microsoft: "npm:2.1.0"
     path-to-regexp: "npm:^8.2.0"
     pg: "npm:8.12.0"
@@ -58967,7 +58935,6 @@ __metadata:
     "@types/ms": "npm:^0.7.31"
     "@types/node": "npm:^24.0.0"
     "@types/passport-google-oauth20": "npm:^2.0.11"
-    "@types/passport-jwt": "npm:^3.0.8"
     "@types/passport-microsoft": "npm:^2.1.0"
     "@types/pluralize": "npm:^0.0.33"
     "@types/react": "npm:^18.2.39"

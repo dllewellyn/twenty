@@ -7,7 +7,7 @@ import { McpCoreController } from 'src/engine/api/mcp/controllers/mcp-core.contr
 import { type JsonRpc } from 'src/engine/api/mcp/dtos/json-rpc';
 import { McpProtocolService } from 'src/engine/api/mcp/services/mcp-protocol.service';
 import { type ApiKeyEntity } from 'src/engine/core-modules/api-key/api-key.entity';
-import { AccessTokenService } from 'src/engine/core-modules/auth/token/services/access-token.service';
+import { FirebaseAuthStrategy } from 'src/engine/core-modules/auth/strategies/firebase.auth.strategy';
 import { HttpExceptionHandlerService } from 'src/engine/core-modules/exception-handler/http-exception-handler.service';
 import { type UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { type WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
@@ -30,8 +30,14 @@ describe('McpCoreController', () => {
           useValue: mockMcpProtocolService,
         },
         {
-          provide: AccessTokenService,
-          useValue: jest.fn(),
+          provide: FirebaseAuthStrategy,
+          useValue: {
+            validate: jest.fn().mockResolvedValue({
+              workspace: {
+                id: '1',
+              },
+            }),
+          },
         },
         {
           provide: WorkspaceCacheStorageService,
