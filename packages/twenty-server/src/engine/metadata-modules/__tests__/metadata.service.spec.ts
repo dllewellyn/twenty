@@ -48,7 +48,10 @@ describe('MetadataService', () => {
 
     service.updateCache('workspace1', 'users', testSchema);
 
-    const { validator, partialValidator } = await service.getValidator('users', 'workspace1');
+    const { validator, partialValidator } = await service.getValidator(
+      'users',
+      'workspace1',
+    );
 
     expect(validator).toBeDefined();
     expect(partialValidator).toBeDefined();
@@ -116,7 +119,10 @@ describe('MetadataService', () => {
       ],
     });
 
-    const { validator } = await service.getValidator('remote-objects', 'workspace1');
+    const { validator } = await service.getValidator(
+      'remote-objects',
+      'workspace1',
+    );
     expect(validator).toBeDefined();
     expect(validator({ remoteField: 'test' })).toBe(true);
     expect(mockFirestore.collection().get).toHaveBeenCalledTimes(1);

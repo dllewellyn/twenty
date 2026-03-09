@@ -1,4 +1,9 @@
-import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import Ajv, { AnySchema, ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
@@ -16,7 +21,8 @@ export class MetadataService implements OnModuleInit, OnModuleDestroy {
   private ajv: Ajv;
 
   // Cache structure: workspaceId -> objectName -> MetadataValidator
-  private validatorsCache: Map<string, Map<string, MetadataValidator>> = new Map();
+  private validatorsCache: Map<string, Map<string, MetadataValidator>> =
+    new Map();
 
   constructor(
     @Inject(FIREBASE_ADMIN_APP) private readonly firebaseApp?: admin.app.App,
@@ -64,7 +70,11 @@ export class MetadataService implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  public updateCache(workspaceId: string, objectName: string, jsonSchema: AnySchema) {
+  public updateCache(
+    workspaceId: string,
+    objectName: string,
+    jsonSchema: AnySchema,
+  ) {
     if (!workspaceId || !objectName || !jsonSchema) return;
 
     let workspaceCache = this.validatorsCache.get(workspaceId);
@@ -99,7 +109,10 @@ export class MetadataService implements OnModuleInit, OnModuleDestroy {
         partialValidator,
       });
     } catch (e) {
-      console.error(`Error compiling schema for ${objectName} in workspace ${workspaceId}:`, e);
+      console.error(
+        `Error compiling schema for ${objectName} in workspace ${workspaceId}:`,
+        e,
+      );
     }
   }
 
@@ -110,7 +123,10 @@ export class MetadataService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  public async getValidator(objectName: string, workspaceId: string): Promise<MetadataValidator> {
+  public async getValidator(
+    objectName: string,
+    workspaceId: string,
+  ): Promise<MetadataValidator> {
     // Check workspace specific cache
     const workspaceCache = this.validatorsCache.get(workspaceId);
     if (workspaceCache && workspaceCache.has(objectName)) {
@@ -126,12 +142,15 @@ export class MetadataService implements OnModuleInit, OnModuleDestroy {
     // If not in cache, fetch it from Firestore directly
     let querySnapshot;
     try {
-      querySnapshot = await this.db.collection('_metadata')
+      querySnapshot = await this.db
+        .collection('_metadata')
         .where('workspaceId', 'in', [workspaceId, 'system'])
         .get();
     } catch (e) {
       console.error('Error fetching metadata schemas from Firestore:', e);
-      throw new Error(`Validator not found for object ${objectName} in workspace ${workspaceId}`);
+      throw new Error(
+        `Validator not found for object ${objectName} in workspace ${workspaceId}`,
+      );
     }
 
     // Populate cache for missing
@@ -155,6 +174,8 @@ export class MetadataService implements OnModuleInit, OnModuleDestroy {
       return updatedSystemCache.get(objectName)!;
     }
 
-    throw new Error(`Validator not found for object ${objectName} in workspace ${workspaceId}`);
+    throw new Error(
+      `Validator not found for object ${objectName} in workspace ${workspaceId}`,
+    );
   }
 }
