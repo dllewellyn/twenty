@@ -1,10 +1,7 @@
 import { Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import Ajv, { AnySchema, ValidateFunction } from 'ajv';
 import { FIREBASE_ADMIN_APP } from '../../core-modules/firebase/firebase.constants';
-import addFormats from 'ajv-formats';
-import * as fs from 'fs';
-import * as path from 'path';
+import { MetadataService } from '../../metadata-modules/metadata.service';
 
 /**
  * Base repository for Firestore-backed entities.
@@ -15,97 +12,32 @@ import * as path from 'path';
  * **Limitations compared to standard TypeORM Repository:**
  * - Limited query parsing in `find()` (basic equality, some simple operators like moreThan, lessThan, in).
  * - Only basic support for `skip` and `take` based on Firestore's native pagination capabilities. No complex ordering logic out-of-the-box.
- * - Validation is done via `ajv` and extracted JSON schemas instead of class-validator decorators.
+ * - Validation is done via `ajv` and dynamically fetched JSON schemas instead of class-validator decorators.
  * - Does not natively manage complex relation mappings out-of-the-box in the same way TypeORM does.
  */
 export class BaseFirestoreRepository<T extends Record<string, any>> {
   protected readonly db: admin.firestore.Firestore;
   protected readonly collection: admin.firestore.CollectionReference;
-  protected readonly ajv: Ajv;
-  protected readonly validator: ValidateFunction;
-  protected readonly partialValidator: ValidateFunction;
-  protected schema: AnySchema;
 
   constructor(
     protected readonly collectionName: string,
-    schemaOrName: AnySchema | string,
+    protected readonly metadataService: MetadataService,
+    protected readonly workspaceId: string,
     @Inject(FIREBASE_ADMIN_APP) protected readonly firebaseApp?: admin.app.App,
   ) {
     this.db = this.firebaseApp
       ? this.firebaseApp.firestore()
       : admin.firestore();
     this.collection = this.db.collection(this.collectionName);
-
-    this.ajv = new Ajv({ allErrors: true, strict: false });
-    addFormats(this.ajv);
-
-    // Load all schemas from the json-schemas directory dynamically
-    const schemasPath = path.join(
-      __dirname,
-      '../../metadata-modules/json-schemas',
-    );
-    if (fs.existsSync(schemasPath)) {
-      const files = fs.readdirSync(schemasPath);
-      for (const file of files) {
-        if (file.endsWith('.json')) {
-          try {
-            const rawSchema = fs.readFileSync(
-              path.join(schemasPath, file),
-              'utf8',
-            );
-            const parsedSchema = JSON.parse(rawSchema);
-            if (parsedSchema.$id) {
-              // Ensure we don't add the same schema twice if ajv automatically handles some
-              if (!this.ajv.getSchema(parsedSchema.$id)) {
-                this.ajv.addSchema(parsedSchema);
-              }
-            } else {
-              // Fallback if schema doesn't have an ID, use filename
-              const id = file.replace('.json', '');
-              parsedSchema.$id = id;
-              if (!this.ajv.getSchema(id)) {
-                this.ajv.addSchema(parsedSchema);
-              }
-            }
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.error(`Error loading schema from ${file}:`, e);
-          }
-        }
-      }
-    }
-
-    if (typeof schemaOrName === 'string') {
-      const rawSchema = fs.readFileSync(
-        path.join(schemasPath, `${schemaOrName}.json`),
-        'utf8',
-      );
-      this.schema = JSON.parse(rawSchema);
-    } else {
-      this.schema = schemaOrName;
-    }
-
-    this.validator = this.ajv.compile(this.schema);
-
-    // Create a partial schema for update validation
-    // Removing the 'required' field from the schema properties to allow partial updates
-    const partialSchema = { ...this.schema } as Record<string, unknown> & {
-      required?: string[];
-    };
-    if (partialSchema.required) {
-      delete partialSchema.required;
-    }
-    if (partialSchema.$id) {
-      partialSchema.$id = `${partialSchema.$id}-partial`;
-    }
-    this.partialValidator = this.ajv.compile(partialSchema);
   }
 
   async create(data: T): Promise<admin.firestore.DocumentReference> {
-    const isValid = this.validator(data);
+    const { validator } = await this.metadataService.getValidator(this.collectionName, this.workspaceId);
+
+    const isValid = validator(data);
     if (!isValid) {
       throw new Error(
-        `Validation failed: ${this.ajv.errorsText(this.validator.errors)}`,
+        `Validation failed: ${JSON.stringify(validator.errors)}`,
       );
     }
 
@@ -116,10 +48,12 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     id: string,
     data: Partial<T>,
   ): Promise<admin.firestore.WriteResult> {
-    const isValid = this.partialValidator(data);
+    const { partialValidator } = await this.metadataService.getValidator(this.collectionName, this.workspaceId);
+
+    const isValid = partialValidator(data);
     if (!isValid) {
       throw new Error(
-        `Partial validation failed: ${this.ajv.errorsText(this.partialValidator.errors)}`,
+        `Partial validation failed: ${JSON.stringify(partialValidator.errors)}`,
       );
     }
 
@@ -194,12 +128,14 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async save(data: T | T[]): Promise<T | T[]> {
+    const { validator } = await this.metadataService.getValidator(this.collectionName, this.workspaceId);
+
     if (Array.isArray(data)) {
       for (const item of data) {
-        const isValid = this.validator(item);
+        const isValid = validator(item);
         if (!isValid) {
           throw new Error(
-            `Validation failed: ${this.ajv.errorsText(this.validator.errors)}`,
+            `Validation failed: ${JSON.stringify(validator.errors)}`,
           );
         }
       }
@@ -219,10 +155,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       await batch.commit();
       return data;
     } else {
-      const isValid = this.validator(data);
+      const isValid = validator(data);
       if (!isValid) {
         throw new Error(
-          `Validation failed: ${this.ajv.errorsText(this.validator.errors)}`,
+          `Validation failed: ${JSON.stringify(validator.errors)}`,
         );
       }
       const docRef = data.id
@@ -272,13 +208,15 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async insert(data: any | any[]): Promise<any> {
+    const { validator } = await this.metadataService.getValidator(this.collectionName, this.workspaceId);
+
     const items = Array.isArray(data) ? data : [data];
 
     for (const item of items) {
-      const isValid = this.validator(item);
+      const isValid = validator(item);
       if (!isValid) {
         throw new Error(
-          `Validation failed: ${this.ajv.errorsText(this.validator.errors)}`,
+          `Validation failed: ${JSON.stringify(validator.errors)}`,
         );
       }
     }

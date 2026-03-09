@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.test' });
 import * as admin from 'firebase-admin';
 import { BaseFirestoreRepository } from '../firestore.repository';
+import { MetadataService } from '../../../metadata-modules/metadata.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -17,6 +18,7 @@ describe('BaseFirestoreRepository Integration', () => {
   let db: admin.firestore.Firestore;
   let repository: BaseFirestoreRepository<any>;
   let createdDocId: string;
+  let mockMetadataService: MetadataService;
 
   beforeAll(async () => {
     // Disable fake timers for this specific test suite as gRPC requires real timers to function
@@ -35,9 +37,27 @@ describe('BaseFirestoreRepository Integration', () => {
       ssl: false,
     });
 
+    // We can instantiate MetadataService normally or create a complete mock.
+    // Here we use the real service with the firebaseApp but update its cache manually to avoid needing `_metadata` setup in emulator
+    mockMetadataService = new MetadataService(admin.app());
+    mockMetadataService.updateCache('test_workspace', 'test_fields', createFieldSchema);
+
+    // We override getValidator to ensure it only reads from cache so we don't need real Firestore calls for `_metadata`
+    jest.spyOn(mockMetadataService, 'getValidator').mockImplementation(async (objectName: string, workspaceId: string) => {
+       // Since updateCache was called above, the cache has this populated
+       // We can directly call the real method or replicate cache checking logic.
+       // We'll just return from the internal cache property or we can let the real method throw if missing
+       const cache = (mockMetadataService as any).validatorsCache.get(workspaceId);
+       if (cache && cache.has(objectName)) {
+         return cache.get(objectName);
+       }
+       throw new Error(`Validator not found`);
+    });
+
     repository = new BaseFirestoreRepository(
       'test_fields',
-      createFieldSchema,
+      mockMetadataService,
+      'test_workspace',
       admin.app(),
     );
   });
@@ -47,6 +67,8 @@ describe('BaseFirestoreRepository Integration', () => {
     if (createdDocId) {
       await repository.delete(createdDocId);
     }
+    mockMetadataService.onModuleDestroy();
+
     // Delete the default app to prevent issues with other tests that might use firebase-admin
     if (admin.apps.length > 0 && admin.app()) {
       await admin.app().delete();
