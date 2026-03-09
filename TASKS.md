@@ -1,11 +1,7 @@
 # Task Backlog
 
-## Phase 2: Auth Migration
-- [ ] **Complete Firebase Auth Transition**: Update remaining dependencies across the application (e.g. `twenty-front`, `twenty-server`, extensions) to exclusively rely on Firebase Authentication.
-- [ ] **Legacy Auth Decommissioning**: Remove `JwtAuthStrategy`, related entities, and Passport JWT configuration once the frontend migration is verified.
-
 ## Phase 3: Data Migration
-- [ ] **Manual Metadata Validation**: Conduct a final manual review of sensitive metadata fields (e.g., custom field types, relationship mappings) before starting the full data migration.
+- [ ] **Resolve Metadata Discrepancies**: Use the `database:validate-metadata` tool to identify and fix any schema inconsistencies between Postgres and Firestore before executing data migrations.
 - [ ] **Collection Migration: 'Companies'**: Develop and run a script to migrate all 'Companies' records from PostgreSQL to the Firestore 'companies' collection.
 - [ ] **Collection Migration: 'Notes'**: Develop and run a script to migrate all 'Note' records from PostgreSQL to the Firestore 'notes' collection.
 - [ ] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.
@@ -24,6 +20,9 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Manual Metadata Validation**: Conduct a final manual review of sensitive metadata fields (e.g., custom field types, relationship mappings) before starting the full data migration.
+- [x] **Complete Firebase Auth Transition**: Update remaining dependencies across the application (e.g. `twenty-front`, `twenty-server`, extensions) to exclusively rely on Firebase Authentication.
+- [x] **Legacy Auth Decommissioning**: Remove `JwtAuthStrategy`, related entities, and Passport JWT configuration once the frontend migration is verified.
 - [x] **Collection Migration: 'People'**: Develop and run a script to migrate all 'People' records from PostgreSQL to the Firestore 'people' collection.
 - [x] **Verify Firestore Metadata Structure**: Perform automated and manual validation to ensure the seeded Firestore metadata is complete and accurately reflects the original Postgres definitions.
 - [x] **Metadata Extraction and Seeding**: Extract existing object definitions from Postgres and seed the `_metadata` collection in Firestore according to the new strategy.
