@@ -1,6 +1,7 @@
 import { connectionSource } from '../src/database/typeorm/core/core.datasource';
 import { ObjectMetadataEntity } from '../src/engine/metadata-modules/object-metadata/object-metadata.entity';
 import { FieldMetadataEntity } from '../src/engine/metadata-modules/field-metadata/field-metadata.entity';
+import { FieldMetadataType } from 'twenty-shared/types';
 import * as admin from 'firebase-admin';
 
 export async function main() {
@@ -98,6 +99,9 @@ export async function main() {
     checkProperty('icon', icon, fsData.icon);
     checkProperty('description', description, fsData.description);
     checkProperty('workspaceId', workspaceId, fsData.workspaceId);
+    checkProperty('isSystem', isSystem, fsData.isSystem);
+
+    const schemaId = `https://twenty.com/schemas/v1/metadata/${workspaceId}/${nameSingular}`;
 
     if (hasPropertyMismatch) {
       propertyMismatchesCount++;
@@ -110,7 +114,12 @@ export async function main() {
         console.error(`[Schema Error] ${docId} - Missing jsonSchema in Firestore.`);
         hasSchemaError = true;
     } else {
-        const properties = jsonSchema.properties || {};
+        if (jsonSchema.$id !== schemaId) {
+          console.error(`[Schema Error] ${docId} - Schema $id mismatch. Expected '${schemaId}', got '${jsonSchema.$id}'`);
+          hasSchemaError = true;
+        }
+
+        const properties = jsonSchema.properties as Record<string, any> || {};
         const required = jsonSchema.required || [];
 
         if (fields) {
@@ -120,6 +129,68 @@ export async function main() {
             if (!(field.name in properties)) {
               console.error(`[Schema Error] ${docId} - Active field '${field.name}' is missing from jsonSchema.properties.`);
               hasSchemaError = true;
+            } else {
+              const property = properties[field.name];
+              let expectedType = 'string';
+              let expectedFormat = undefined;
+
+              switch (field.type) {
+                case FieldMetadataType.TEXT:
+                case FieldMetadataType.RICH_TEXT:
+                case FieldMetadataType.RICH_TEXT_V2:
+                case FieldMetadataType.SELECT:
+                  expectedType = 'string';
+                  break;
+                case FieldMetadataType.UUID:
+                  expectedType = 'string';
+                  expectedFormat = 'uuid';
+                  break;
+                case FieldMetadataType.NUMBER:
+                case FieldMetadataType.NUMERIC:
+                case FieldMetadataType.POSITION:
+                case FieldMetadataType.RATING:
+                case FieldMetadataType.CURRENCY:
+                  expectedType = 'number';
+                  break;
+                case FieldMetadataType.BOOLEAN:
+                  expectedType = 'boolean';
+                  break;
+                case FieldMetadataType.DATE:
+                case FieldMetadataType.DATE_TIME:
+                  expectedType = 'string';
+                  expectedFormat = 'date-time';
+                  break;
+                case FieldMetadataType.RAW_JSON:
+                case FieldMetadataType.EMAILS:
+                case FieldMetadataType.PHONES:
+                case FieldMetadataType.LINKS:
+                case FieldMetadataType.ADDRESS:
+                case FieldMetadataType.FULL_NAME:
+                case FieldMetadataType.ACTOR:
+                  expectedType = 'object';
+                  break;
+                case FieldMetadataType.MULTI_SELECT:
+                case FieldMetadataType.ARRAY:
+                case FieldMetadataType.FILES:
+                  expectedType = 'array';
+                  break;
+                case FieldMetadataType.RELATION:
+                case FieldMetadataType.MORPH_RELATION:
+                  expectedType = 'string';
+                  expectedFormat = 'uuid';
+                  break;
+                default:
+                  expectedType = 'string';
+              }
+
+              if (property.type !== expectedType) {
+                console.error(`[Schema Error] ${docId} - Field '${field.name}' has type '${property.type}' instead of '${expectedType}'.`);
+                hasSchemaError = true;
+              }
+              if (expectedFormat && property.format !== expectedFormat) {
+                console.error(`[Schema Error] ${docId} - Field '${field.name}' has format '${property.format}' instead of '${expectedFormat}'.`);
+                hasSchemaError = true;
+              }
             }
 
             if (field.isNullable === false) {
