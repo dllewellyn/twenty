@@ -22,6 +22,7 @@ import { SkillModule } from 'src/engine/metadata-modules/skill/skill.module';
 import { ViewModule } from 'src/engine/metadata-modules/view/view.module';
 import { WebhookModule } from 'src/engine/metadata-modules/webhook/webhook.module';
 import { WorkspaceMetadataVersionModule } from 'src/engine/metadata-modules/workspace-metadata-version/workspace-metadata-version.module';
+import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
 
 @Module({
   imports: [
@@ -47,12 +48,14 @@ import { WorkspaceMetadataVersionModule } from 'src/engine/metadata-modules/work
     WebhookModule,
   ],
   providers: [
+    MetadataService,
     {
       provide: APP_FILTER,
       useClass: FlatEntityMapsGraphqlApiExceptionFilter,
     },
   ],
   exports: [
+    MetadataService,
     DataSourceModule,
     FieldMetadataModule,
     FrontComponentModule,
