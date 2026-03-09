@@ -89,8 +89,16 @@ export async function main() {
           case FieldMetadataType.TEXT:
           case FieldMetadataType.RICH_TEXT:
           case FieldMetadataType.RICH_TEXT_V2:
+            propertyType = { type: 'string' };
+            break;
           case FieldMetadataType.SELECT:
             propertyType = { type: 'string' };
+            const selectOptions = Array.isArray(field.options)
+              ? field.options.map((opt: any) => opt.value)
+              : (field.options as any)?.options?.map((opt: any) => opt.value);
+            if (selectOptions && selectOptions.length > 0) {
+              propertyType.enum = selectOptions;
+            }
             break;
           case FieldMetadataType.UUID:
             propertyType = { type: 'string', format: 'uuid' };
@@ -98,30 +106,52 @@ export async function main() {
           case FieldMetadataType.NUMBER:
           case FieldMetadataType.NUMERIC:
           case FieldMetadataType.POSITION:
-          case FieldMetadataType.RATING:
-          case FieldMetadataType.CURRENCY:
             propertyType = { type: 'number' };
+            break;
+          case FieldMetadataType.RATING:
+            propertyType = { type: 'string' };
+            const ratingOptions = Array.isArray(field.options)
+              ? field.options.map((opt: any) => opt.value)
+              : (field.options as any)?.options?.map((opt: any) => opt.value);
+            if (ratingOptions && ratingOptions.length > 0) {
+              propertyType.enum = ratingOptions;
+            }
+            break;
+          case FieldMetadataType.CURRENCY:
+            propertyType = { type: 'object' };
             break;
           case FieldMetadataType.BOOLEAN:
             propertyType = { type: 'boolean' };
             break;
           case FieldMetadataType.DATE:
+            propertyType = { type: 'string', format: 'date' };
+            break;
           case FieldMetadataType.DATE_TIME:
             propertyType = { type: 'string', format: 'date-time' };
             break;
           case FieldMetadataType.RAW_JSON:
-          case FieldMetadataType.EMAILS:
-          case FieldMetadataType.PHONES:
-          case FieldMetadataType.LINKS:
           case FieldMetadataType.ADDRESS:
           case FieldMetadataType.FULL_NAME:
           case FieldMetadataType.ACTOR:
+          case FieldMetadataType.EMAILS:
+          case FieldMetadataType.PHONES:
+          case FieldMetadataType.LINKS:
             propertyType = { type: 'object' };
             break;
-          case FieldMetadataType.MULTI_SELECT:
-          case FieldMetadataType.ARRAY:
           case FieldMetadataType.FILES:
-            propertyType = { type: 'array', items: { type: 'string' } }; // Not sure about files array items type
+            propertyType = { type: 'array', items: { type: 'object' } };
+            break;
+          case FieldMetadataType.MULTI_SELECT:
+            propertyType = { type: 'array', items: { type: 'string' } };
+            const multiSelectOptions = Array.isArray(field.options)
+              ? field.options.map((opt: any) => opt.value)
+              : (field.options as any)?.options?.map((opt: any) => opt.value);
+            if (multiSelectOptions && multiSelectOptions.length > 0) {
+              (propertyType.items as Record<string, unknown>).enum = multiSelectOptions;
+            }
+            break;
+          case FieldMetadataType.ARRAY:
+            propertyType = { type: 'array', items: { type: 'string' } };
             break;
           case FieldMetadataType.RELATION:
           case FieldMetadataType.MORPH_RELATION:

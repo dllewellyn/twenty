@@ -83,6 +83,28 @@ describe('migrate-metadata-to-firestore', () => {
             name: 'numberField',
             isNullable: true,
           },
+          {
+            isActive: true,
+            type: FieldMetadataType.EMAILS,
+            name: 'emailsField',
+            isNullable: true,
+          },
+          {
+            isActive: true,
+            type: FieldMetadataType.DATE,
+            name: 'dateField',
+            isNullable: true,
+          },
+          {
+            isActive: true,
+            type: FieldMetadataType.SELECT,
+            name: 'selectField',
+            isNullable: true,
+            options: [
+              { label: 'Option 1', value: 'opt1' },
+              { label: 'Option 2', value: 'opt2' }
+            ]
+          },
         ],
       },
     ]);
@@ -114,6 +136,9 @@ describe('migrate-metadata-to-firestore', () => {
         properties: {
           textField: { type: 'string' },
           numberField: { type: 'number' },
+          emailsField: { type: 'object' },
+          dateField: { type: 'string', format: 'date' },
+          selectField: { type: 'string', enum: ['opt1', 'opt2'] }
         },
         required: ['textField'],
         additionalProperties: true,

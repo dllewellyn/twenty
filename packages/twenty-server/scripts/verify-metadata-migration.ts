@@ -139,6 +139,7 @@ export async function main() {
                 case FieldMetadataType.RICH_TEXT:
                 case FieldMetadataType.RICH_TEXT_V2:
                 case FieldMetadataType.SELECT:
+                case FieldMetadataType.RATING:
                   expectedType = 'string';
                   break;
                 case FieldMetadataType.UUID:
@@ -148,25 +149,27 @@ export async function main() {
                 case FieldMetadataType.NUMBER:
                 case FieldMetadataType.NUMERIC:
                 case FieldMetadataType.POSITION:
-                case FieldMetadataType.RATING:
-                case FieldMetadataType.CURRENCY:
                   expectedType = 'number';
                   break;
                 case FieldMetadataType.BOOLEAN:
                   expectedType = 'boolean';
                   break;
                 case FieldMetadataType.DATE:
+                  expectedType = 'string';
+                  expectedFormat = 'date';
+                  break;
                 case FieldMetadataType.DATE_TIME:
                   expectedType = 'string';
                   expectedFormat = 'date-time';
                   break;
                 case FieldMetadataType.RAW_JSON:
-                case FieldMetadataType.EMAILS:
-                case FieldMetadataType.PHONES:
-                case FieldMetadataType.LINKS:
                 case FieldMetadataType.ADDRESS:
                 case FieldMetadataType.FULL_NAME:
                 case FieldMetadataType.ACTOR:
+                case FieldMetadataType.CURRENCY:
+                case FieldMetadataType.EMAILS:
+                case FieldMetadataType.PHONES:
+                case FieldMetadataType.LINKS:
                   expectedType = 'object';
                   break;
                 case FieldMetadataType.MULTI_SELECT:
