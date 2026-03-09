@@ -68,7 +68,11 @@ async function main() {
 
     const schemaId = `twenty_${workspaceId}_${nameSingular}`;
 
-    const jsonSchema: any = {
+    const jsonSchema: Record<string, unknown> & {
+      $id: string;
+      properties: Record<string, unknown>;
+      required: string[];
+    } = {
       $id: schemaId,
       type: 'object',
       properties: {},
@@ -79,7 +83,7 @@ async function main() {
     if (fields) {
       for (const field of fields) {
         if (!field.isActive) continue; // Should we ignore inactive?
-        let propertyType: any = {};
+        let propertyType: Record<string, unknown> = {};
 
         switch (field.type) {
           case FieldMetadataType.TEXT:

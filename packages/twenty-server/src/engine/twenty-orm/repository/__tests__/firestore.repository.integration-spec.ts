@@ -40,19 +40,27 @@ describe('BaseFirestoreRepository Integration', () => {
     // We can instantiate MetadataService normally or create a complete mock.
     // Here we use the real service with the firebaseApp but update its cache manually to avoid needing `_metadata` setup in emulator
     mockMetadataService = new MetadataService(admin.app());
-    mockMetadataService.updateCache('test_workspace', 'test_fields', createFieldSchema);
+    mockMetadataService.updateCache(
+      'test_workspace',
+      'test_fields',
+      createFieldSchema,
+    );
 
     // We override getValidator to ensure it only reads from cache so we don't need real Firestore calls for `_metadata`
-    jest.spyOn(mockMetadataService, 'getValidator').mockImplementation(async (objectName: string, workspaceId: string) => {
-       // Since updateCache was called above, the cache has this populated
-       // We can directly call the real method or replicate cache checking logic.
-       // We'll just return from the internal cache property or we can let the real method throw if missing
-       const cache = (mockMetadataService as any).validatorsCache.get(workspaceId);
-       if (cache && cache.has(objectName)) {
-         return cache.get(objectName);
-       }
-       throw new Error(`Validator not found`);
-    });
+    jest
+      .spyOn(mockMetadataService, 'getValidator')
+      .mockImplementation(async (objectName: string, workspaceId: string) => {
+        // Since updateCache was called above, the cache has this populated
+        // We can directly call the real method or replicate cache checking logic.
+        // We'll just return from the internal cache property or we can let the real method throw if missing
+        const cache = (mockMetadataService as any).validatorsCache.get(
+          workspaceId,
+        );
+        if (cache && cache.has(objectName)) {
+          return cache.get(objectName);
+        }
+        throw new Error(`Validator not found`);
+      });
 
     repository = new BaseFirestoreRepository(
       'test_fields',

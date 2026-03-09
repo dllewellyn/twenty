@@ -32,13 +32,14 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async create(data: T): Promise<admin.firestore.DocumentReference> {
-    const { validator } = await this.metadataService.getValidator(this.collectionName, this.workspaceId);
+    const { validator } = await this.metadataService.getValidator(
+      this.collectionName,
+      this.workspaceId,
+    );
 
     const isValid = validator(data);
     if (!isValid) {
-      throw new Error(
-        `Validation failed: ${JSON.stringify(validator.errors)}`,
-      );
+      throw new Error(`Validation failed: ${JSON.stringify(validator.errors)}`);
     }
 
     return this.collection.add(data);
@@ -48,7 +49,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     id: string,
     data: Partial<T>,
   ): Promise<admin.firestore.WriteResult> {
-    const { partialValidator } = await this.metadataService.getValidator(this.collectionName, this.workspaceId);
+    const { partialValidator } = await this.metadataService.getValidator(
+      this.collectionName,
+      this.workspaceId,
+    );
 
     const isValid = partialValidator(data);
     if (!isValid) {
@@ -128,7 +132,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async save(data: T | T[]): Promise<T | T[]> {
-    const { validator } = await this.metadataService.getValidator(this.collectionName, this.workspaceId);
+    const { validator } = await this.metadataService.getValidator(
+      this.collectionName,
+      this.workspaceId,
+    );
 
     if (Array.isArray(data)) {
       for (const item of data) {
@@ -208,7 +215,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async insert(data: any | any[]): Promise<any> {
-    const { validator } = await this.metadataService.getValidator(this.collectionName, this.workspaceId);
+    const { validator } = await this.metadataService.getValidator(
+      this.collectionName,
+      this.workspaceId,
+    );
 
     const items = Array.isArray(data) ? data : [data];
 
