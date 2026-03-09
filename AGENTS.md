@@ -1,5 +1,3 @@
-I will update the `AGENTS.md` file with the lessons learned from the recent repository-wide lint and formatting fix, focusing on defensive AST traversal, pragmatic type management in infrastructure, and linting best practices.
-
 # Agent Memory & Performance
 
 ## Lessons Learned
@@ -38,3 +36,9 @@ I will update the `AGENTS.md` file with the lessons learned from the recent repo
     - **Infrastructure Logging**: In low-level repositories, using `console.error` with localized `eslint-disable-next-line no-console` can be safer than higher-level `Logger` abstractions to avoid circular dependencies or initialization race conditions during early-stage refactors.
     - **Lint Compliance via Prefixing**: Prefixing unused but required arguments with `_` (e.g., `_error`) is the standard practice for satisfying `no-unused-vars` rules while maintaining interface or method signature compliance.
     - **Automated Consistency**: Regular application of `prettier --write` across all workspaces ensures codebase consistency and reduces review friction by eliminating non-functional formatting changes from feature PRs.
+- **2026-03-09**: Implemented a dynamic, Firestore-backed metadata validation engine to replace static local schemas. Key architectural insights:
+    - **Reactive Schema Caching**: Utilizing Firestore's `onSnapshot` in a centralized `MetadataService` enables real-time schema updates across all service instances, ensuring that runtime validation stays synchronized with the database without requiring manual cache invalidation or redeploys.
+    - **Dual-Validator Strategy**: Deriving both strict (for `create`) and partial (for `update`) AJV validators from a single JSON schema simplifies maintenance while ensuring data integrity. Partial validation is effectively achieved by programmatically stripping `required` constraints from the base schema at runtime.
+    - **Schema-Driven NoSQL**: Leveraging `ajv` with `ajv-formats` provides a robust, type-safe validation layer for natively schema-less Firestore collections, bridging the gap between flexible NoSQL storage and strict relational-style data integrity.
+    - **Relational-to-JSON Mapping**: Mapping PostgreSQL metadata to JSON Schema requires explicit translation of relational constraints (e.g., mapping `isNullable: false` to the `required` array and `UUID` types to `string` with `uuid` format) to preserve the original data model's intent in a NoSQL environment.
+    - **Mocking Strategy for Complex Services**: When testing services with deep Firebase Admin SDK dependencies, mocking the `Firestore` and `CollectionReference` interfaces is essential for fast, reliable unit tests that verify complex reactive logic like snapshot listeners.
