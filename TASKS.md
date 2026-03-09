@@ -1,13 +1,12 @@
 # Task Backlog
 
-## Phase 2: Auth Migration
-- [ ] **Legacy Auth Decommissioning**: Remove `JwtAuthStrategy`, related entities, and Passport JWT configuration once the frontend migration is verified.
-
 ## Phase 3: Data Migration
-- [ ] **Metadata Migration Strategy**: Design a Firestore-compatible structure for storing and retrieving object metadata (People, Companies, etc.) that replaces the Postgres-based metadata engine.
 - [ ] **Metadata Extraction and Seeding**: Extract existing object definitions from Postgres and seed the `_metadata` collection in Firestore according to the new strategy.
 - [ ] **Collection Migration**: Port "People" and "Companies" data using the JSON schemas for validation and structure.
 - [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
+
+## Phase 2: Auth Migration
+- [ ] **Legacy Auth Decommissioning**: Remove `JwtAuthStrategy`, related entities, and Passport JWT configuration once the frontend migration is verified.
 
 ## Phase 4: Serverless Transition
 - [ ] **Cloud Functions Migration**: Port core business logic from NestJS controllers to Firebase Cloud Functions.
@@ -18,6 +17,7 @@
 - [ ] **Search & Extensions**: Implement search using Firebase Extensions or Algolia and set up Trigger Email extension.
 
 ## COMPLETED WORK
+- [x] **Metadata Migration Strategy**: Design a Firestore-compatible structure for storing and retrieving object metadata (People, Companies, etc.) that replaces the Postgres-based metadata engine.
 - [x] **Token Management**: Update the frontend API client to attach Firebase ID tokens to all outgoing requests and handle session persistence.
 - [x] **Frontend Firebase Integration**: Initialize the Firebase Web SDK in `twenty-front` and refactor the login/signup flow.
 - [x] **Firebase Admin SDK Setup**: Configure the `twenty-server` with the Firebase Admin SDK and service account for token verification.
