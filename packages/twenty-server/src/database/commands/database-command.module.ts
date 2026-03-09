@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CronRegisterAllCommand } from 'src/database/commands/cron-register-all.command';
 import { DataSeedWorkspaceCommand } from 'src/database/commands/data-seed-dev-workspace.command';
 import { ListOrphanedWorkspaceEntitiesCommand } from 'src/database/commands/list-and-delete-orphaned-workspace-entities.command';
+import { MigratePeopleCommand } from 'src/database/commands/migrate-people.command';
 import { ConfirmationQuestion } from 'src/database/commands/questions/confirmation.question';
 import { UpgradeVersionCommandModule } from 'src/database/commands/upgrade-version-command/upgrade-version-command.module';
 import { TypeORMModule } from 'src/database/typeorm/typeorm.module';
@@ -18,7 +19,9 @@ import { PublicDomainModule } from 'src/engine/core-modules/public-domain/public
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { WorkspaceModule } from 'src/engine/core-modules/workspace/workspace.module';
 import { DataSourceModule } from 'src/engine/metadata-modules/data-source/data-source.module';
+import { FirebaseModule } from 'src/engine/core-modules/firebase/firebase.module';
 import { FieldMetadataModule } from 'src/engine/metadata-modules/field-metadata/field-metadata.module';
+import { MetadataEngineModule } from 'src/engine/metadata-modules/metadata-engine.module';
 import { ObjectMetadataModule } from 'src/engine/metadata-modules/object-metadata/object-metadata.module';
 import { TrashCleanupModule } from 'src/engine/trash-cleanup/trash-cleanup.module';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
@@ -55,6 +58,8 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     WorkspaceCleanerModule,
     WorkspaceMigrationModule,
     TrashCleanupModule,
+    MetadataEngineModule,
+    FirebaseModule,
     PublicDomainModule,
     EventLogCleanupModule,
     MarketplaceModule,
@@ -66,6 +71,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     CronRegisterAllCommand,
     ListOrphanedWorkspaceEntitiesCommand,
     GenerateApiKeyCommand,
+    MigratePeopleCommand,
   ],
 })
 export class DatabaseCommandModule {}
