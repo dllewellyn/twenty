@@ -159,120 +159,6 @@ export class AuthResolver {
     );
   }
 
-  @Mutation(() => LoginTokenDTO)
-  @UseGuards(CaptchaGuard, PublicEndpointGuard, NoPermissionGuard)
-  async getLoginTokenFromCredentials(
-    @Args()
-    getLoginTokenFromCredentialsInput: UserCredentialsInput,
-    @Args('origin') origin: string,
-  ): Promise<LoginTokenDTO> {
-    return { loginToken: { token: '', expiresAt: new Date() } };
-  }
-
-  @Mutation(() => AvailableWorkspacesAndAccessTokensDTO)
-  @UseGuards(CaptchaGuard, PublicEndpointGuard, NoPermissionGuard)
-  async signIn(
-    @Args()
-    userCredentials: UserCredentialsInput,
-  ): Promise<AvailableWorkspacesAndAccessTokensDTO> {
-    return {
-      availableWorkspaces: [],
-      tokens: {
-        accessOrWorkspaceAgnosticToken: { token: '', expiresAt: new Date() },
-        refreshToken: { token: '', expiresAt: new Date() },
-      },
-    } as any;
-  }
-
-  @Mutation(() => VerifyEmailAndGetLoginTokenDTO)
-  @UseGuards(PublicEndpointGuard, NoPermissionGuard)
-  async verifyEmailAndGetLoginToken(
-    @Args()
-    getAuthTokenFromEmailVerificationTokenInput: GetAuthTokenFromEmailVerificationTokenInput,
-    @Args('origin') origin: string,
-    @AuthProvider() authProvider: AuthProviderEnum,
-  ) {
-    return {
-      loginToken: { token: '', expiresAt: new Date() },
-      workspaceUrls: { customUrl: '', appUrl: '' },
-    };
-  }
-
-  @Mutation(() => AvailableWorkspacesAndAccessTokensDTO)
-  @UseGuards(PublicEndpointGuard, NoPermissionGuard)
-  async verifyEmailAndGetWorkspaceAgnosticToken(
-    @Args()
-    getAuthTokenFromEmailVerificationTokenInput: GetAuthTokenFromEmailVerificationTokenInput,
-    @AuthProvider() authProvider: AuthProviderEnum,
-  ) {
-    return {
-      availableWorkspaces: [],
-      tokens: {
-        accessOrWorkspaceAgnosticToken: { token: '', expiresAt: new Date() },
-        refreshToken: { token: '', expiresAt: new Date() },
-      },
-    } as any;
-  }
-
-  @Mutation(() => AuthTokens)
-  @UseGuards(CaptchaGuard, PublicEndpointGuard, NoPermissionGuard)
-  async getAuthTokensFromOTP(
-    @Args()
-    twoFactorAuthenticationVerificationInput: TwoFactorAuthenticationVerificationInput,
-    @Args('origin') origin: string,
-  ): Promise<AuthTokens> {
-    return {
-      tokens: {
-        accessOrWorkspaceAgnosticToken: { token: '', expiresAt: new Date() },
-        refreshToken: { token: '', expiresAt: new Date() },
-      },
-    };
-  }
-
-  @Mutation(() => AvailableWorkspacesAndAccessTokensDTO)
-  @UseGuards(CaptchaGuard, PublicEndpointGuard, NoPermissionGuard)
-  async signUp(
-    @Args() signUpInput: UserCredentialsInput,
-  ): Promise<AvailableWorkspacesAndAccessTokensDTO> {
-    return {
-      availableWorkspaces: [],
-      tokens: {
-        accessOrWorkspaceAgnosticToken: { token: '', expiresAt: new Date() },
-        refreshToken: { token: '', expiresAt: new Date() },
-      },
-    } as any;
-  }
-
-  @Mutation(() => SignUpDTO)
-  @UseGuards(CaptchaGuard, PublicEndpointGuard, NoPermissionGuard)
-  async signUpInWorkspace(
-    @Args() signUpInput: SignUpInput,
-    @AuthProvider() authProvider: AuthProviderEnum,
-  ): Promise<SignUpDTO> {
-    return {
-      loginToken: { token: '', expiresAt: new Date() },
-      workspace: {
-        id: '',
-        workspaceUrls: { customUrl: '', appUrl: '' },
-      },
-    };
-  }
-
-  @Mutation(() => SignUpDTO)
-  @UseGuards(UserAuthGuard, NoPermissionGuard)
-  async signUpInNewWorkspace(
-    @AuthUser() currentUser: AuthContextUser,
-    @AuthProvider() authProvider: AuthProviderEnum,
-  ): Promise<SignUpDTO> {
-    return {
-      loginToken: { token: '', expiresAt: new Date() },
-      workspace: {
-        id: '',
-        workspaceUrls: { customUrl: '', appUrl: '' },
-      },
-    };
-  }
-
   @Mutation(() => TransientTokenDTO)
   @UseGuards(UserAuthGuard, NoPermissionGuard)
   async generateTransientToken(
@@ -297,20 +183,6 @@ export class AuthResolver {
     return { transientToken };
   }
 
-  @Mutation(() => AuthTokens)
-  @UseGuards(PublicEndpointGuard, NoPermissionGuard)
-  async getAuthTokensFromLoginToken(
-    @Args() getAuthTokensFromLoginTokenInput: GetAuthTokensFromLoginTokenInput,
-    @Args('origin') origin: string,
-  ): Promise<AuthTokens> {
-    return {
-      tokens: {
-        accessOrWorkspaceAgnosticToken: { token: '', expiresAt: new Date() },
-        refreshToken: { token: '', expiresAt: new Date() },
-      },
-    };
-  }
-
   @Mutation(() => AuthorizeAppDTO)
   @UseGuards(UserAuthGuard, NoPermissionGuard)
   async authorizeApp(
@@ -323,17 +195,6 @@ export class AuthResolver {
       user,
       workspace,
     );
-  }
-
-  @Mutation(() => AuthTokens)
-  @UseGuards(PublicEndpointGuard, NoPermissionGuard)
-  async renewToken(@Args() args: AppTokenInput): Promise<AuthTokens> {
-    return {
-      tokens: {
-        accessOrWorkspaceAgnosticToken: { token: '', expiresAt: new Date() },
-        refreshToken: { token: '', expiresAt: new Date() },
-      },
-    };
   }
 
   @UseGuards(

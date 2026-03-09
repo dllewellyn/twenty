@@ -51,10 +51,6 @@ xdescribe('AuthResolver', () => {
           useValue: {},
         },
         {
-          provide: RefreshTokenService,
-          useValue: {},
-        },
-        {
           provide: UserService,
           useValue: {},
         },
@@ -71,10 +67,6 @@ xdescribe('AuthResolver', () => {
           useValue: {},
         },
         {
-          provide: RenewTokenService,
-          useValue: {},
-        },
-        {
           provide: SignInUpService,
           useValue: {},
         },
@@ -84,14 +76,6 @@ xdescribe('AuthResolver', () => {
         },
         {
           provide: ResetPasswordService,
-          useValue: {},
-        },
-        {
-          provide: LoginTokenService,
-          useValue: {},
-        },
-        {
-          provide: WorkspaceAgnosticTokenService,
           useValue: {},
         },
         {
