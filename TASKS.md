@@ -1,7 +1,7 @@
 # Task Backlog
 
 ## Phase 3: Data Migration
-- [ ] **Metadata Extraction and Seeding**: Extract existing object definitions from Postgres and seed the `_metadata` collection in Firestore according to the new strategy.
+- [ ] **Verify Firestore Metadata Structure**: Perform automated and manual validation to ensure the seeded Firestore metadata is complete and accurately reflects the original Postgres definitions.
 - [ ] **Collection Migration**: Port "People" and "Companies" data using the JSON schemas for validation and structure.
 - [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
 
@@ -15,8 +15,10 @@
 ## Phase 5: Ecosystem & Integration
 - [ ] **Cloud Storage Integration**: Migrate file attachments from local/S3 to Firebase Cloud Storage.
 - [ ] **Search & Extensions**: Implement search using Firebase Extensions or Algolia and set up Trigger Email extension.
+- [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Metadata Extraction and Seeding**: Extract existing object definitions from Postgres and seed the `_metadata` collection in Firestore according to the new strategy.
 - [x] **Metadata Migration Strategy**: Design a Firestore-compatible structure for storing and retrieving object metadata (People, Companies, etc.) that replaces the Postgres-based metadata engine.
 - [x] **Token Management**: Update the frontend API client to attach Firebase ID tokens to all outgoing requests and handle session persistence.
 - [x] **Frontend Firebase Integration**: Initialize the Firebase Web SDK in `twenty-front` and refactor the login/signup flow.
