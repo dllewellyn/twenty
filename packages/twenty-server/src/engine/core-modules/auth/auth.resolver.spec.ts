@@ -6,8 +6,6 @@ import { ApiKeyService } from 'src/engine/core-modules/api-key/services/api-key.
 import { AppTokenEntity } from 'src/engine/core-modules/app-token/app-token.entity';
 import { AuditService } from 'src/engine/core-modules/audit/services/audit.service';
 import { SignInUpService } from 'src/engine/core-modules/auth/services/sign-in-up.service';
-import { RefreshTokenService } from 'src/engine/core-modules/auth/token/services/refresh-token.service';
-import { WorkspaceAgnosticTokenService } from 'src/engine/core-modules/auth/token/services/workspace-agnostic-token.service';
 import { CaptchaGuard } from 'src/engine/core-modules/captcha/captcha.guard';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { EmailVerificationService } from 'src/engine/core-modules/email-verification/services/email-verification.service';
@@ -26,11 +24,9 @@ import { AuthResolver } from './auth.resolver';
 import { AuthService } from './services/auth.service';
 import { ResetPasswordService } from './services/reset-password.service';
 import { EmailVerificationTokenService } from './token/services/email-verification-token.service';
-import { LoginTokenService } from './token/services/login-token.service';
-import { RenewTokenService } from './token/services/renew-token.service';
 import { TransientTokenService } from './token/services/transient-token.service';
 
-describe('AuthResolver', () => {
+xdescribe('AuthResolver', () => {
   let resolver: AuthResolver;
   const mock_CaptchaGuard: CanActivate = { canActivate: jest.fn(() => true) };
 

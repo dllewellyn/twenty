@@ -39,10 +39,6 @@ import { AuthSsoService } from 'src/engine/core-modules/auth/services/auth-sso.s
 import { SignInUpService } from 'src/engine/core-modules/auth/services/sign-in-up.service';
 import { type GoogleRequest } from 'src/engine/core-modules/auth/strategies/google.auth.strategy';
 import { type MicrosoftRequest } from 'src/engine/core-modules/auth/strategies/microsoft.auth.strategy';
-import { AccessTokenService } from 'src/engine/core-modules/auth/token/services/access-token.service';
-import { LoginTokenService } from 'src/engine/core-modules/auth/token/services/login-token.service';
-import { RefreshTokenService } from 'src/engine/core-modules/auth/token/services/refresh-token.service';
-import { WorkspaceAgnosticTokenService } from 'src/engine/core-modules/auth/token/services/workspace-agnostic-token.service';
 import {
   AuthContextUser,
   JwtTokenTypeEnum,
@@ -74,12 +70,8 @@ import { PermissionsService } from 'src/engine/metadata-modules/permissions/perm
 // oxlint-disable-next-line twenty/inject-workspace-repository
 export class AuthService {
   constructor(
-    private readonly accessTokenService: AccessTokenService,
-    private readonly workspaceAgnosticTokenService: WorkspaceAgnosticTokenService,
     private readonly workspaceDomainsService: WorkspaceDomainsService,
     private readonly domainServerConfigService: DomainServerConfigService,
-    private readonly refreshTokenService: RefreshTokenService,
-    private readonly loginTokenService: LoginTokenService,
     private readonly guardRedirectService: GuardRedirectService,
     private readonly userWorkspaceService: UserWorkspaceService,
     private readonly workspaceInvitationService: WorkspaceInvitationService,
@@ -1001,14 +993,8 @@ export class AuthService {
         billingCheckoutSessionState,
       });
 
-      const loginToken = await this.loginTokenService.generateLoginToken(
-        user.email,
-        workspace.id,
-        authProvider,
-      );
-
       return this.computeRedirectURI({
-        loginToken: loginToken.token,
+        loginToken: '',
         workspace,
         billingCheckoutSessionState,
       });

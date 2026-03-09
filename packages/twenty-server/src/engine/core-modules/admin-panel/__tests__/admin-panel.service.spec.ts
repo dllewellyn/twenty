@@ -3,7 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 
 import { AdminPanelService } from 'src/engine/core-modules/admin-panel/admin-panel.service';
 import { AuditService } from 'src/engine/core-modules/audit/services/audit.service';
-import { LoginTokenService } from 'src/engine/core-modules/auth/token/services/login-token.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { FileService } from 'src/engine/core-modules/file/services/file.service';
 import { SecureHttpClientService } from 'src/engine/core-modules/secure-http-client/secure-http-client.service';
@@ -51,12 +50,6 @@ describe('AdminPanelService', () => {
           provide: getRepositoryToken(UserEntity),
           useValue: {
             findOne: UserFindOneMock,
-          },
-        },
-        {
-          provide: LoginTokenService,
-          useValue: {
-            generateLoginToken: LoginTokenServiceGenerateLoginTokenMock,
           },
         },
         {

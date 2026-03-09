@@ -6,7 +6,7 @@ import { isDefined } from 'twenty-shared/utils';
 
 import { AuthException } from 'src/engine/core-modules/auth/auth.exception';
 import { AuthGraphqlApiExceptionFilter } from 'src/engine/core-modules/auth/filters/auth-graphql-api-exception.filter';
-import { AccessTokenService } from 'src/engine/core-modules/auth/token/services/access-token.service';
+import { FirebaseAuthStrategy } from 'src/engine/core-modules/auth/strategies/firebase.auth.strategy';
 import { getAuthExceptionRestStatus } from 'src/engine/core-modules/auth/utils/get-auth-exception-rest-status.util';
 import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
 import { ErrorCode } from 'src/engine/core-modules/graphql/utils/graphql-errors.util';
@@ -25,7 +25,7 @@ import { type CustomException } from 'src/utils/custom-exception';
 @Injectable()
 export class MiddlewareService {
   constructor(
-    private readonly accessTokenService: AccessTokenService,
+    private readonly firebaseAuthStrategy: FirebaseAuthStrategy,
     private readonly workspaceStorageCacheService: WorkspaceCacheStorageService,
     private readonly flatEntityMapsCacheService: WorkspaceManyOrAllFlatEntityMapsCacheService,
     private readonly dataSourceService: DataSourceService,
@@ -99,7 +99,7 @@ export class MiddlewareService {
   }
 
   public async hydrateRestRequest(request: Request) {
-    const data = await this.accessTokenService.validateTokenByRequest(request);
+    const data = await this.firebaseAuthStrategy.validate(request);
     const metadataVersion = data.workspace
       ? await this.workspaceStorageCacheService.getMetadataVersion(
           data.workspace.id,
@@ -128,7 +128,7 @@ export class MiddlewareService {
       return;
     }
 
-    const data = await this.accessTokenService.validateTokenByRequest(request);
+    const data = await this.firebaseAuthStrategy.validate(request);
     const metadataVersion = data.workspace
       ? await this.workspaceStorageCacheService.getMetadataVersion(
           data.workspace.id,

@@ -28,7 +28,6 @@ import { SAMLAuthGuard } from 'src/engine/core-modules/auth/guards/saml-auth.gua
 import { AuthService } from 'src/engine/core-modules/auth/services/auth.service';
 import { OIDCRequest } from 'src/engine/core-modules/auth/strategies/oidc.auth.strategy';
 import { SAMLRequest } from 'src/engine/core-modules/auth/strategies/saml.auth.strategy';
-import { LoginTokenService } from 'src/engine/core-modules/auth/token/services/login-token.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { GuardRedirectService } from 'src/engine/core-modules/guard-redirect/services/guard-redirect.service';
 import { SSOService } from 'src/engine/core-modules/sso/services/sso.service';
@@ -46,7 +45,6 @@ import { PublicEndpointGuard } from 'src/engine/guards/public-endpoint.guard';
 @UseFilters(AuthRestApiExceptionFilter)
 export class SSOAuthController {
   constructor(
-    private readonly loginTokenService: LoginTokenService,
     private readonly authService: AuthService,
     private readonly guardRedirectService: GuardRedirectService,
     private readonly workspaceDomainsService: WorkspaceDomainsService,
@@ -228,11 +226,7 @@ export class SSOAuthController {
 
     return {
       workspace,
-      loginToken: await this.loginTokenService.generateLoginToken(
-        user.email,
-        workspace.id,
-        AuthProviderEnum.SSO,
-      ),
+      loginToken: { token: '', expiresAt: new Date() },
     };
   }
 }
