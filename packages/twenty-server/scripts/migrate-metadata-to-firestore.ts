@@ -93,7 +93,9 @@ export async function main() {
             break;
           case FieldMetadataType.SELECT:
             propertyType = { type: 'string' };
-            const selectOptions = (field.options as any)?.options?.map((opt: any) => opt.value);
+            const selectOptions = Array.isArray(field.options)
+              ? field.options.map((opt: any) => opt.value)
+              : (field.options as any)?.options?.map((opt: any) => opt.value);
             if (selectOptions && selectOptions.length > 0) {
               propertyType.enum = selectOptions;
             }
@@ -108,6 +110,12 @@ export async function main() {
             break;
           case FieldMetadataType.RATING:
             propertyType = { type: 'string' };
+            const ratingOptions = Array.isArray(field.options)
+              ? field.options.map((opt: any) => opt.value)
+              : (field.options as any)?.options?.map((opt: any) => opt.value);
+            if (ratingOptions && ratingOptions.length > 0) {
+              propertyType.enum = ratingOptions;
+            }
             break;
           case FieldMetadataType.CURRENCY:
             propertyType = { type: 'object' };
@@ -125,23 +133,25 @@ export async function main() {
           case FieldMetadataType.ADDRESS:
           case FieldMetadataType.FULL_NAME:
           case FieldMetadataType.ACTOR:
-            propertyType = { type: 'object' };
-            break;
           case FieldMetadataType.EMAILS:
           case FieldMetadataType.PHONES:
           case FieldMetadataType.LINKS:
+            propertyType = { type: 'object' };
+            break;
           case FieldMetadataType.FILES:
             propertyType = { type: 'array', items: { type: 'object' } };
             break;
           case FieldMetadataType.MULTI_SELECT:
             propertyType = { type: 'array', items: { type: 'string' } };
-            const multiSelectOptions = (field.options as any)?.options?.map((opt: any) => opt.value);
+            const multiSelectOptions = Array.isArray(field.options)
+              ? field.options.map((opt: any) => opt.value)
+              : (field.options as any)?.options?.map((opt: any) => opt.value);
             if (multiSelectOptions && multiSelectOptions.length > 0) {
               (propertyType.items as Record<string, unknown>).enum = multiSelectOptions;
             }
             break;
           case FieldMetadataType.ARRAY:
-            propertyType = { type: 'array' };
+            propertyType = { type: 'array', items: { type: 'string' } };
             break;
           case FieldMetadataType.RELATION:
           case FieldMetadataType.MORPH_RELATION:
