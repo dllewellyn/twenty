@@ -1,3 +1,5 @@
+I will update the AGENTS.md file with the new lessons learned from the recent migration of people records from Postgres to Firestore, focusing on the standardized migration pattern, bulk persistence, and testing strategies.
+
 # Agent Memory & Performance
 
 ## Lessons Learned
@@ -56,3 +58,9 @@
     - **Backlog Pivot to Decommissioning**: Explicitly defining "Deprecation" tasks (e.g., dropping PostgreSQL, TypeORM, legacy JWT) once core modern replacements are verified ensures the final architectural state is clean and debt-free.
     - **Risk-Aware Legacy Removal**: Aligning the decommissioning of legacy components with verified success in modern alternatives (e.g., Firebase Auth) minimizes downtime and regression risk during major subsystem replacements.
     - **Extended Serverless Roadmap**: Transitioning into **Phase 4 (Serverless Compute)** and **Phase 5 (Ecosystem Integration)** after core database/auth migration allows for a complete, end-to-end serverless evolution of the CRM.
+- **2026-03-09**: Developed a **standardized migration pattern** for moving relational data to Firestore.
+    - **Command-Driven Migration**: Leveraging `nest-commander` and a base `ActiveOrSuspendedWorkspacesMigrationCommandRunner` ensures that migrations are executable across all active and suspended workspaces with consistent logging and error handling.
+    - **Bulk Firestore Persistence**: Utilizing the `BaseFirestoreRepository.save()` method (which uses Firestore `WriteBatch`) allows for efficient, atomic bulk migration of entire entity collections in a single pass.
+    - **Dry-Run Safety**: Implementing a `--dry-run` flag in migration commands is a critical safety measure, allowing for the verification of migration scope and potential record counts before any data is committed to the NoSQL store.
+    - **Entity-to-Plain Mapping**: When migrating from TypeORM, mapping entities to plain objects (e.g., via spread operator or explicit property mapping) is necessary to ensure Firestore-compatible data structures, especially when dealing with relational fields.
+    - **Mocking Generic Repositories in Tests**: In unit tests for migration commands, mocking the `BaseFirestoreRepository` using `jest.mock` and `mockImplementation` allows for verifying migration logic without requiring a live Firebase environment or complex SDK mocking.
