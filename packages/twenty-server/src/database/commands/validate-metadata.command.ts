@@ -148,13 +148,35 @@ export class ValidateMetadataCommand extends ActiveOrSuspendedWorkspacesMigratio
         }
 
         // Basic type mapping check
-        const typeMapping: Record<string, { type: string; format?: string }> = {
-          UUID: { type: 'string', format: 'uuid' },
-          TEXT: { type: 'string' },
-          VARCHAR: { type: 'string' },
-          NUMBER: { type: 'number' },
+        const typeMapping: Record<
+          string,
+          { type: string; format?: string; items?: any }
+        > = {
+          ACTOR: { type: 'object' },
+          ADDRESS: { type: 'object' },
+          ARRAY: { type: 'array' },
           BOOLEAN: { type: 'boolean' },
+          CURRENCY: { type: 'object' },
+          DATE: { type: 'string', format: 'date' },
           DATE_TIME: { type: 'string', format: 'date-time' },
+          EMAILS: { type: 'array', items: { type: 'object' } },
+          FILES: { type: 'array', items: { type: 'object' } },
+          FULL_NAME: { type: 'object' },
+          LINKS: { type: 'array', items: { type: 'object' } },
+          MULTI_SELECT: { type: 'array', items: { type: 'string' } },
+          NUMBER: { type: 'number' },
+          NUMERIC: { type: 'number' },
+          PHONES: { type: 'array', items: { type: 'object' } },
+          POSITION: { type: 'number' },
+          RATING: { type: 'string' },
+          RAW_JSON: { type: 'object' },
+          RICH_TEXT: { type: 'string' },
+          RICH_TEXT_V2: { type: 'object' },
+          SELECT: { type: 'string' },
+          TEXT: { type: 'string' },
+          TS_VECTOR: { type: 'string' },
+          UUID: { type: 'string', format: 'uuid' },
+          VARCHAR: { type: 'string' }, // Some fallback legacy types
         };
 
         const expectedType = typeMapping[pgField.type];
