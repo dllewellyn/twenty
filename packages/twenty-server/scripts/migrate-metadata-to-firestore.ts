@@ -6,7 +6,7 @@ import * as admin from 'firebase-admin';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
-async function main() {
+export async function main() {
   if (!process.env.FIRESTORE_EMULATOR_HOST) {
     console.warn('FIRESTORE_EMULATOR_HOST is not set. Connecting to production Firestore?');
   }
@@ -66,7 +66,7 @@ async function main() {
 
     const workspaceId = isSystem ? 'system' : obj.workspaceId;
 
-    const schemaId = `twenty_${workspaceId}_${nameSingular}`;
+    const schemaId = `https://twenty.com/schemas/v1/metadata/${workspaceId}/${nameSingular}`;
 
     const jsonSchema: Record<string, unknown> & {
       $id: string;
@@ -184,4 +184,6 @@ async function main() {
   await connectionSource.destroy();
 }
 
-main().catch(console.error);
+if (require.main === module) {
+  main().catch(console.error);
+}
