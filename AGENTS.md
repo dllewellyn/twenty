@@ -1,4 +1,6 @@
-I'll remove the erroneous introductory sentence from `AGENTS.md` and add a new entry for 2026-03-09 detailing the "Metadata Parity Tooling," specifically the `database:validate-metadata` CLI command and its role in ensuring data integrity during migration.# Agent Memory & Performance
+I'll clean up the erroneous introductory sentence in `AGENTS.md` and add a new entry for 2026-03-10, documenting the enhancements to the PostgreSQL-to-Firestore migration framework, including complex field transformations and batch limit compliance.
+
+# Agent Memory & Performance
 
 ## Lessons Learned
 - **2026-03-06**: Initialized ADL environment.
@@ -65,6 +67,12 @@ I'll remove the erroneous introductory sentence from `AGENTS.md` and add a new e
 - **2026-03-09**: Introduced **Metadata Parity Tooling** for cross-database verification.
     - **CLI Validation Command**: Implementation of `database:validate-metadata` enables systematic comparison of PostgreSQL and Firestore metadata, verifying field counts, nullability, data types, and enum consistency before migration.
     - **Mapping Parity Verification**: Explicitly verifies the translation of relational constraints (e.g., `isNullable: false`) to NoSQL equivalents (e.g., JSON schema `required` array) to prevent data integrity regressions.
-    - **Strict Interface Typing for Validation**: Leveraging strict interfaces over `any` for complex metadata structures (like `FieldMetadataType` mappings) ensures that the validation tool remains robust even as the metadata engine evolves.- **2026-03-10**: Resolved metadata mapping discrepancies between PostgreSQL and Firestore during schema generation.
+    - **Strict Interface Typing for Validation**: Leveraging strict interfaces over `any` for complex metadata structures (like `FieldMetadataType` mappings) ensures that the validation tool remains robust even as the metadata engine evolves.
+- **2026-03-10**: Resolved metadata mapping discrepancies between PostgreSQL and Firestore during schema generation.
     - **JSON Schema Array Mapping**: When migrating complex field types like `EMAILS`, `PHONES`, `LINKS`, and `FILES`, it is critical to map them to `{ type: 'array', items: { type: 'object' } }` in the JSON schema rather than a flat `object`, ensuring compatibility with the expected metadata validation rules.
     - **RICH_TEXT_V2 Representation**: Differentiated `RICH_TEXT` (mapped to `string`) from `RICH_TEXT_V2` (mapped to `object`) to accurately reflect the structured JSON-like nature of the updated rich text editor format in Firestore.
+- **2026-03-10**: Enhanced the **PostgreSQL-to-Firestore migration framework** with specialized transformation utilities and batching strategies.
+    - **Complex Field Transformation**: Moving relational composite fields (e.g., `LinksMetadata`, `EmailsMetadata`, `PhonesMetadata`) to Firestore requires explicit transformation into native array-of-objects structures to maintain schema parity and data integrity.
+    - **Firestore Batch Limit Compliance**: Firestore's atomic `WriteBatch` operations are limited to 500 records. Implementing a chunking strategy (e.g., using `chunkedArray.slice(i, i + 500)`) in migration commands is mandatory to prevent `INVALID_ARGUMENT` errors during large-scale data moves.
+    - **Reusable Migration Utilities**: Decoupling data transformation logic into a dedicated `migration-transformation.util.ts` enables consistent, unit-tested mappings for shared metadata types across different entity migrations.
+    - **Entity-to-Plain Mapping**: When migrating from TypeORM, utilizing the spread operator (`...entity`) and performing targeted property overrides (e.g., `transformLinksToFirestore(company.linkedinLink)`) ensures the resulting object is a clean, serializable plain object suitable for Firestore persistence.
