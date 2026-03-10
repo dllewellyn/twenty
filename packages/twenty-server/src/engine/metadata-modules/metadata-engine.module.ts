@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { FirebaseModule } from 'src/engine/core-modules/firebase/firebase.module';
 import { APP_FILTER } from '@nestjs/core';
 
 import { AiAgentMonitorModule } from 'src/engine/metadata-modules/ai/ai-agent-monitor/ai-agent-monitor.module';
@@ -26,6 +27,7 @@ import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
 
 @Module({
   imports: [
+    FirebaseModule,
     DataSourceModule,
     FieldMetadataModule,
     FrontComponentModule,
