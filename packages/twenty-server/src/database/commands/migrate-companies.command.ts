@@ -13,6 +13,7 @@ import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { BaseFirestoreRepository } from 'src/engine/twenty-orm/repository/firestore.repository';
 import { CompanyWorkspaceEntity } from 'src/modules/company/standard-objects/company.workspace-entity';
+import { transformLinksToFirestore } from 'src/database/utils/migration-transformation.util';
 
 @Command({
   name: 'database:migrate-companies',
@@ -61,6 +62,9 @@ export class MigrateCompaniesCommand extends ActiveOrSuspendedWorkspacesMigratio
         // Map TypeORM entity to a plain object
         return {
           ...company,
+          domainName: transformLinksToFirestore(company.domainName) as any,
+          linkedinLink: transformLinksToFirestore(company.linkedinLink) as any,
+          xLink: transformLinksToFirestore(company.xLink) as any,
         };
       });
 
