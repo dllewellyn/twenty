@@ -79,8 +79,12 @@ export class MigrateCompaniesCommand extends ActiveOrSuspendedWorkspacesMigratio
         `Migrating ${transformedCompanies.length} companies for workspace ${workspaceId}...`,
       );
 
-      // Save using batch operation
-      await firestoreRepository.save(transformedCompanies);
+      // Save using batch operation with limits
+      const FIRESTORE_BATCH_LIMIT = 500;
+      for (let i = 0; i < transformedCompanies.length; i += FIRESTORE_BATCH_LIMIT) {
+        const chunk = transformedCompanies.slice(i, i + FIRESTORE_BATCH_LIMIT);
+        await firestoreRepository.save(chunk);
+      }
 
       this.logger.log(
         `Successfully migrated ${transformedCompanies.length} companies for workspace ${workspaceId}.`,
