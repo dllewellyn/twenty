@@ -136,7 +136,7 @@ describe('migrate-metadata-to-firestore', () => {
         properties: {
           textField: { type: 'string' },
           numberField: { type: 'number' },
-          emailsField: { type: 'object' },
+          emailsField: { type: 'array', items: { type: 'object' } },
           dateField: { type: 'string', format: 'date' },
           selectField: { type: 'string', enum: ['opt1', 'opt2'] }
         },
