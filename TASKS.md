@@ -1,7 +1,7 @@
 # Task Backlog
 
 ## Phase 3: Data Migration
-- [ ] **Resolve Metadata Discrepancies**: Use the `database:validate-metadata` tool to identify and fix any schema inconsistencies between Postgres and Firestore before executing data migrations.
+- [x] **Resolve Metadata Discrepancies**: Use the `database:validate-metadata` tool to identify and fix any schema inconsistencies between Postgres and Firestore before executing data migrations.
 - [ ] **Collection Migration: 'Companies'**: Develop and run a script to migrate all 'Companies' records from PostgreSQL to the Firestore 'companies' collection.
 - [ ] **Collection Migration: 'Notes'**: Develop and run a script to migrate all 'Note' records from PostgreSQL to the Firestore 'notes' collection.
 - [ ] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.

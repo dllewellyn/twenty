@@ -88,8 +88,10 @@ export async function main() {
         switch (field.type) {
           case FieldMetadataType.TEXT:
           case FieldMetadataType.RICH_TEXT:
-          case FieldMetadataType.RICH_TEXT_V2:
             propertyType = { type: 'string' };
+            break;
+          case FieldMetadataType.RICH_TEXT_V2:
+            propertyType = { type: 'object' };
             break;
           case FieldMetadataType.SELECT:
             propertyType = { type: 'string' };
@@ -133,11 +135,11 @@ export async function main() {
           case FieldMetadataType.ADDRESS:
           case FieldMetadataType.FULL_NAME:
           case FieldMetadataType.ACTOR:
+            propertyType = { type: 'object' };
+            break;
           case FieldMetadataType.EMAILS:
           case FieldMetadataType.PHONES:
           case FieldMetadataType.LINKS:
-            propertyType = { type: 'object' };
-            break;
           case FieldMetadataType.FILES:
             propertyType = { type: 'array', items: { type: 'object' } };
             break;
