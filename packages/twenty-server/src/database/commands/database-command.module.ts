@@ -5,6 +5,7 @@ import { CronRegisterAllCommand } from 'src/database/commands/cron-register-all.
 import { DataSeedWorkspaceCommand } from 'src/database/commands/data-seed-dev-workspace.command';
 import { ListOrphanedWorkspaceEntitiesCommand } from 'src/database/commands/list-and-delete-orphaned-workspace-entities.command';
 import { MigrateCompaniesCommand } from 'src/database/commands/migrate-companies.command';
+import { MigrateNotesCommand } from 'src/database/commands/migrate-notes.command';
 import { MigratePeopleCommand } from 'src/database/commands/migrate-people.command';
 import { ValidateMetadataCommand } from 'src/database/commands/validate-metadata.command';
 import { ConfirmationQuestion } from 'src/database/commands/questions/confirmation.question';
@@ -74,6 +75,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     ListOrphanedWorkspaceEntitiesCommand,
     GenerateApiKeyCommand,
     MigrateCompaniesCommand,
+    MigrateNotesCommand,
     MigratePeopleCommand,
     ValidateMetadataCommand,
   ],
