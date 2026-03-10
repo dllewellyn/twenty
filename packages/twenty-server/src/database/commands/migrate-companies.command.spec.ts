@@ -96,8 +96,34 @@ describe('MigrateCompaniesCommand', () => {
 
   it('should migrate companies successfully', async () => {
     const mockCompanies = [
-      { id: '1', name: 'Acme Corp' },
-      { id: '2', name: 'Initech' },
+      {
+        id: '1',
+        name: 'Acme Corp',
+        domainName: {
+          primaryLinkLabel: 'Acme',
+          primaryLinkUrl: 'https://acme.com',
+          secondaryLinks: [],
+        },
+        linkedinLink: null,
+        xLink: null,
+      },
+      {
+        id: '2',
+        name: 'Initech',
+        domainName: null,
+        linkedinLink: {
+          primaryLinkLabel: 'LinkedIn',
+          primaryLinkUrl: 'https://linkedin.com/company/initech',
+          secondaryLinks: [
+            { label: 'Careers', url: 'https://linkedin.com/company/initech/careers' }
+          ],
+        },
+        xLink: {
+          primaryLinkLabel: 'X',
+          primaryLinkUrl: 'https://x.com/initech',
+          secondaryLinks: null,
+        },
+      },
     ];
     mockCompanyRepository.find.mockResolvedValue(mockCompanies);
     const loggerSpy = jest.spyOn(command['logger'], 'log');
@@ -113,7 +139,29 @@ describe('MigrateCompaniesCommand', () => {
       'workspace-1',
       'company',
     );
-    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(mockCompanies);
+    expect(mockFirestoreRepository.save).toHaveBeenCalledWith([
+      {
+        id: '1',
+        name: 'Acme Corp',
+        domainName: [
+          { label: 'Acme', url: 'https://acme.com' }
+        ],
+        linkedinLink: null,
+        xLink: null,
+      },
+      {
+        id: '2',
+        name: 'Initech',
+        domainName: null,
+        linkedinLink: [
+          { label: 'LinkedIn', url: 'https://linkedin.com/company/initech' },
+          { label: 'Careers', url: 'https://linkedin.com/company/initech/careers' }
+        ],
+        xLink: [
+          { label: 'X', url: 'https://x.com/initech' }
+        ],
+      },
+    ]);
     expect(loggerSpy).toHaveBeenCalledWith(
       'Migrating 2 companies for workspace workspace-1...',
     );
@@ -124,8 +172,20 @@ describe('MigrateCompaniesCommand', () => {
 
   it('should not save if dryRun is true', async () => {
     const mockCompanies = [
-      { id: '1', name: 'Acme Corp' },
-      { id: '2', name: 'Initech' },
+      {
+        id: '1',
+        name: 'Acme Corp',
+        domainName: null,
+        linkedinLink: null,
+        xLink: null,
+      },
+      {
+        id: '2',
+        name: 'Initech',
+        domainName: null,
+        linkedinLink: null,
+        xLink: null,
+      },
     ];
     mockCompanyRepository.find.mockResolvedValue(mockCompanies);
     const loggerSpy = jest.spyOn(command['logger'], 'log');
