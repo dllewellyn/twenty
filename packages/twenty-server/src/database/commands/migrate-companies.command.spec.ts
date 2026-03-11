@@ -115,7 +115,10 @@ describe('MigrateCompaniesCommand', () => {
           primaryLinkLabel: 'LinkedIn',
           primaryLinkUrl: 'https://linkedin.com/company/initech',
           secondaryLinks: [
-            { label: 'Careers', url: 'https://linkedin.com/company/initech/careers' }
+            {
+              label: 'Careers',
+              url: 'https://linkedin.com/company/initech/careers',
+            },
           ],
         },
         xLink: {
@@ -143,9 +146,7 @@ describe('MigrateCompaniesCommand', () => {
       {
         id: '1',
         name: 'Acme Corp',
-        domainName: [
-          { label: 'Acme', url: 'https://acme.com' }
-        ],
+        domainName: [{ label: 'Acme', url: 'https://acme.com' }],
         linkedinLink: null,
         xLink: null,
       },
@@ -155,11 +156,12 @@ describe('MigrateCompaniesCommand', () => {
         domainName: null,
         linkedinLink: [
           { label: 'LinkedIn', url: 'https://linkedin.com/company/initech' },
-          { label: 'Careers', url: 'https://linkedin.com/company/initech/careers' }
+          {
+            label: 'Careers',
+            url: 'https://linkedin.com/company/initech/careers',
+          },
         ],
-        xLink: [
-          { label: 'X', url: 'https://x.com/initech' }
-        ],
+        xLink: [{ label: 'X', url: 'https://x.com/initech' }],
       },
     ]);
     expect(loggerSpy).toHaveBeenCalledWith(
