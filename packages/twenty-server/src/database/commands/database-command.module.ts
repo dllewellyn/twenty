@@ -6,6 +6,7 @@ import { DataSeedWorkspaceCommand } from 'src/database/commands/data-seed-dev-wo
 import { ListOrphanedWorkspaceEntitiesCommand } from 'src/database/commands/list-and-delete-orphaned-workspace-entities.command';
 import { MigrateCompaniesCommand } from 'src/database/commands/migrate-companies.command';
 import { MigrateNotesCommand } from 'src/database/commands/migrate-notes.command';
+import { MigrateOpportunitiesCommand } from 'src/database/commands/migrate-opportunities.command';
 import { MigratePeopleCommand } from 'src/database/commands/migrate-people.command';
 import { MigrateTasksCommand } from 'src/database/commands/migrate-tasks.command';
 import { ValidateMetadataCommand } from 'src/database/commands/validate-metadata.command';
@@ -77,6 +78,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     GenerateApiKeyCommand,
     MigrateCompaniesCommand,
     MigrateNotesCommand,
+    MigrateOpportunitiesCommand,
     MigratePeopleCommand,
     MigrateTasksCommand,
     ValidateMetadataCommand,
