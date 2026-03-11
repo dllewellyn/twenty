@@ -7,6 +7,7 @@ import { ListOrphanedWorkspaceEntitiesCommand } from 'src/database/commands/list
 import { MigrateCompaniesCommand } from 'src/database/commands/migrate-companies.command';
 import { MigrateNotesCommand } from 'src/database/commands/migrate-notes.command';
 import { MigratePeopleCommand } from 'src/database/commands/migrate-people.command';
+import { MigrateTasksCommand } from 'src/database/commands/migrate-tasks.command';
 import { ValidateMetadataCommand } from 'src/database/commands/validate-metadata.command';
 import { ConfirmationQuestion } from 'src/database/commands/questions/confirmation.question';
 import { UpgradeVersionCommandModule } from 'src/database/commands/upgrade-version-command/upgrade-version-command.module';
@@ -77,6 +78,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     MigrateCompaniesCommand,
     MigrateNotesCommand,
     MigratePeopleCommand,
+    MigrateTasksCommand,
     ValidateMetadataCommand,
   ],
 })
