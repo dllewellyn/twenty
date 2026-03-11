@@ -12,14 +12,13 @@ import { DataSourceService } from 'src/engine/metadata-modules/data-source/data-
 import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { BaseFirestoreRepository } from 'src/engine/twenty-orm/repository/firestore.repository';
-import { CompanyWorkspaceEntity } from 'src/modules/company/standard-objects/company.workspace-entity';
-import { transformLinksToFirestore } from 'src/database/utils/migration-transformation.util';
+import { NoteTargetWorkspaceEntity } from 'src/modules/note/standard-objects/note-target.workspace-entity';
 
 @Command({
-  name: 'database:migrate-companies',
-  description: 'Migrates companies records from PostgreSQL to Firestore.',
+  name: 'database:migrate-note-targets',
+  description: 'Migrates note targets records from PostgreSQL to Firestore.',
 })
-export class MigrateCompaniesCommand extends ActiveOrSuspendedWorkspacesMigrationCommandRunner {
+export class MigrateNoteTargetsCommand extends ActiveOrSuspendedWorkspacesMigrationCommandRunner {
   constructor(
     @InjectRepository(WorkspaceEntity)
     protected readonly workspaceRepository: Repository<WorkspaceEntity>,
@@ -37,65 +36,65 @@ export class MigrateCompaniesCommand extends ActiveOrSuspendedWorkspacesMigratio
     options,
   }: RunOnWorkspaceArgs): Promise<void> {
     try {
-      const companyRepository =
-        await this.globalWorkspaceOrmManager.getRepository<CompanyWorkspaceEntity>(
+      const noteTargetRepository =
+        await this.globalWorkspaceOrmManager.getRepository<NoteTargetWorkspaceEntity>(
           workspaceId,
-          'company',
+          'noteTarget',
         );
 
       const firestoreRepository =
-        new BaseFirestoreRepository<CompanyWorkspaceEntity>(
-          'companies',
+        new BaseFirestoreRepository<NoteTargetWorkspaceEntity>(
+          'noteTargets',
           this.metadataService,
           workspaceId,
           this.firebaseApp,
         );
 
-      const companies = await companyRepository.find();
+      const noteTargets = await noteTargetRepository.find();
 
-      if (companies.length === 0) {
-        this.logger.log(`No companies found for workspace ${workspaceId}.`);
+      if (noteTargets.length === 0) {
+        this.logger.log(`No note targets found for workspace ${workspaceId}.`);
         return;
       }
 
-      const transformedCompanies = companies.map((company) => {
+      const transformedNoteTargets = noteTargets.map((noteTarget) => {
         // Map TypeORM entity to a plain object
         return {
-          ...company,
-          domainName: transformLinksToFirestore(company.domainName) as any,
-          linkedinLink: transformLinksToFirestore(company.linkedinLink) as any,
-          xLink: transformLinksToFirestore(company.xLink) as any,
+          ...noteTarget,
         };
       });
 
       if (options.dryRun) {
         this.logger.log(
-          `[DRY RUN] Would migrate ${transformedCompanies.length} companies for workspace ${workspaceId}.`,
+          `[DRY RUN] Would migrate ${transformedNoteTargets.length} note targets for workspace ${workspaceId}.`,
         );
         return;
       }
 
       this.logger.log(
-        `Migrating ${transformedCompanies.length} companies for workspace ${workspaceId}...`,
+        `Migrating ${transformedNoteTargets.length} note targets for workspace ${workspaceId}...`,
       );
 
       // Save using batch operation with limits
       const FIRESTORE_BATCH_LIMIT = 500;
       for (
         let i = 0;
-        i < transformedCompanies.length;
+        i < transformedNoteTargets.length;
         i += FIRESTORE_BATCH_LIMIT
       ) {
-        const chunk = transformedCompanies.slice(i, i + FIRESTORE_BATCH_LIMIT);
+        const chunk = transformedNoteTargets.slice(
+          i,
+          i + FIRESTORE_BATCH_LIMIT,
+        );
         await firestoreRepository.save(chunk);
       }
 
       this.logger.log(
-        `Successfully migrated ${transformedCompanies.length} companies for workspace ${workspaceId}.`,
+        `Successfully migrated ${transformedNoteTargets.length} note targets for workspace ${workspaceId}.`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to migrate companies for workspace ${workspaceId}.`,
+        `Failed to migrate note targets for workspace ${workspaceId}.`,
         error,
       );
       throw error;

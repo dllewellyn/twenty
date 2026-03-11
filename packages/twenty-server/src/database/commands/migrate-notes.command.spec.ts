@@ -122,6 +122,46 @@ describe('MigrateNotesCommand', () => {
     );
   });
 
+  it('should migrate notes in batches of 500', async () => {
+    const mockNotes = Array.from({ length: 1200 }, (_, i) => ({
+      id: `${i}`,
+      title: `Note ${i}`,
+    }));
+    mockNoteRepository.find.mockResolvedValue(mockNotes);
+    const loggerSpy = jest.spyOn(command['logger'], 'log');
+
+    await command.runOnWorkspace({
+      workspaceId: 'workspace-1',
+      options: {},
+      index: 0,
+      total: 1,
+    });
+
+    expect(globalWorkspaceOrmManager.getRepository).toHaveBeenCalledWith(
+      'workspace-1',
+      'note',
+    );
+    expect(mockFirestoreRepository.save).toHaveBeenCalledTimes(3);
+    expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
+      1,
+      mockNotes.slice(0, 500),
+    );
+    expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
+      2,
+      mockNotes.slice(500, 1000),
+    );
+    expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
+      3,
+      mockNotes.slice(1000, 1200),
+    );
+    expect(loggerSpy).toHaveBeenCalledWith(
+      'Migrating 1200 notes for workspace workspace-1...',
+    );
+    expect(loggerSpy).toHaveBeenCalledWith(
+      'Successfully migrated 1200 notes for workspace workspace-1.',
+    );
+  });
+
   it('should not save if dryRun is true', async () => {
     const mockNotes = [
       { id: '1', title: 'Note 1' },
