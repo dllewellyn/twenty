@@ -58,9 +58,15 @@ export class MigrateTasksCommand extends ActiveOrSuspendedWorkspacesMigrationCom
       }
 
       const transformedTasks = tasks.map((task) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { searchVector, createdBy, updatedBy, assignee, ...rest } = task;
+
         // Map TypeORM entity to a plain object
         return {
-          ...task,
+          ...rest,
+          createdBy: { ...createdBy },
+          updatedBy: { ...updatedBy },
+          ...(assignee ? { assignee: { ...assignee } } : {}),
         };
       });
 
