@@ -1,4 +1,4 @@
-I'll clean up the erroneous introductory sentence in `AGENTS.md` and add a new entry for 2026-03-10, documenting the enhancements to the PostgreSQL-to-Firestore migration framework, including complex field transformations and batch limit compliance.
+I'll add a new entry for 2026-03-12, documenting the refinements to the Firestore migration strategy for Notes and Note Targets, focusing on property exclusion and safe nested object mapping.
 
 # Agent Memory & Performance
 
@@ -76,3 +76,8 @@ I'll clean up the erroneous introductory sentence in `AGENTS.md` and add a new e
     - **Firestore Batch Limit Compliance**: Firestore's atomic `WriteBatch` operations are limited to 500 records. Implementing a chunking strategy (e.g., using `chunkedArray.slice(i, i + 500)`) in migration commands is mandatory to prevent `INVALID_ARGUMENT` errors during large-scale data moves.
     - **Reusable Migration Utilities**: Decoupling data transformation logic into a dedicated `migration-transformation.util.ts` enables consistent, unit-tested mappings for shared metadata types across different entity migrations.
     - **Entity-to-Plain Mapping**: When migrating from TypeORM, utilizing the spread operator (`...entity`) and performing targeted property overrides (e.g., `transformLinksToFirestore(company.linkedinLink)`) ensures the resulting object is a clean, serializable plain object suitable for Firestore persistence.
+- **2026-03-12**: Refined Firestore migration logic for specialized entity types (Notes and Note Targets). Key takeaways:
+    - **Exclusion of DB-Specific Properties**: When migrating entities, exclude properties that are only relevant to the source database (e.g., `searchVector` in PostgreSQL) to prevent bloating the target NoSQL document and avoid potential schema validation failures.
+    - **Safe Nested Relation Mapping**: For entities with relational fields (like `createdBy` or `updatedBy`), use destructuring to safely map them to plain objects (`{ ...rest.createdBy }`). This avoids passing TypeORM-specific metadata or circular references into the Firestore SDK.
+    - **Explicit Batch Chunking**: While repository abstractions may handle batching, explicitly implementing chunking (e.g., using a 500-record limit) within the migration command provides better logging granularity and ensures strict compliance with Firestore's `WriteBatch` constraints.
+    - **Targeted Transformation Logic**: Differentiating between simple "link" entities (where a spread operator suffices) and "data" entities (requiring targeted exclusions and relation mapping) is critical for maintaining a performant and clean migration pipeline.
