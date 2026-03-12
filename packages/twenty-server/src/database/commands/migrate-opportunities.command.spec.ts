@@ -96,10 +96,27 @@ describe('MigrateOpportunitiesCommand', () => {
     );
   });
 
-  it('should migrate opportunities successfully', async () => {
+  it('should migrate opportunities successfully and strip deprecated/system fields', async () => {
     const mockOpportunities = [
-      { id: '1', name: 'Opportunity 1' },
-      { id: '2', name: 'Opportunity 2' },
+      {
+        id: '1',
+        name: 'Opportunity 1',
+        searchVector: 'foo',
+        probability: 'high',
+        createdBy: { id: 'u1' },
+        updatedBy: { id: 'u2' },
+        company: { id: 'c1' },
+      },
+      {
+        id: '2',
+        name: 'Opportunity 2',
+        searchVector: 'bar',
+        probability: 'low',
+        createdBy: { id: 'u3' },
+        updatedBy: { id: 'u4' },
+        pointOfContact: { id: 'p1' },
+        owner: { id: 'o1' },
+      },
     ];
     mockOpportunityRepository.find.mockResolvedValue(mockOpportunities);
     const loggerSpy = jest.spyOn(command['logger'], 'log');
@@ -115,9 +132,23 @@ describe('MigrateOpportunitiesCommand', () => {
       'workspace-1',
       'opportunity',
     );
-    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(
-      mockOpportunities,
-    );
+    expect(mockFirestoreRepository.save).toHaveBeenCalledWith([
+      {
+        id: '1',
+        name: 'Opportunity 1',
+        createdBy: { id: 'u1' },
+        updatedBy: { id: 'u2' },
+        company: { id: 'c1' },
+      },
+      {
+        id: '2',
+        name: 'Opportunity 2',
+        createdBy: { id: 'u3' },
+        updatedBy: { id: 'u4' },
+        pointOfContact: { id: 'p1' },
+        owner: { id: 'o1' },
+      },
+    ]);
     expect(loggerSpy).toHaveBeenCalledWith(
       'Migrating 2 opportunities for workspace workspace-1...',
     );
@@ -140,18 +171,24 @@ describe('MigrateOpportunitiesCommand', () => {
       total: 1,
     });
 
+    const expectedChunks = mockOpportunities.map((opp) => ({
+      ...opp,
+      createdBy: {},
+      updatedBy: {},
+    }));
+
     expect(mockFirestoreRepository.save).toHaveBeenCalledTimes(3);
     expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
       1,
-      mockOpportunities.slice(0, 500),
+      expectedChunks.slice(0, 500),
     );
     expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
       2,
-      mockOpportunities.slice(500, 1000),
+      expectedChunks.slice(500, 1000),
     );
     expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
       3,
-      mockOpportunities.slice(1000, 1200),
+      expectedChunks.slice(1000, 1200),
     );
   });
 
