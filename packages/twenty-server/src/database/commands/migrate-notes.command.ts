@@ -59,8 +59,12 @@ export class MigrateNotesCommand extends ActiveOrSuspendedWorkspacesMigrationCom
 
       const transformedNotes = notes.map((note) => {
         // Map TypeORM entity to a plain object
+        const { searchVector, ...rest } = note;
+
         return {
-          ...note,
+          ...rest,
+          createdBy: rest.createdBy ? { ...rest.createdBy } : null,
+          updatedBy: rest.updatedBy ? { ...rest.updatedBy } : null,
         };
       });
 

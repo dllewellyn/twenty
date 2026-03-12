@@ -113,7 +113,12 @@ describe('MigrateNotesCommand', () => {
       'workspace-1',
       'note',
     );
-    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(mockNotes);
+    const expectedNotes = mockNotes.map((note) => ({
+      ...note,
+      createdBy: null,
+      updatedBy: null,
+    }));
+    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(expectedNotes);
     expect(loggerSpy).toHaveBeenCalledWith(
       'Migrating 2 notes for workspace workspace-1...',
     );
@@ -142,17 +147,22 @@ describe('MigrateNotesCommand', () => {
       'note',
     );
     expect(mockFirestoreRepository.save).toHaveBeenCalledTimes(3);
+    const expectedNotes = mockNotes.map((note) => ({
+      ...note,
+      createdBy: null,
+      updatedBy: null,
+    }));
     expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
       1,
-      mockNotes.slice(0, 500),
+      expectedNotes.slice(0, 500),
     );
     expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
       2,
-      mockNotes.slice(500, 1000),
+      expectedNotes.slice(500, 1000),
     );
     expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
       3,
-      mockNotes.slice(1000, 1200),
+      expectedNotes.slice(1000, 1200),
     );
     expect(loggerSpy).toHaveBeenCalledWith(
       'Migrating 1200 notes for workspace workspace-1...',
