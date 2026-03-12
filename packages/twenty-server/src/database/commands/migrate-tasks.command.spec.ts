@@ -96,8 +96,22 @@ describe('MigrateTasksCommand', () => {
 
   it('should migrate tasks successfully', async () => {
     const mockTasks = [
-      { id: '1', title: 'Task 1' },
-      { id: '2', title: 'Task 2' },
+      {
+        id: '1',
+        title: 'Task 1',
+        searchVector: 'foo',
+        createdBy: { id: 'u1', name: 'User 1' },
+        updatedBy: { id: 'u1', name: 'User 1' },
+        assignee: { id: 'u2', name: 'User 2' },
+      },
+      {
+        id: '2',
+        title: 'Task 2',
+        searchVector: 'bar',
+        createdBy: { id: 'u2', name: 'User 2' },
+        updatedBy: { id: 'u2', name: 'User 2' },
+        assignee: null,
+      },
     ];
     mockTaskRepository.find.mockResolvedValue(mockTasks);
     const loggerSpy = jest.spyOn(command['logger'], 'log');
@@ -113,7 +127,24 @@ describe('MigrateTasksCommand', () => {
       'workspace-1',
       'task',
     );
-    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(mockTasks);
+
+    const expectedTasks = [
+      {
+        id: '1',
+        title: 'Task 1',
+        createdBy: { id: 'u1', name: 'User 1' },
+        updatedBy: { id: 'u1', name: 'User 1' },
+        assignee: { id: 'u2', name: 'User 2' },
+      },
+      {
+        id: '2',
+        title: 'Task 2',
+        createdBy: { id: 'u2', name: 'User 2' },
+        updatedBy: { id: 'u2', name: 'User 2' },
+      },
+    ];
+
+    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(expectedTasks);
     expect(loggerSpy).toHaveBeenCalledWith(
       'Migrating 2 tasks for workspace workspace-1...',
     );
@@ -124,8 +155,22 @@ describe('MigrateTasksCommand', () => {
 
   it('should not save if dryRun is true', async () => {
     const mockTasks = [
-      { id: '1', title: 'Task 1' },
-      { id: '2', title: 'Task 2' },
+      {
+        id: '1',
+        title: 'Task 1',
+        searchVector: 'foo',
+        createdBy: { id: 'u1', name: 'User 1' },
+        updatedBy: { id: 'u1', name: 'User 1' },
+        assignee: { id: 'u2', name: 'User 2' },
+      },
+      {
+        id: '2',
+        title: 'Task 2',
+        searchVector: 'bar',
+        createdBy: { id: 'u2', name: 'User 2' },
+        updatedBy: { id: 'u2', name: 'User 2' },
+        assignee: null,
+      },
     ];
     mockTaskRepository.find.mockResolvedValue(mockTasks);
     const loggerSpy = jest.spyOn(command['logger'], 'log');
