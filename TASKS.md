@@ -1,7 +1,6 @@
 # Task Backlog
 
 ## Phase 3: Data Migration
-- [ ] **Collection Migration: 'Notes'**: Develop and run a script to migrate all 'Note' records from PostgreSQL to the Firestore 'notes' collection.
 - [ ] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.
 - [ ] **Collection Migration: 'Opportunities'**: Develop and run a script to migrate all 'Opportunity' records from PostgreSQL to the Firestore 'opportunities' collection.
 - [ ] **Collection Migration: 'Users'**: Migrate current 'Users' from PostgreSQL to the Firestore 'users' collection and ensure data parity for Authentication.
@@ -19,6 +18,7 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Collection Migration: 'Notes'**: Develop and run a script to migrate all 'Note' records from PostgreSQL to the Firestore 'notes' collection.
 - [x] **Collection Migration: 'Companies'**: Develop and run a script to migrate all 'Companies' records from PostgreSQL to the Firestore 'companies' collection.
 - [x] **Resolve Metadata Discrepancies**: Use the `database:validate-metadata` tool to identify and fix any schema inconsistencies between Postgres and Firestore before executing data migrations.
 - [x] **Manual Metadata Validation**: Conduct a final manual review of sensitive metadata fields (e.g., custom field types, relationship mappings) before starting the full data migration.
