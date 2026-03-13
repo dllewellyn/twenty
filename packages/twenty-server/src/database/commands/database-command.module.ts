@@ -15,6 +15,7 @@ import { ValidateMetadataCommand } from 'src/database/commands/validate-metadata
 import { ConfirmationQuestion } from 'src/database/commands/questions/confirmation.question';
 import { BackfillWorkspaceIdCommand } from 'src/database/commands/backfill-workspace-id.command';
 import { VerifyFirebaseUsersCommand } from 'src/database/commands/verify-firebase-users.command';
+import { ImportFirebaseAuthUsersCommand } from 'src/database/commands/import-firebase-auth-users.command';
 import { UpgradeVersionCommandModule } from 'src/database/commands/upgrade-version-command/upgrade-version-command.module';
 import { TypeORMModule } from 'src/database/typeorm/typeorm.module';
 import { ApiKeyModule } from 'src/engine/core-modules/api-key/api-key.module';
@@ -90,6 +91,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     ValidateMetadataCommand,
     BackfillWorkspaceIdCommand,
     VerifyFirebaseUsersCommand,
+    ImportFirebaseAuthUsersCommand,
   ],
 })
 export class DatabaseCommandModule {}
