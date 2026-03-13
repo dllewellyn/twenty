@@ -134,7 +134,7 @@ export const useSignInUp = (form: UseFormReturn<Form>) => {
           signInUpMode === SignInUpMode.SignIn &&
           isOnAWorkspace
         ) {
-          return await signInWithCredentialsInWorkspace(
+          return await signInWithCredentials(
             data.email.toLowerCase().trim(),
             data.password,
             token,
@@ -170,14 +170,7 @@ export const useSignInUp = (form: UseFormReturn<Form>) => {
           await buildSearchParamsFromUrlSyncedStates(),
         );
 
-        await signUpWithCredentialsInWorkspace({
-          email: data.email.toLowerCase().trim(),
-          password: data.password,
-          workspaceInviteHash,
-          workspacePersonalInviteToken,
-          captchaToken: token,
-          verifyEmailRedirectPath,
-        });
+        await signUpWithCredentials(data.email.toLowerCase().trim(), data.password, token);
       } catch (error: any) {
         enqueueErrorSnackBar({
           ...(error instanceof ApolloError ? { apolloError: error } : {}),

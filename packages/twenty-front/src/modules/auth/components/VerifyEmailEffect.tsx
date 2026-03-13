@@ -1,4 +1,3 @@
-import { useAuth } from '@/auth/hooks/useAuth';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
 import { ApolloError } from '@apollo/client';
 import { AppPath } from 'twenty-shared/types';
@@ -18,13 +17,11 @@ import { useNavigateApp } from '~/hooks/useNavigateApp';
 import { getWorkspaceUrl } from '~/utils/getWorkspaceUrl';
 import { EmailVerificationSent } from '@/auth/sign-in-up/components/EmailVerificationSent';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
+import { applyActionCode } from 'firebase/auth';
+import { auth } from '~/modules/auth/firebase';
+import { useLoadCurrentUser } from '@/users/hooks/useLoadCurrentUser';
 
 export const VerifyEmailEffect = () => {
-  const {
-    verifyEmailAndGetLoginToken,
-    verifyEmailAndGetWorkspaceAgnosticToken,
-  } = useAuth();
-
   const { enqueueErrorSnackBar, enqueueSuccessSnackBar } = useSnackBar();
 
   const [searchParams] = useSearchParams();
@@ -35,7 +32,7 @@ export const VerifyEmailEffect = () => {
   );
 
   const email = searchParams.get('email');
-  const emailVerificationToken = searchParams.get('emailVerificationToken');
+  const oobCode = searchParams.get('oobCode');
   const verifyEmailRedirectPath = searchParams.get('nextPath');
 
   const navigate = useNavigateApp();
@@ -43,11 +40,16 @@ export const VerifyEmailEffect = () => {
   const { verifyLoginToken } = useVerifyLogin();
   const { isOnAWorkspace } = useIsCurrentLocationOnAWorkspace();
   const clientConfigApiStatus = useAtomStateValue(clientConfigApiStatusState);
+  const { loadCurrentUser } = useLoadCurrentUser();
 
   const { t } = useLingui();
+
   useEffect(() => {
     const verifyEmailToken = async () => {
-      if (!email || !emailVerificationToken) {
+      // Firebase email verification link includes an oobCode parameter instead of emailVerificationToken
+      const actionCode = oobCode || searchParams.get('emailVerificationToken');
+
+      if (!actionCode) {
         enqueueErrorSnackBar({
           message: t`Invalid email verification link.`,
           options: {
@@ -65,47 +67,40 @@ export const VerifyEmailEffect = () => {
       };
 
       try {
-        if (!isOnAWorkspace) {
-          await verifyEmailAndGetWorkspaceAgnosticToken(
-            emailVerificationToken,
-            email,
-          );
-
-          return enqueueSuccessSnackBar(successSnackbarParams);
-        }
-
-        const { loginToken, workspaceUrls } = await verifyEmailAndGetLoginToken(
-          emailVerificationToken,
-          email,
-        );
+        await applyActionCode(auth, actionCode);
 
         enqueueSuccessSnackBar(successSnackbarParams);
 
-        const workspaceUrl = getWorkspaceUrl(workspaceUrls);
-        if (workspaceUrl.slice(0, -1) !== window.location.origin) {
-          return await redirectToWorkspaceDomain(workspaceUrl, AppPath.Verify, {
-            loginToken: loginToken.token,
-          });
-        }
+        // At this point, the user's email is verified in Firebase.
+        // We load the current user from our backend to check workspaces.
+        const { user } = await loadCurrentUser();
 
+        // After verification, we could navigate to workspace selection or
+        // a specific workspace if they only have one
         if (isDefined(verifyEmailRedirectPath)) {
           setVerifyEmailRedirectPath(verifyEmailRedirectPath);
         }
 
-        await verifyLoginToken(loginToken.token);
+        // Navigate to the main app if on a workspace, or to workspace selection if not
+        if (isOnAWorkspace) {
+          navigate(AppPath.Index);
+        } else {
+           navigate(AppPath.SignInUp);
+        }
+
       } catch (error) {
         enqueueErrorSnackBar({
-          ...(error instanceof ApolloError
-            ? { apolloError: error }
+          ...(error instanceof Error
+            ? { message: error.message }
             : { message: t`Email verification failed` }),
           options: {
             dedupeKey: 'email-verification-error-dedupe-key',
           },
         });
+
         if (
-          error instanceof ApolloError &&
-          error.graphQLErrors[0].extensions?.subCode ===
-            'EMAIL_ALREADY_VERIFIED'
+          error instanceof Error &&
+          error.message.includes('auth/invalid-action-code')
         ) {
           navigate(AppPath.SignInUp);
         }

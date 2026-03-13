@@ -89,7 +89,7 @@ export const SettingsAdminWorkspaceContent = ({
         const { loginToken, workspace } = data.impersonate;
         const isCurrentWorkspace = workspace.id === currentWorkspace?.id;
         if (isCurrentWorkspace) {
-          await executeImpersonationAuth(loginToken.token);
+          await executeImpersonationAuth(userLookupResult.user.id, workspace.id);
           return;
         }
 
