@@ -144,7 +144,7 @@ describe('Firestore Security Rules', () => {
           .firestore()
           .collection('companies')
           .doc('c1')
-          .set({ workspaceId });
+          .set({ workspaceId, createdBy: { id: 'user-1' } });
       });
 
       // A user in otherWorkspace tries to delete the doc from workspace
@@ -177,6 +177,22 @@ describe('Firestore Security Rules', () => {
       expect(doc.exists).toBe(true);
     });
 
+    it('should allow a user to read another user\'s profile in the same workspace', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context
+          .firestore()
+          .collection('users')
+          .doc('user-3')
+          .set({ workspaceId });
+      });
+
+      const doc = await workspaceAuthedDb
+        .collection('users')
+        .doc('user-3')
+        .get();
+      expect(doc.exists).toBe(true);
+    });
+
     it('should not allow users to read other users unless they have system workspace access', async () => {
       await testEnv.withSecurityRulesDisabled(async (context) => {
         await context
@@ -190,6 +206,84 @@ describe('Firestore Security Rules', () => {
       // @ts-expect-error
       await expect(
         workspaceAuthedDb.collection('users').doc('user-2').get(),
+      ).rejects.toThrow();
+    });
+
+    it('should NOT allow a user to read a user\'s profile in a different workspace', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context
+          .firestore()
+          .collection('users')
+          .doc('user-4')
+          .set({ workspaceId: otherWorkspaceId });
+      });
+
+      // @ts-expect-error
+      await expect(
+        workspaceAuthedDb.collection('users').doc('user-4').get(),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('Notes Collection', () => {
+    it('should allow a user to delete their own note', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context.firestore().collection('notes').doc('note1').set({
+          workspaceId: workspaceId,
+          createdBy: { id: 'user-1' }
+        });
+      });
+
+      await expect(
+        workspaceAuthedDb.collection('notes').doc('note1').delete()
+      ).resolves.toBeUndefined();
+    });
+
+    it('should NOT allow a user to delete someone else\'s note', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context.firestore().collection('notes').doc('note2').set({
+          workspaceId: workspaceId,
+          createdBy: { id: 'user-2' }
+        });
+      });
+
+      // @ts-expect-error
+      await expect(
+        workspaceAuthedDb.collection('notes').doc('note2').delete()
+      ).rejects.toThrow();
+    });
+
+    it('should allow a workspace admin to delete any note in their workspace', async () => {
+      const adminAuthedDb = testEnv
+        .authenticatedContext('user-3', {
+          workspaceId: workspaceId,
+          role: 'ADMIN'
+        })
+        .firestore();
+
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context.firestore().collection('notes').doc('note3').set({
+          workspaceId: workspaceId,
+          createdBy: { id: 'user-1' }
+        });
+      });
+
+      await expect(
+        adminAuthedDb.collection('notes').doc('note3').delete()
+      ).resolves.toBeUndefined();
+    });
+
+    it('should NOT allow reading notes from a different workspace', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await context.firestore().collection('notes').doc('note4').set({
+          workspaceId: otherWorkspaceId,
+          createdBy: { id: 'user-2' }
+        });
+      });
+
+      // @ts-expect-error
+      await expect(
+        workspaceAuthedDb.collection('notes').doc('note4').get()
       ).rejects.toThrow();
     });
   });
