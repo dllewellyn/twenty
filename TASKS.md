@@ -45,3 +45,11 @@
 - [x] **Emulator Configuration**: Set up `firebase.json` with Firestore and Auth emulators.
 - [x] **Integration Test Scaffold**: Create a simple test in `twenty-server` that connects to the Firestore emulator instead of Postgres.
 - [x] **JSON Schema Extraction**: Audit `class-validator` usage in `twenty-server` core entities to generate initial JSON schemas.
+### Verification Results: User Auth Flow
+- **Confirmed Missing Mutations**: `getLoginTokenFromCredentials` and `signUpInWorkspace` are completely removed from the backend `AuthResolver`.
+- **Confirmed Frontend Dependency**: `useAuth.ts` and `useSignInUp.ts` still attempt to call these mutations for `handleCredentialsSignInInWorkspace` and `handleCredentialsSignUpInWorkspace`.
+- **Confirmed Missing Firebase Users**: Migrated users exist in the `users` Firestore collection but *do not* exist in Firebase Auth.
+
+### New Required Sub-Tasks
+1. **Frontend Auth Cleanup**: Refactor `useAuth.ts` and dependent components to remove legacy GraphQL mutations and fully adopt `signInWithEmailAndPassword` and `createUserWithEmailAndPassword`. Handle workspace mapping explicitly post-login rather than relying on workspace-specific backend mutations.
+2. **User Import to Firebase Auth**: Implement a migration strategy (either bulk import via script or just-in-time creation during the signup flow) to ensure legacy users can claim their accounts.

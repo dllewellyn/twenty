@@ -14,6 +14,7 @@ import { MigrateUsersCommand } from 'src/database/commands/migrate-users.command
 import { ValidateMetadataCommand } from 'src/database/commands/validate-metadata.command';
 import { ConfirmationQuestion } from 'src/database/commands/questions/confirmation.question';
 import { BackfillWorkspaceIdCommand } from 'src/database/commands/backfill-workspace-id.command';
+import { VerifyFirebaseUsersCommand } from 'src/database/commands/verify-firebase-users.command';
 import { UpgradeVersionCommandModule } from 'src/database/commands/upgrade-version-command/upgrade-version-command.module';
 import { TypeORMModule } from 'src/database/typeorm/typeorm.module';
 import { ApiKeyModule } from 'src/engine/core-modules/api-key/api-key.module';
@@ -24,6 +25,7 @@ import { EventLogCleanupModule } from 'src/engine/core-modules/event-logs/cleanu
 import { FeatureFlagModule } from 'src/engine/core-modules/feature-flag/feature-flag.module';
 import { FileModule } from 'src/engine/core-modules/file/file.module';
 import { PublicDomainModule } from 'src/engine/core-modules/public-domain/public-domain.module';
+import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { WorkspaceModule } from 'src/engine/core-modules/workspace/workspace.module';
 import { DataSourceModule } from 'src/engine/metadata-modules/data-source/data-source.module';
@@ -46,6 +48,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
   imports: [
     UpgradeVersionCommandModule,
     TypeOrmModule.forFeature([WorkspaceEntity]),
+    TypeOrmModule.forFeature([UserEntity], 'core'),
     // Cron command dependencies
     MessagingImportManagerModule,
     CalendarEventImportManagerModule,
@@ -88,6 +91,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     MigrateUsersCommand,
     ValidateMetadataCommand,
     BackfillWorkspaceIdCommand,
+    VerifyFirebaseUsersCommand,
   ],
 })
 export class DatabaseCommandModule {}
