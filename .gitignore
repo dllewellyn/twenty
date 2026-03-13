@@ -52,6 +52,8 @@ mcp.json
 TRANSLATION_QA_REPORT.md
 .playwright-mcp/
 
+*.log
+
 # Firebase
 firebase-debug.log
 firebase-data/

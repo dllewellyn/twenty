@@ -1,8 +1,8 @@
 # Task Backlog
 
 ## Phase 3: Data Migration
-- [ ] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.
-- [ ] **Collection Migration: 'Opportunities'**: Develop and run a script to migrate all 'Opportunity' records from PostgreSQL to the Firestore 'opportunities' collection.
+- [x] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.
+- [x] **Collection Migration: 'Opportunities'**: Develop and run a script to migrate all 'Opportunity' records from PostgreSQL to the Firestore 'opportunities' collection.
 - [ ] **Collection Migration: 'Users'**: Migrate current 'Users' from PostgreSQL to the Firestore 'users' collection and ensure data parity for Authentication.
 - [ ] **Batch Processing & Transformation Audit**: Apply the 500-record batching limit and transformation utilities (`transformLinksToFirestore`, `transformEmailsToFirestore`, `transformPhonesToFirestore`) to all remaining migration scripts to ensure consistency and Firestore compliance.
 - [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.

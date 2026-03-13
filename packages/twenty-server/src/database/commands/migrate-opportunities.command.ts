@@ -58,9 +58,26 @@ export class MigrateOpportunitiesCommand extends ActiveOrSuspendedWorkspacesMigr
       }
 
       const transformedOpportunities = opportunities.map((opportunity) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {
+          searchVector,
+          probability,
+          createdBy,
+          updatedBy,
+          company,
+          pointOfContact,
+          owner,
+          ...rest
+        } = opportunity;
+
         // Map TypeORM entity to a plain object
         return {
-          ...opportunity,
+          ...rest,
+          createdBy: { ...createdBy },
+          updatedBy: { ...updatedBy },
+          ...(company ? { company: { ...company } } : {}),
+          ...(pointOfContact ? { pointOfContact: { ...pointOfContact } } : {}),
+          ...(owner ? { owner: { ...owner } } : {}),
         };
       });
 
