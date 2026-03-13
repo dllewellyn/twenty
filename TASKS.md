@@ -1,7 +1,7 @@
 # Task Backlog
 
 ## Phase 3: Data Migration
-- [ ] **Verify User Auth Flow**: Confirm that the excluded `passwordHash` doesn't break the intended Firebase Authentication strategy (e.g., ensuring users can still sign in or identifying the need for a password import/reset strategy).
+- [x] **Verify User Auth Flow**: Confirm that the excluded `passwordHash` doesn't break the intended Firebase Authentication strategy (e.g., ensuring users can still sign in or identifying the need for a password import/reset strategy).
 - [ ] **End-to-End Migration Validation**: Perform a full audit of all migrated collections (People, Companies, Notes, Tasks, Opportunities, Users) to ensure data integrity, relationship correctness, and consistency with Firestore schemas.
 - [ ] **Firestore Index Optimization**: Audit the performance of the new security rules and create necessary composite indexes to support filtered queries across all collections.
 - [ ] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.

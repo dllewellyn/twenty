@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { Command } from 'nest-commander';
+import { Command, Option } from 'nest-commander';
 import { CommandRunner } from 'nest-commander';
 import { Logger } from '@nestjs/common';
 import { FIREBASE_ADMIN_APP } from 'src/engine/core-modules/firebase/firebase.constants';
@@ -17,6 +17,15 @@ export class VerifyFirebaseUsersCommand extends CommandRunner {
     protected readonly firebaseApp: admin.app.App,
   ) {
     super();
+  }
+
+  @Option({
+    flags: '-l, --limit [limit]',
+    description: 'Limit the number of users to process',
+    defaultValue: '50',
+  })
+  parseLimit(val: string): number {
+    return parseInt(val, 10);
   }
 
   public async run(
@@ -48,7 +57,9 @@ export class VerifyFirebaseUsersCommand extends CommandRunner {
 
       for (const doc of snapshot.docs) {
         const userData = doc.data();
-        const primaryEmail = userData.emails?.find((e: any) => e.primary)?.email;
+        const primaryEmail = userData.emails?.find(
+          (e: { email: string; primary: boolean }) => e.primary,
+        )?.email;
 
         if (!primaryEmail) {
           this.logger.log(`User ${doc.id} has no primary email.`);
@@ -58,8 +69,12 @@ export class VerifyFirebaseUsersCommand extends CommandRunner {
         try {
           await auth.getUserByEmail(primaryEmail);
           found++;
-        } catch (error: any) {
-          if (error.code === 'auth/user-not-found') {
+        } catch (error: unknown) {
+          if (
+            error instanceof Error &&
+            'code' in error &&
+            error.code === 'auth/user-not-found'
+          ) {
             notFound++;
             this.logger.log(`User ${primaryEmail} not found in Firebase Auth.`);
           } else {

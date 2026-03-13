@@ -25,7 +25,6 @@ import { EventLogCleanupModule } from 'src/engine/core-modules/event-logs/cleanu
 import { FeatureFlagModule } from 'src/engine/core-modules/feature-flag/feature-flag.module';
 import { FileModule } from 'src/engine/core-modules/file/file.module';
 import { PublicDomainModule } from 'src/engine/core-modules/public-domain/public-domain.module';
-import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { WorkspaceModule } from 'src/engine/core-modules/workspace/workspace.module';
 import { DataSourceModule } from 'src/engine/metadata-modules/data-source/data-source.module';
@@ -48,7 +47,6 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
   imports: [
     UpgradeVersionCommandModule,
     TypeOrmModule.forFeature([WorkspaceEntity]),
-    TypeOrmModule.forFeature([UserEntity], 'core'),
     // Cron command dependencies
     MessagingImportManagerModule,
     CalendarEventImportManagerModule,
