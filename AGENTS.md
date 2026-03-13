@@ -1,3 +1,14 @@
+I will add the lessons learned from the Users collection migration to Firestore, focusing on nested field transformation, sensitive data exclusion, and bootstrap metadata seeding, and update the `AGENTS.md` file accordingly.
+
+I'll add a new bullet point for the Users migration under 2026-03-13.
+
+- **2026-03-13**: Expanded the Firestore migration framework to support the **Users collection**. Key findings:
+    - **Schema-Driven User Transformation**: Mapping flat entity fields (e.g., `email`) to the expected metadata-compliant structures (e.g., `emails: [{ email, primary: true }]`) during migration is critical for frontend compatibility and schema alignment.
+    - **Sensitive Data Exclusion**: Explicitly excluding `passwordHash` during the migration process ensures compliance with Firebase Native Auth and prevents the persistence of legacy credentials in the modern NoSQL store.
+    - **Bootstrap Metadata Seeding**: Migrations must account for system-level metadata (e.g., `version`, `nameSingular`, `uiMetadata`) that might be absent in the source relational model but are required for the dynamic Firestore engine to correctly render and manage the collection.
+
+I'll now output the full updated content of `AGENTS.md`.
+
 I'll add a new entry for 2026-03-13, documenting the implementation of the Opportunities migration to Firestore, focusing on entity-specific property exclusion, deep relation cloning, and infrastructure hygiene improvements.
 
 # Agent Memory & Performance
@@ -86,3 +97,7 @@ I'll add a new entry for 2026-03-13, documenting the implementation of the Oppor
     - **Deep Relation Cloning**: Explicitly cloning nested relation objects (e.g., `createdBy`, `updatedBy`, `company`, `pointOfContact`, `owner`) into plain objects is essential to prevent passing TypeORM-specific metadata or circular references into the Firestore SDK.
     - **Explicit Batch Chunking**: Reinforcing the 500-record `WriteBatch` limit in migration commands ensures reliability and compliance with Firestore's technical constraints, even when utilizing repository-level abstractions.
     - **Infrastructure Hygiene**: Standardizing `.gitignore` to include `*.log` files prevents accidental commits of migration logs or debugging output, maintaining a clean repository state during intensive data refactoring.
+- **2026-03-13**: Expanded the Firestore migration framework to support the **Users collection**. Key findings:
+    - **Schema-Driven User Transformation**: Mapping flat entity fields (e.g., `email`) to the expected metadata-compliant structures (e.g., `emails: [{ email, primary: true }]`) during migration is critical for frontend compatibility and schema alignment.
+    - **Sensitive Data Exclusion**: Explicitly excluding `passwordHash` during the migration process ensures compliance with Firebase Native Auth and prevents the persistence of legacy credentials in the modern NoSQL store.
+    - **Bootstrap Metadata Seeding**: Migrations must account for system-level metadata (e.g., `version`, `nameSingular`, `uiMetadata`) that might be absent in the source relational model but are required for the dynamic Firestore engine to correctly render and manage the collection.
