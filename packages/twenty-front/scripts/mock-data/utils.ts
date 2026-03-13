@@ -63,44 +63,26 @@ export const authenticate = async (): Promise<string> => {
     `Authenticating as ${AUTH_EMAIL} on workspace ${WORKSPACE_SUBDOMAIN}...`,
   );
 
-  const loginData = (await graphqlRequest(
-    '/metadata',
-    `mutation GetLoginTokenFromCredentials {
-      getLoginTokenFromCredentials(
-        email: "${AUTH_EMAIL}",
-        password: "${AUTH_PASSWORD}",
-        origin: "${WORKSPACE_ORIGIN}"
-      ) {
-        loginToken { token }
-      }
-    }`,
-  )) as {
-    getLoginTokenFromCredentials: { loginToken: { token: string } };
-  };
+  // Authenticate using the new REST API for Firebase Auth integration since GraphQL is decommissioned
+  const response = await fetch(`${SERVER_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Origin: WORKSPACE_ORIGIN,
+    },
+    body: JSON.stringify({ email: AUTH_EMAIL, password: AUTH_PASSWORD }),
+  });
 
-  const loginToken = loginData.getLoginTokenFromCredentials.loginToken.token;
+  if (!response.ok) {
+     throw new Error(`Failed to authenticate: ${response.statusText}`);
+  }
 
-  const authData = (await graphqlRequest(
-    '/metadata',
-    `mutation GetAuthTokensFromLoginToken {
-      getAuthTokensFromLoginToken(
-        loginToken: "${loginToken}",
-        origin: "${WORKSPACE_ORIGIN}"
-      ) {
-        tokens {
-          accessOrWorkspaceAgnosticToken { token }
-        }
-      }
-    }`,
-  )) as {
-    getAuthTokensFromLoginToken: {
-      tokens: { accessOrWorkspaceAgnosticToken: { token: string } };
-    };
-  };
+  const data = await response.json();
+  const accessToken = data.tokens?.access?.token || data.token; // Adapt to actual response shape
 
-  const accessToken =
-    authData.getAuthTokensFromLoginToken.tokens.accessOrWorkspaceAgnosticToken
-      .token;
+  if (!accessToken) {
+    throw new Error('No access token found in auth response');
+  }
 
   console.log('Authenticated successfully.');
   return accessToken;

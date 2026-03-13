@@ -148,7 +148,7 @@ export const SettingsWorkspaceMember = () => {
       },
       onCompleted: async (data) => {
         const { loginToken } = data.impersonate;
-        await executeImpersonationAuth(loginToken.token);
+        await executeImpersonationAuth(member.userId, currentWorkspace.id);
       },
       onError: () => {
         enqueueErrorSnackBar({
