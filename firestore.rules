@@ -14,8 +14,18 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == data.createdBy.id;
     }
 
+    function isWorkspaceAdmin() {
+      return isAuthenticated() && request.auth.token.role == 'ADMIN';
+    }
+
     // Rules for each collection
     match /people/{id} {
+      allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
+      allow create: if isWorkspaceMember(request.resource.data.workspaceId);
+      allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
+    }
+
+    match /noteTargets/{id} {
       allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
       allow create: if isWorkspaceMember(request.resource.data.workspaceId);
       allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
@@ -53,9 +63,10 @@ service cloud.firestore {
     }
 
     match /_metadata/{id} {
-      allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
-      allow create: if isWorkspaceMember(request.resource.data.workspaceId);
-      allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
+      allow read: if isWorkspaceMember(resource.data.workspaceId);
+      allow create: if isWorkspaceMember(request.resource.data.workspaceId) && isWorkspaceAdmin();
+      allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId) && isWorkspaceAdmin();
+      allow delete: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceAdmin();
     }
   }
 }
