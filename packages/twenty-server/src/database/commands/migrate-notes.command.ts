@@ -63,6 +63,7 @@ export class MigrateNotesCommand extends ActiveOrSuspendedWorkspacesMigrationCom
 
         return {
           ...rest,
+          workspaceId,
           createdBy: rest.createdBy ? { ...rest.createdBy } : null,
           updatedBy: rest.updatedBy ? { ...rest.updatedBy } : null,
         };

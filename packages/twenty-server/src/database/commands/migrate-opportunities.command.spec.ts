@@ -136,6 +136,7 @@ describe('MigrateOpportunitiesCommand', () => {
       {
         id: '1',
         name: 'Opportunity 1',
+        workspaceId: 'workspace-1',
         createdBy: { id: 'u1' },
         updatedBy: { id: 'u2' },
         company: { id: 'c1' },
@@ -143,6 +144,7 @@ describe('MigrateOpportunitiesCommand', () => {
       {
         id: '2',
         name: 'Opportunity 2',
+        workspaceId: 'workspace-1',
         createdBy: { id: 'u3' },
         updatedBy: { id: 'u4' },
         pointOfContact: { id: 'p1' },
@@ -173,6 +175,7 @@ describe('MigrateOpportunitiesCommand', () => {
 
     const expectedChunks = mockOpportunities.map((opp) => ({
       ...opp,
+      workspaceId: 'workspace-1',
       createdBy: {},
       updatedBy: {},
     }));

@@ -134,6 +134,7 @@ describe('MigrateUsersCommand', () => {
         id: 'user-1',
         firstName: 'John',
         lastName: 'Doe',
+        workspaceId: 'system',
         emails: [{ email: 'john@example.com', primary: true }],
         createdAt: dateStr,
         updatedAt: dateStr,
@@ -158,6 +159,7 @@ describe('MigrateUsersCommand', () => {
     const expectedChunks = mockUsers.map((u) => ({
       id: u.id,
       firstName: u.firstName,
+      workspaceId: 'system',
       emails: [{ email: u.email, primary: true }],
       createdAt: undefined,
       updatedAt: undefined,

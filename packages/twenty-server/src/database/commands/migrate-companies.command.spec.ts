@@ -146,6 +146,7 @@ describe('MigrateCompaniesCommand', () => {
       {
         id: '1',
         name: 'Acme Corp',
+        workspaceId: 'workspace-1',
         domainName: [{ label: 'Acme', url: 'https://acme.com' }],
         linkedinLink: null,
         xLink: null,
@@ -153,6 +154,7 @@ describe('MigrateCompaniesCommand', () => {
       {
         id: '2',
         name: 'Initech',
+        workspaceId: 'workspace-1',
         domainName: null,
         linkedinLink: [
           { label: 'LinkedIn', url: 'https://linkedin.com/company/initech' },

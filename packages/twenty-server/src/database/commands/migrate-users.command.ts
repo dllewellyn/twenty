@@ -136,6 +136,7 @@ export class MigrateUsersCommand extends MigrationCommandRunner {
         // Map TypeORM entity to a plain object
         return {
           ...restWithoutEmail,
+          workspaceId: 'system',
           emails: email ? [{ email: email, primary: true }] : null,
           createdAt: rest.createdAt
             ? new Date(rest.createdAt).toISOString()

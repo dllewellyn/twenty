@@ -61,6 +61,7 @@ export class MigratePeopleCommand extends ActiveOrSuspendedWorkspacesMigrationCo
         // Map TypeORM entity to a plain object
         return {
           ...person,
+          workspaceId,
           // Preserve relational IDs if needed, they are usually on the object
           // For instance, person.companyId
         };

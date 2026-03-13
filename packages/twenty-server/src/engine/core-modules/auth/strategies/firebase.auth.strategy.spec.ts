@@ -23,6 +23,7 @@ describe('FirebaseAuthStrategy', () => {
   beforeEach(async () => {
     mockFirebaseAdminService = {
       verifyIdToken: jest.fn(),
+      setCustomClaims: jest.fn(),
     };
     mockUserRepository = {
       findOne: jest.fn(),

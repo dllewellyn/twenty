@@ -132,6 +132,7 @@ describe('MigrateTasksCommand', () => {
       {
         id: '1',
         title: 'Task 1',
+        workspaceId: 'workspace-1',
         createdBy: { id: 'u1', name: 'User 1' },
         updatedBy: { id: 'u1', name: 'User 1' },
         assignee: { id: 'u2', name: 'User 2' },
@@ -139,6 +140,7 @@ describe('MigrateTasksCommand', () => {
       {
         id: '2',
         title: 'Task 2',
+        workspaceId: 'workspace-1',
         createdBy: { id: 'u2', name: 'User 2' },
         updatedBy: { id: 'u2', name: 'User 2' },
       },

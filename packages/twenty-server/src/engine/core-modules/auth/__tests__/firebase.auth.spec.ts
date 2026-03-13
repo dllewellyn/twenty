@@ -40,6 +40,7 @@ describe('FirebaseAuthStrategy & FirebaseAuthGuard', () => {
     };
     firebaseAdminService = {
       verifyIdToken: jest.fn(),
+      setCustomClaims: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

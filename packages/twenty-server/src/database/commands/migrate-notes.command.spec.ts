@@ -115,6 +115,7 @@ describe('MigrateNotesCommand', () => {
     );
     const expectedNotes = mockNotes.map((note) => ({
       ...note,
+      workspaceId: 'workspace-1',
       createdBy: null,
       updatedBy: null,
     }));
@@ -149,6 +150,7 @@ describe('MigrateNotesCommand', () => {
     expect(mockFirestoreRepository.save).toHaveBeenCalledTimes(3);
     const expectedNotes = mockNotes.map((note) => ({
       ...note,
+      workspaceId: 'workspace-1',
       createdBy: null,
       updatedBy: null,
     }));

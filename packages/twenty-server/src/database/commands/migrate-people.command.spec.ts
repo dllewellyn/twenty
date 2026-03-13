@@ -113,7 +113,9 @@ describe('MigratePeopleCommand', () => {
       'workspace-1',
       'person',
     );
-    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(mockPersons);
+    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(
+      mockPersons.map((p) => ({ ...p, workspaceId: 'workspace-1' })),
+    );
     expect(loggerSpy).toHaveBeenCalledWith(
       'Migrating 2 people for workspace workspace-1...',
     );

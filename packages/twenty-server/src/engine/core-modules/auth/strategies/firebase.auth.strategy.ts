@@ -157,6 +157,28 @@ export class FirebaseAuthStrategy extends PassportStrategy(
       ),
     );
 
+    if (decodedToken.workspaceId !== workspaceId) {
+      const claims = {
+        ...decodedToken,
+        workspaceId,
+      };
+
+      // Strip standard claims from decoded token payload before setting custom ones
+      delete (claims as any).iss;
+      delete (claims as any).aud;
+      delete (claims as any).auth_time;
+      delete (claims as any).user_id;
+      delete (claims as any).sub;
+      delete (claims as any).iat;
+      delete (claims as any).exp;
+      delete (claims as any).email;
+      delete (claims as any).email_verified;
+      delete (claims as any).firebase;
+      delete (claims as any).uid;
+
+      await this.firebaseAdminService.setCustomClaims(decodedToken.uid, claims);
+    }
+
     return {
       ...context,
       workspaceMember,
