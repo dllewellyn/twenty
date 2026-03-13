@@ -1,75 +1,51 @@
-import { i18n } from '@lingui/core';
-import { I18nProvider } from '@lingui/react';
 import { renderHook } from '@testing-library/react';
 
-import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
-import { AppPath } from 'twenty-shared/types';
-import { useNavigateApp } from '~/hooks/useNavigateApp';
-import { useAuth } from '@/auth/hooks/useAuth';
 import { useVerifyLogin } from '@/auth/hooks/useVerifyLogin';
-
-import { SOURCE_LOCALE } from 'twenty-shared/translations';
-import { dynamicActivate } from '~/utils/i18n/dynamicActivate';
+import { useAuth } from '@/auth/hooks/useAuth';
+import { useLoadCurrentUser } from '@/users/hooks/useLoadCurrentUser';
 
 jest.mock('../useAuth', () => ({
   useAuth: jest.fn(),
 }));
 
-jest.mock('@/ui/feedback/snack-bar-manager/hooks/useSnackBar', () => ({
-  useSnackBar: jest.fn(),
+jest.mock('@/users/hooks/useLoadCurrentUser', () => ({
+  useLoadCurrentUser: jest.fn(),
 }));
-
-jest.mock('~/hooks/useNavigateApp', () => ({
-  useNavigateApp: jest.fn(),
-}));
-
-dynamicActivate(SOURCE_LOCALE);
-
-const renderHooks = () => {
-  const { result } = renderHook(() => useVerifyLogin(), {
-    wrapper: ({ children }) => I18nProvider({ i18n, children }),
-  });
-  return { result };
-};
 
 describe('useVerifyLogin', () => {
-  const mockGetAuthTokensFromLoginToken = jest.fn();
-  const mockEnqueueErrorSnackBar = jest.fn();
-  const mockNavigate = jest.fn();
+  const mockLoadCurrentUser = jest.fn();
+  const mockClearSession = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
 
+    (useLoadCurrentUser as jest.Mock).mockReturnValue({
+      loadCurrentUser: mockLoadCurrentUser,
+    });
+
     (useAuth as jest.Mock).mockReturnValue({
-      getAuthTokensFromLoginToken: mockGetAuthTokensFromLoginToken,
+      clearSession: mockClearSession,
     });
-
-    (useSnackBar as jest.Mock).mockReturnValue({
-      enqueueErrorSnackBar: mockEnqueueErrorSnackBar,
-    });
-
-    (useNavigateApp as jest.Mock).mockReturnValue(mockNavigate);
   });
 
-  it('should verify login token', async () => {
-    const { result } = renderHooks();
+  it('should call loadCurrentUser when verifyLoginToken is called', async () => {
+    mockLoadCurrentUser.mockResolvedValueOnce({});
 
+    const { result } = renderHook(() => useVerifyLogin());
     await result.current.verifyLoginToken('test-token');
 
-    expect(mockGetAuthTokensFromLoginToken).toHaveBeenCalledWith('test-token');
+    expect(mockLoadCurrentUser).toHaveBeenCalled();
+    expect(mockClearSession).not.toHaveBeenCalled();
   });
 
-  it('should handle verification error', async () => {
+  it('should call clearSession when loadCurrentUser fails', async () => {
     const error = new Error('Verification failed');
-    mockGetAuthTokensFromLoginToken.mockRejectedValueOnce(error);
+    mockLoadCurrentUser.mockRejectedValueOnce(error);
 
-    const { result } = renderHooks();
-
+    const { result } = renderHook(() => useVerifyLogin());
     await result.current.verifyLoginToken('test-token');
 
-    expect(mockEnqueueErrorSnackBar).toHaveBeenCalledWith({
-      message: 'Authentication failed',
-    });
-    expect(mockNavigate).toHaveBeenCalledWith(AppPath.SignInUp);
+    expect(mockLoadCurrentUser).toHaveBeenCalled();
+    expect(mockClearSession).toHaveBeenCalled();
   });
 });
