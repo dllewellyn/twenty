@@ -1,9 +1,9 @@
+I will update the `TASKS.md` file by moving the 'Tasks' and 'Opportunities' migrations to the "COMPLETED WORK" section, breaking down the 'Users' migration into more manageable tasks, and adding an "End-to-End Migration Validation" task to ensure data integrity across all migrated collections.
 # Task Backlog
 
 ## Phase 3: Data Migration
-- [x] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.
-- [x] **Collection Migration: 'Opportunities'**: Develop and run a script to migrate all 'Opportunity' records from PostgreSQL to the Firestore 'opportunities' collection.
 - [ ] **Collection Migration: 'Users'**: Migrate current 'Users' from PostgreSQL to the Firestore 'users' collection and ensure data parity for Authentication.
+- [ ] **End-to-End Migration Validation**: Perform a full audit of all migrated collections (People, Companies, Notes, Tasks, Opportunities, Users) to ensure data integrity, relationship correctness, and consistency with Firestore schemas.
 - [ ] **Batch Processing & Transformation Audit**: Apply the 500-record batching limit and transformation utilities (`transformLinksToFirestore`, `transformEmailsToFirestore`, `transformPhonesToFirestore`) to all remaining migration scripts to ensure consistency and Firestore compliance.
 - [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
 - [ ] **Deprecate PostgreSQL**: Drop remaining PostgreSQL connections, TypeORM logic, and related services to enforce full reliance on Firestore.
@@ -18,6 +18,8 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Collection Migration: 'Opportunities'**: Develop and run a script to migrate all 'Opportunity' records from PostgreSQL to the Firestore 'opportunities' collection.
+- [x] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.
 - [x] **Collection Migration: 'Notes'**: Develop and run a script to migrate all 'Note' records from PostgreSQL to the Firestore 'notes' collection.
 - [x] **Collection Migration: 'Companies'**: Develop and run a script to migrate all 'Companies' records from PostgreSQL to the Firestore 'companies' collection.
 - [x] **Resolve Metadata Discrepancies**: Use the `database:validate-metadata` tool to identify and fix any schema inconsistencies between Postgres and Firestore before executing data migrations.
