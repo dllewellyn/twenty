@@ -112,6 +112,7 @@ describe('MigrateUsersCommand', () => {
         firstName: 'John',
         lastName: 'Doe',
         email: 'john@example.com',
+        passwordHash: 'secret',
         createdAt: dateObj,
         updatedAt: dateObj,
         appTokens: [],
@@ -133,7 +134,7 @@ describe('MigrateUsersCommand', () => {
         id: 'user-1',
         firstName: 'John',
         lastName: 'Doe',
-        email: 'john@example.com',
+        emails: [{ email: 'john@example.com', primary: true }],
         createdAt: dateStr,
         updatedAt: dateStr,
         deletedAt: undefined,
@@ -147,6 +148,7 @@ describe('MigrateUsersCommand', () => {
       id: `user-${i}`,
       firstName: `First${i}`,
       email: `user${i}@example.com`,
+      passwordHash: 'secret',
     }));
 
     mockUserRepository.find.mockResolvedValue(mockUsers);
@@ -154,7 +156,9 @@ describe('MigrateUsersCommand', () => {
     await command.runMigrationCommand([], { dryRun: false });
 
     const expectedChunks = mockUsers.map((u) => ({
-      ...u,
+      id: u.id,
+      firstName: u.firstName,
+      emails: [{ email: u.email, primary: true }],
       createdAt: undefined,
       updatedAt: undefined,
       deletedAt: undefined,

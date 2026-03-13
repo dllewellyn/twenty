@@ -61,11 +61,10 @@ export class MigrateUsersCommand extends MigrationCommandRunner {
               id: { type: 'string', format: 'uuid' },
               firstName: { type: 'string' },
               lastName: { type: 'string' },
-              email: { type: 'string' },
+              emails: { type: 'array', items: { type: 'object' } },
               defaultAvatarUrl: { type: 'string' },
               isEmailVerified: { type: 'boolean' },
               disabled: { type: 'boolean' },
-              passwordHash: { type: 'string' },
               canImpersonate: { type: 'boolean' },
               canAccessFullAdminPanel: { type: 'boolean' },
               createdAt: { type: 'string', format: 'date-time' },
@@ -76,7 +75,7 @@ export class MigrateUsersCommand extends MigrationCommandRunner {
             required: [
               'firstName',
               'lastName',
-              'email',
+              'emails',
               'createdAt',
               'updatedAt',
               'locale',
@@ -86,6 +85,11 @@ export class MigrateUsersCommand extends MigrationCommandRunner {
 
           await _metadataCollection.add({
             namePlural: collectionName,
+            nameSingular: 'user',
+            labelSingular: 'User',
+            labelPlural: 'Users',
+            uiMetadata: {},
+            version: '1.0.0',
             workspaceId,
             jsonSchema,
           });
@@ -123,12 +127,16 @@ export class MigrateUsersCommand extends MigrationCommandRunner {
           currentWorkspace,
           currentUserWorkspace,
           formatEmail,
+          passwordHash,
           ...rest
         } = user as any;
 
+        const { email, ...restWithoutEmail } = rest;
+
         // Map TypeORM entity to a plain object
         return {
-          ...rest,
+          ...restWithoutEmail,
+          emails: email ? [{ email: email, primary: true }] : null,
           createdAt: rest.createdAt
             ? new Date(rest.createdAt).toISOString()
             : undefined,
