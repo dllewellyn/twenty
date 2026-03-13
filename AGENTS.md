@@ -1,15 +1,15 @@
-I will add the lessons learned from the Users collection migration to Firestore, focusing on nested field transformation, sensitive data exclusion, and bootstrap metadata seeding, and update the `AGENTS.md` file accordingly.
+I will add the lessons learned from the Firestore security rules refinement to the `AGENTS.md` file, focusing on ownership-aware permissions, multi-tenant isolation via JWT claims, and administrative metadata locking.
 
-I'll add a new bullet point for the Users migration under 2026-03-13.
+I'll add a new bullet point for the Firestore security rules under 2026-03-13.
 
-- **2026-03-13**: Expanded the Firestore migration framework to support the **Users collection**. Key findings:
-    - **Schema-Driven User Transformation**: Mapping flat entity fields (e.g., `email`) to the expected metadata-compliant structures (e.g., `emails: [{ email, primary: true }]`) during migration is critical for frontend compatibility and schema alignment.
-    - **Sensitive Data Exclusion**: Explicitly excluding `passwordHash` during the migration process ensures compliance with Firebase Native Auth and prevents the persistence of legacy credentials in the modern NoSQL store.
-    - **Bootstrap Metadata Seeding**: Migrations must account for system-level metadata (e.g., `version`, `nameSingular`, `uiMetadata`) that might be absent in the source relational model but are required for the dynamic Firestore engine to correctly render and manage the collection.
+- **2026-03-13**: Refined **Firestore security rules** to support multi-tenant and ownership-aware permissions.
+    - **Ownership-Aware Permissions**: Implementing `isOwner()` using `request.auth.uid == data.createdBy.id` allows for granular control over record updates and deletions, ensuring only the creator or an admin can modify sensitive data.
+    - **Multi-Tenant Security via JWT Claims**: Utilizing custom JWT claims (e.g., `workspaceId`, `role`) in Firestore security rules enables efficient multi-tenant isolation and role-based access control (RBAC) without extra database lookups.
+    - **Collaborative vs. Core Collection Rules**: Differentiating between core collections (where anyone in the workspace can update) and collaborative ones (like `notes` and `tasks`, where only the owner can update/delete) aligns security with user expectations for shared vs. personal data.
+    - **Admin-Locked Metadata**: Restricting write access to `_metadata` collections to `isWorkspaceAdmin()` while allowing `isWorkspaceMember()` to read ensures that system-level configurations are protected from unauthorized modification by standard users.
+    - **Test Seeding for Security Rules**: When refining security rules, it is critical to update test seeding logic (e.g., ensuring `createdBy.id` matches the authenticated user in tests) to prevent false-negative test failures after rule tightening.
 
 I'll now output the full updated content of `AGENTS.md`.
-
-I'll add a new entry for 2026-03-13, documenting the implementation of the Opportunities migration to Firestore, focusing on entity-specific property exclusion, deep relation cloning, and infrastructure hygiene improvements.
 
 # Agent Memory & Performance
 
@@ -101,3 +101,9 @@ I'll add a new entry for 2026-03-13, documenting the implementation of the Oppor
     - **Schema-Driven User Transformation**: Mapping flat entity fields (e.g., `email`) to the expected metadata-compliant structures (e.g., `emails: [{ email, primary: true }]`) during migration is critical for frontend compatibility and schema alignment.
     - **Sensitive Data Exclusion**: Explicitly excluding `passwordHash` during the migration process ensures compliance with Firebase Native Auth and prevents the persistence of legacy credentials in the modern NoSQL store.
     - **Bootstrap Metadata Seeding**: Migrations must account for system-level metadata (e.g., `version`, `nameSingular`, `uiMetadata`) that might be absent in the source relational model but are required for the dynamic Firestore engine to correctly render and manage the collection.
+- **2026-03-13**: Refined **Firestore security rules** to support multi-tenant and ownership-aware permissions.
+    - **Ownership-Aware Permissions**: Implementing `isOwner()` using `request.auth.uid == data.createdBy.id` allows for granular control over record updates and deletions, ensuring only the creator or an admin can modify sensitive data.
+    - **Multi-Tenant Security via JWT Claims**: Utilizing custom JWT claims (e.g., `workspaceId`, `role`) in Firestore security rules enables efficient multi-tenant isolation and role-based access control (RBAC) without extra database lookups.
+    - **Collaborative vs. Core Collection Rules**: Differentiating between core collections (where anyone in the workspace can update) and collaborative ones (like `notes` and `tasks`, where only the owner can update/delete) aligns security with user expectations for shared vs. personal data.
+    - **Admin-Locked Metadata**: Restricting write access to `_metadata` collections to `isWorkspaceAdmin()` while allowing `isWorkspaceMember()` to read ensures that system-level configurations are protected from unauthorized modification by standard users.
+    - **Test Seeding for Security Rules**: When refining security rules, it is critical to update test seeding logic (e.g., ensuring `createdBy.id` matches the authenticated user in tests) to prevent false-negative test failures after rule tightening.
