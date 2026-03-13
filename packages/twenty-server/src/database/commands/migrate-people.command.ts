@@ -10,6 +10,7 @@ import { FIREBASE_ADMIN_APP } from 'src/engine/core-modules/firebase/firebase.co
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { DataSourceService } from 'src/engine/metadata-modules/data-source/data-source.service';
 import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
+import { transformEmailsToFirestore, transformLinksToFirestore, transformPhonesToFirestore } from 'src/database/utils/migration-transformation.util';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 import { BaseFirestoreRepository } from 'src/engine/twenty-orm/repository/firestore.repository';
 import { PersonWorkspaceEntity } from 'src/modules/person/standard-objects/person.workspace-entity';
@@ -58,9 +59,17 @@ export class MigratePeopleCommand extends ActiveOrSuspendedWorkspacesMigrationCo
       }
 
       const transformedPersons = persons.map((person) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { searchVector, ...rest } = person;
+
         // Map TypeORM entity to a plain object
         return {
-          ...person,
+          ...rest,
+          workspaceId,
+          emails: transformEmailsToFirestore(person.emails) as any,
+          phones: transformPhonesToFirestore(person.phones) as any,
+          linkedinLink: transformLinksToFirestore(person.linkedinLink) as any,
+          xLink: transformLinksToFirestore(person.xLink) as any,
           // Preserve relational IDs if needed, they are usually on the object
           // For instance, person.companyId
         };
@@ -77,8 +86,19 @@ export class MigratePeopleCommand extends ActiveOrSuspendedWorkspacesMigrationCo
         `Migrating ${transformedPersons.length} people for workspace ${workspaceId}...`,
       );
 
-      // Save using batch operation
-      await firestoreRepository.save(transformedPersons);
+      // Save using batch operation with limits
+      const FIRESTORE_BATCH_LIMIT = 500;
+      for (
+        let i = 0;
+        i < transformedPersons.length;
+        i += FIRESTORE_BATCH_LIMIT
+      ) {
+        const chunk = transformedPersons.slice(
+          i,
+          i + FIRESTORE_BATCH_LIMIT,
+        );
+        await firestoreRepository.save(chunk);
+      }
 
       this.logger.log(
         `Successfully migrated ${transformedPersons.length} people for workspace ${workspaceId}.`,

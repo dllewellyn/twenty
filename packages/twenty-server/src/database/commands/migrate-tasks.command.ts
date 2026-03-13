@@ -64,6 +64,7 @@ export class MigrateTasksCommand extends ActiveOrSuspendedWorkspacesMigrationCom
         // Map TypeORM entity to a plain object
         return {
           ...rest,
+          workspaceId,
           createdBy: { ...createdBy },
           updatedBy: { ...updatedBy },
           ...(assignee ? { assignee: { ...assignee } } : {}),

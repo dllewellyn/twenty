@@ -62,6 +62,7 @@ export class MigrateCompaniesCommand extends ActiveOrSuspendedWorkspacesMigratio
         // Map TypeORM entity to a plain object
         return {
           ...company,
+          workspaceId,
           domainName: transformLinksToFirestore(company.domainName) as any,
           linkedinLink: transformLinksToFirestore(company.linkedinLink) as any,
           xLink: transformLinksToFirestore(company.xLink) as any,

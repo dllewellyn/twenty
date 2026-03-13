@@ -7,8 +7,14 @@ import { DataSourceService } from 'src/engine/metadata-modules/data-source/data-
 import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
 import { FIREBASE_ADMIN_APP } from 'src/engine/core-modules/firebase/firebase.constants';
 import { BaseFirestoreRepository } from 'src/engine/twenty-orm/repository/firestore.repository';
+import { transformEmailsToFirestore, transformLinksToFirestore, transformPhonesToFirestore } from 'src/database/utils/migration-transformation.util';
 
 jest.mock('src/engine/twenty-orm/repository/firestore.repository');
+jest.mock('src/database/utils/migration-transformation.util', () => ({
+  transformEmailsToFirestore: jest.fn().mockReturnValue('mock-emails'),
+  transformPhonesToFirestore: jest.fn().mockReturnValue('mock-phones'),
+  transformLinksToFirestore: jest.fn().mockReturnValue('mock-links'),
+}));
 
 describe('MigratePeopleCommand', () => {
   let command: MigratePeopleCommand;
@@ -96,8 +102,8 @@ describe('MigratePeopleCommand', () => {
 
   it('should migrate people successfully', async () => {
     const mockPersons = [
-      { id: '1', name: 'John Doe' },
-      { id: '2', name: 'Jane Doe' },
+      { id: '1', name: 'John Doe', searchVector: 'foo' },
+      { id: '2', name: 'Jane Doe', searchVector: 'bar' },
     ];
     mockPersonRepository.find.mockResolvedValue(mockPersons);
     const loggerSpy = jest.spyOn(command['logger'], 'log');
@@ -113,12 +119,69 @@ describe('MigratePeopleCommand', () => {
       'workspace-1',
       'person',
     );
-    expect(mockFirestoreRepository.save).toHaveBeenCalledWith(mockPersons);
+    expect(mockFirestoreRepository.save).toHaveBeenCalledWith([
+      {
+        id: '1',
+        name: 'John Doe',
+        workspaceId: 'workspace-1',
+        emails: 'mock-emails',
+        phones: 'mock-phones',
+        linkedinLink: 'mock-links',
+        xLink: 'mock-links',
+      },
+      {
+        id: '2',
+        name: 'Jane Doe',
+        workspaceId: 'workspace-1',
+        emails: 'mock-emails',
+        phones: 'mock-phones',
+        linkedinLink: 'mock-links',
+        xLink: 'mock-links',
+      },
+    ]);
     expect(loggerSpy).toHaveBeenCalledWith(
       'Migrating 2 people for workspace workspace-1...',
     );
     expect(loggerSpy).toHaveBeenCalledWith(
       'Successfully migrated 2 people for workspace workspace-1.',
+    );
+  });
+
+  it('should chunk the migrations up correctly according to FIRESTORE_BATCH_LIMIT', async () => {
+    const mockPersons = Array.from({ length: 1200 }, (_, i) => ({
+      id: `${i}`,
+      name: `Person ${i}`,
+    }));
+    mockPersonRepository.find.mockResolvedValue(mockPersons);
+
+    await command.runOnWorkspace({
+      workspaceId: 'workspace-1',
+      options: {},
+      index: 0,
+      total: 1,
+    });
+
+    const expectedChunks = mockPersons.map((p) => ({
+      ...p,
+      workspaceId: 'workspace-1',
+      emails: 'mock-emails',
+      phones: 'mock-phones',
+      linkedinLink: 'mock-links',
+      xLink: 'mock-links',
+    }));
+
+    expect(mockFirestoreRepository.save).toHaveBeenCalledTimes(3);
+    expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
+      1,
+      expectedChunks.slice(0, 500),
+    );
+    expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
+      2,
+      expectedChunks.slice(500, 1000),
+    );
+    expect(mockFirestoreRepository.save).toHaveBeenNthCalledWith(
+      3,
+      expectedChunks.slice(1000, 1200),
     );
   });
 

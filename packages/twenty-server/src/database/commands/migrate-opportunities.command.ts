@@ -73,6 +73,7 @@ export class MigrateOpportunitiesCommand extends ActiveOrSuspendedWorkspacesMigr
         // Map TypeORM entity to a plain object
         return {
           ...rest,
+          workspaceId,
           createdBy: { ...createdBy },
           updatedBy: { ...updatedBy },
           ...(company ? { company: { ...company } } : {}),

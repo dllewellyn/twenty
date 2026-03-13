@@ -37,4 +37,13 @@ export class FirebaseAdminService {
       throw error;
     }
   }
+
+  public async setCustomClaims(uid: string, claims: object): Promise<void> {
+    try {
+      await this.auth.setCustomUserClaims(uid, claims);
+    } catch (error) {
+      this.logger.error(`Failed to set custom claims for user ${uid}`, error);
+      throw error;
+    }
+  }
 }

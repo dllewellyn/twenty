@@ -13,6 +13,7 @@ import { MigrateTasksCommand } from 'src/database/commands/migrate-tasks.command
 import { MigrateUsersCommand } from 'src/database/commands/migrate-users.command';
 import { ValidateMetadataCommand } from 'src/database/commands/validate-metadata.command';
 import { ConfirmationQuestion } from 'src/database/commands/questions/confirmation.question';
+import { BackfillWorkspaceIdCommand } from 'src/database/commands/backfill-workspace-id.command';
 import { UpgradeVersionCommandModule } from 'src/database/commands/upgrade-version-command/upgrade-version-command.module';
 import { TypeORMModule } from 'src/database/typeorm/typeorm.module';
 import { ApiKeyModule } from 'src/engine/core-modules/api-key/api-key.module';
@@ -86,6 +87,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     MigrateTasksCommand,
     MigrateUsersCommand,
     ValidateMetadataCommand,
+    BackfillWorkspaceIdCommand,
   ],
 })
 export class DatabaseCommandModule {}
