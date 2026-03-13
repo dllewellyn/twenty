@@ -1,4 +1,4 @@
-I'll add a new entry for 2026-03-12, documenting the refinements to the Firestore migration strategy for Notes and Note Targets, focusing on property exclusion and safe nested object mapping.
+I'll add a new entry for 2026-03-13, documenting the implementation of the Opportunities migration to Firestore, focusing on entity-specific property exclusion, deep relation cloning, and infrastructure hygiene improvements.
 
 # Agent Memory & Performance
 
@@ -81,3 +81,8 @@ I'll add a new entry for 2026-03-12, documenting the refinements to the Firestor
     - **Safe Nested Relation Mapping**: For entities with relational fields (like `createdBy` or `updatedBy`), use destructuring to safely map them to plain objects (`{ ...rest.createdBy }`). This avoids passing TypeORM-specific metadata or circular references into the Firestore SDK.
     - **Explicit Batch Chunking**: While repository abstractions may handle batching, explicitly implementing chunking (e.g., using a 500-record limit) within the migration command provides better logging granularity and ensures strict compliance with Firestore's `WriteBatch` constraints.
     - **Targeted Transformation Logic**: Differentiating between simple "link" entities (where a spread operator suffices) and "data" entities (requiring targeted exclusions and relation mapping) is critical for maintaining a performant and clean migration pipeline.
+- **2026-03-13**: Successfully implemented the **Opportunities migration** to Firestore, reinforcing the established entity-to-plain mapping pattern for complex objects. Key technical insights:
+    - **Entity-Specific Property Exclusion**: When migrating `Opportunities`, excluding database-specific fields like `searchVector` (PostgreSQL-specific) and calculated fields like `probability` (which should be recalculated in the target system or handled as metadata) ensures document cleanliness and compatibility.
+    - **Deep Relation Cloning**: Explicitly cloning nested relation objects (e.g., `createdBy`, `updatedBy`, `company`, `pointOfContact`, `owner`) into plain objects is essential to prevent passing TypeORM-specific metadata or circular references into the Firestore SDK.
+    - **Explicit Batch Chunking**: Reinforcing the 500-record `WriteBatch` limit in migration commands ensures reliability and compliance with Firestore's technical constraints, even when utilizing repository-level abstractions.
+    - **Infrastructure Hygiene**: Standardizing `.gitignore` to include `*.log` files prevents accidental commits of migration logs or debugging output, maintaining a clean repository state during intensive data refactoring.
