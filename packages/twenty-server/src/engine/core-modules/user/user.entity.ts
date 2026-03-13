@@ -1,6 +1,14 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { IDField } from '@ptc-org/nestjs-query-graphql';
+import {
+  IsBoolean,
+  IsDate,
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { APP_LOCALES, SOURCE_LOCALE } from 'twenty-shared/translations';
 import {
   BeforeInsert,
@@ -38,14 +46,17 @@ registerEnumType(OnboardingStatus, {
 export class UserEntity {
   @IDField(() => UUIDScalarType)
   @PrimaryGeneratedColumn('uuid')
+  @IsUUID()
   id: string;
 
   @Field()
   @Column({ default: '' })
+  @IsString()
   firstName: string;
 
   @Field()
   @Column({ default: '' })
+  @IsString()
   lastName: string;
 
   @BeforeInsert()
@@ -56,45 +67,62 @@ export class UserEntity {
 
   @Field()
   @Column()
+  @IsEmail()
   email: string;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
+  @IsString()
+  @IsOptional()
   defaultAvatarUrl: string;
 
   @Field()
   @Column({ default: false })
+  @IsBoolean()
   isEmailVerified: boolean;
 
   @Field({ nullable: true })
   @Column({ default: false })
+  @IsBoolean()
+  @IsOptional()
   disabled: boolean;
 
   @Column({ nullable: true })
+  @IsString()
+  @IsOptional()
   passwordHash: string;
 
   @Field()
   @Column({ default: false })
+  @IsBoolean()
   canImpersonate: boolean;
 
   @Field()
   @Column({ default: false })
+  @IsBoolean()
   canAccessFullAdminPanel: boolean;
 
   @Field()
   @CreateDateColumn({ type: 'timestamptz' })
+  @IsDate()
+  @IsOptional()
   createdAt: Date;
 
   @Field()
   @UpdateDateColumn({ type: 'timestamptz' })
+  @IsDate()
+  @IsOptional()
   updatedAt: Date;
 
   @Field({ nullable: true })
   @DeleteDateColumn({ type: 'timestamptz' })
+  @IsDate()
+  @IsOptional()
   deletedAt: Date;
 
   @Field(() => String, { nullable: false })
   @Column({ nullable: false, default: SOURCE_LOCALE, type: 'varchar' })
+  @IsString()
   locale: keyof typeof APP_LOCALES;
 
   @OneToMany(() => AppTokenEntity, (appToken) => appToken.user, {
