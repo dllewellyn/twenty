@@ -2,6 +2,7 @@
 
 ## Phase 3: Data Migration
 - [x] **Verify User Auth Flow**: Confirm that the excluded `passwordHash` doesn't break the intended Firebase Authentication strategy (e.g., ensuring users can still sign in or identifying the need for a password import/reset strategy).
+- [ ] **User Import to Firebase Auth**: Implement a migration strategy (either bulk import via script or just-in-time creation during the signup flow) to ensure legacy users can claim their accounts.
 - [ ] **End-to-End Migration Validation**: Perform a full audit of all migrated collections (People, Companies, Notes, Tasks, Opportunities, Users) to ensure data integrity, relationship correctness, and consistency with Firestore schemas.
 - [ ] **Firestore Index Optimization**: Audit the performance of the new security rules and create necessary composite indexes to support filtered queries across all collections.
 - [ ] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.
@@ -21,6 +22,7 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Frontend Auth Cleanup**: Refactored `useAuth.ts` and dependent components to remove legacy GraphQL mutations and fully adopt `signInWithEmailAndPassword` and `createUserWithEmailAndPassword`. Handled workspace mapping explicitly post-login rather than relying on workspace-specific backend mutations.
 - [x] **Firestore Security Rules**: Refined Firestore security rules to support multi-tenant and ownership-aware permissions, including `isOwner()` and `isWorkspaceAdmin()` checks across core and collaborative collections.
 - [x] **Collection Migration: 'Users'**: Developed and ran a script to migrate all 'User' records from PostgreSQL to the Firestore 'users' collection, including JSON schema validation and data transformation for Firebase Auth compatibility.
 - [x] **Collection Migration: 'Opportunities'**: Develop and run a script to migrate all 'Opportunity' records from PostgreSQL to the Firestore 'opportunities' collection.
@@ -45,11 +47,3 @@
 - [x] **Emulator Configuration**: Set up `firebase.json` with Firestore and Auth emulators.
 - [x] **Integration Test Scaffold**: Create a simple test in `twenty-server` that connects to the Firestore emulator instead of Postgres.
 - [x] **JSON Schema Extraction**: Audit `class-validator` usage in `twenty-server` core entities to generate initial JSON schemas.
-### Verification Results: User Auth Flow
-- **Confirmed Missing Mutations**: `getLoginTokenFromCredentials` and `signUpInWorkspace` are completely removed from the backend `AuthResolver`.
-- **Confirmed Frontend Dependency**: `useAuth.ts` and `useSignInUp.ts` still attempt to call these mutations for `handleCredentialsSignInInWorkspace` and `handleCredentialsSignUpInWorkspace`.
-- **Confirmed Missing Firebase Users**: Migrated users exist in the `users` Firestore collection but *do not* exist in Firebase Auth.
-
-### New Required Sub-Tasks
-1. **Frontend Auth Cleanup**: Refactor `useAuth.ts` and dependent components to remove legacy GraphQL mutations and fully adopt `signInWithEmailAndPassword` and `createUserWithEmailAndPassword`. Handle workspace mapping explicitly post-login rather than relying on workspace-specific backend mutations.
-2. **User Import to Firebase Auth**: Implement a migration strategy (either bulk import via script or just-in-time creation during the signup flow) to ensure legacy users can claim their accounts.
