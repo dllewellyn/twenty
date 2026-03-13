@@ -20,46 +20,52 @@ service cloud.firestore {
 
     // Rules for each collection
     match /people/{id} {
-      allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
+      allow read: if isWorkspaceMember(resource.data.workspaceId);
       allow create: if isWorkspaceMember(request.resource.data.workspaceId);
       allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
+      allow delete: if isWorkspaceMember(resource.data.workspaceId) && (isWorkspaceAdmin() || isOwner(resource.data));
     }
 
     match /noteTargets/{id} {
-      allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
+      allow read: if isWorkspaceMember(resource.data.workspaceId);
       allow create: if isWorkspaceMember(request.resource.data.workspaceId);
       allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
+      allow delete: if isWorkspaceMember(resource.data.workspaceId) && (isWorkspaceAdmin() || isOwner(resource.data));
     }
 
     match /companies/{id} {
-      allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
+      allow read: if isWorkspaceMember(resource.data.workspaceId);
       allow create: if isWorkspaceMember(request.resource.data.workspaceId);
       allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
+      allow delete: if isWorkspaceMember(resource.data.workspaceId) && (isWorkspaceAdmin() || isOwner(resource.data));
     }
 
     match /notes/{id} {
-      allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
+      allow read: if isWorkspaceMember(resource.data.workspaceId);
       allow create: if isWorkspaceMember(request.resource.data.workspaceId);
-      allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
+      allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId) && (isWorkspaceAdmin() || isOwner(resource.data));
+      allow delete: if isWorkspaceMember(resource.data.workspaceId) && (isWorkspaceAdmin() || isOwner(resource.data));
     }
 
     match /opportunities/{id} {
-      allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
+      allow read: if isWorkspaceMember(resource.data.workspaceId);
       allow create: if isWorkspaceMember(request.resource.data.workspaceId);
       allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
+      allow delete: if isWorkspaceMember(resource.data.workspaceId) && (isWorkspaceAdmin() || isOwner(resource.data));
     }
 
     match /tasks/{id} {
-      allow read, delete: if isWorkspaceMember(resource.data.workspaceId);
+      allow read: if isWorkspaceMember(resource.data.workspaceId);
       allow create: if isWorkspaceMember(request.resource.data.workspaceId);
-      allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId);
+      allow update: if isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId) && (isWorkspaceAdmin() || isOwner(resource.data));
+      allow delete: if isWorkspaceMember(resource.data.workspaceId) && (isWorkspaceAdmin() || isOwner(resource.data));
     }
 
     match /users/{id} {
-      allow read: if isWorkspaceMember('system') || (isAuthenticated() && request.auth.uid == id);
-      allow delete: if isWorkspaceMember('system') && resource.data.workspaceId == 'system';
-      allow create: if isWorkspaceMember('system') && request.resource.data.workspaceId == 'system';
-      allow update: if isWorkspaceMember('system') && resource.data.workspaceId == 'system' && request.resource.data.workspaceId == 'system';
+      allow read: if isWorkspaceMember('system') || (isAuthenticated() && request.auth.uid == id) || (isAuthenticated() && request.auth.token.workspaceId == resource.data.workspaceId);
+      allow create: if isWorkspaceMember('system') || (isWorkspaceMember(request.resource.data.workspaceId) && isWorkspaceAdmin());
+      allow update: if isWorkspaceMember('system') || (isAuthenticated() && request.auth.uid == id && resource.data.workspaceId == request.resource.data.workspaceId) || (isWorkspaceMember(resource.data.workspaceId) && isWorkspaceMember(request.resource.data.workspaceId) && isWorkspaceAdmin());
+      allow delete: if isWorkspaceMember('system') || (isWorkspaceMember(resource.data.workspaceId) && isWorkspaceAdmin());
     }
 
     match /_metadata/{id} {

@@ -3,7 +3,6 @@ I will now update the `TASKS.md` file by removing the preamble, marking the 'Use
 # Task Backlog
 
 ## Phase 3: Data Migration
-- [ ] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
 - [ ] **Verify User Auth Flow**: Confirm that the excluded `passwordHash` doesn't break the intended Firebase Authentication strategy (e.g., ensuring users can still sign in or identifying the need for a password import/reset strategy).
 - [ ] **End-to-End Migration Validation**: Perform a full audit of all migrated collections (People, Companies, Notes, Tasks, Opportunities, Users) to ensure data integrity, relationship correctness, and consistency with Firestore schemas.
 - [ ] **Batch Processing & Transformation Audit**: Final review of all migration scripts to ensure the 500-record batching limit and transformation utilities (`transformLinksToFirestore`, `transformEmailsToFirestore`, `transformPhonesToFirestore`) were applied consistently and handled all edge cases.
@@ -22,6 +21,7 @@ I will now update the `TASKS.md` file by removing the preamble, marking the 'Use
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Firestore Security Rules**: Define initial security rules based on user ownership and role claims to protect the migrated data.
 - [x] **Collection Migration: 'Users'**: Developed and ran a script to migrate all 'User' records from PostgreSQL to the Firestore 'users' collection, including JSON schema validation and data transformation for Firebase Auth compatibility.
 - [x] **Collection Migration: 'Opportunities'**: Develop and run a script to migrate all 'Opportunity' records from PostgreSQL to the Firestore 'opportunities' collection.
 - [x] **Collection Migration: 'Tasks'**: Develop and run a script to migrate all 'Task' records from PostgreSQL to the Firestore 'tasks' collection.
