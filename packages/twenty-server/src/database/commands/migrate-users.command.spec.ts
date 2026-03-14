@@ -50,7 +50,7 @@ describe('MigrateUsersCommand', () => {
       providers: [
         MigrateUsersCommand,
         {
-          provide: getRepositoryToken(UserEntity, 'core'),
+          provide: getRepositoryToken(UserEntity),
           useValue: mockUserRepository,
         },
         {

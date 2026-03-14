@@ -17,6 +17,7 @@ import { DomainServerConfigService } from 'src/engine/core-modules/domain/domain
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { EmailService } from 'src/engine/core-modules/email/email.service';
 import { GuardRedirectService } from 'src/engine/core-modules/guard-redirect/services/guard-redirect.service';
+import { FirebaseAdminService } from 'src/engine/core-modules/firebase/firebase-admin.service';
 import { I18nService } from 'src/engine/core-modules/i18n/i18n.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { UserWorkspaceService } from 'src/engine/core-modules/user-workspace/user-workspace.service';
@@ -34,7 +35,7 @@ jest.mock('bcrypt');
 
 const twentyConfigServiceGetMock = jest.fn();
 
-xdescribe('AuthService', () => {
+describe('AuthService', () => {
   let service: AuthService;
   let userService: UserService;
   let workspaceRepository: Repository<WorkspaceEntity>;
@@ -75,17 +76,11 @@ xdescribe('AuthService', () => {
           },
         },
         {
-          useValue: {},
-        },
-        {
           provide: WorkspaceDomainsService,
           useValue: {},
         },
         {
           provide: DomainServerConfigService,
-          useValue: {},
-        },
-        {
           useValue: {},
         },
         {
@@ -107,12 +102,6 @@ xdescribe('AuthService', () => {
         },
         {
           provide: EmailService,
-          useValue: {},
-        },
-        {
-          useValue: {},
-        },
-        {
           useValue: {},
         },
         {
@@ -165,6 +154,15 @@ xdescribe('AuthService', () => {
         {
           provide: ApplicationRegistrationService,
           useValue: {},
+        },
+        {
+          provide: FirebaseAdminService,
+          useValue: {
+            auth: {
+              getUserByEmail: jest.fn(),
+              createUser: jest.fn(),
+            },
+          },
         },
       ],
     }).compile();
@@ -377,7 +375,7 @@ xdescribe('AuthService', () => {
     expect(UserFindOneSpy).toHaveBeenCalledTimes(1);
   });
 
-  xdescribe('checkAccessForSignIn', () => {
+  describe('checkAccessForSignIn', () => {
     it('checkAccessForSignIn - allow signin for existing user who target a workspace with right access', async () => {
       const spy = jest
         .spyOn(userService, 'hasUserAccessToWorkspaceOrThrow')
@@ -558,7 +556,7 @@ xdescribe('AuthService', () => {
     });
   });
 
-  xdescribe('findWorkspaceForSignInUp', () => {
+  describe('findWorkspaceForSignInUp', () => {
     it('findWorkspaceForSignInUp - signup password auth', async () => {
       const spyWorkspaceRepository = jest.spyOn(workspaceRepository, 'findOne');
       const spyAuthSsoService = jest.spyOn(

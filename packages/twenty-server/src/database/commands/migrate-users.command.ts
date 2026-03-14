@@ -16,7 +16,7 @@ import { BaseFirestoreRepository } from 'src/engine/twenty-orm/repository/firest
 })
 export class MigrateUsersCommand extends MigrationCommandRunner {
   constructor(
-    @InjectRepository(UserEntity, 'core')
+    @InjectRepository(UserEntity)
     protected readonly userRepository: Repository<UserEntity>,
     protected readonly metadataService: MetadataService,
     @Inject(FIREBASE_ADMIN_APP)

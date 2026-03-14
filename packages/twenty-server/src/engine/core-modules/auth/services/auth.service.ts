@@ -51,6 +51,7 @@ import {
 } from 'src/engine/core-modules/auth/types/signInUp.type';
 import { validateRedirectUri } from 'src/engine/core-modules/auth/utils/validate-redirect-uri.util';
 import { DomainServerConfigService } from 'src/engine/core-modules/domain/domain-server-config/services/domain-server-config.service';
+import { FirebaseAdminService } from 'src/engine/core-modules/firebase/firebase-admin.service';
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { WorkspaceDomainConfig } from 'src/engine/core-modules/domain/workspace-domains/types/workspace-domain-config.type';
 import { EmailService } from 'src/engine/core-modules/email/email.service';
@@ -90,6 +91,7 @@ export class AuthService {
     private readonly i18nService: I18nService,
     private readonly auditService: AuditService,
     private readonly applicationRegistrationService: ApplicationRegistrationService,
+    private readonly firebaseAdminService: FirebaseAdminService,
   ) {}
 
   private async checkAccessAndUseInvitationOrThrow(
@@ -191,6 +193,25 @@ export class AuthService {
           userFriendlyMessage: msg`Wrong password.`,
         },
       );
+    }
+
+    try {
+      await this.firebaseAdminService.auth.getUserByEmail(user.email);
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && (error as any).code === 'auth/user-not-found') {
+        try {
+          await this.firebaseAdminService.auth.createUser({
+            uid: user.id,
+            email: user.email,
+            emailVerified: user.isEmailVerified,
+            password: input.password,
+            displayName: `${user.firstName} ${user.lastName}`.trim(),
+            disabled: user.disabled,
+          });
+        } catch (createError) {
+           // Silently ignore creation errors to avoid breaking login if JIT fails unexpectedly
+        }
+      }
     }
 
     await this.checkIsEmailVerified(user.isEmailVerified);

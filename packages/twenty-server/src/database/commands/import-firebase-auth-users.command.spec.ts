@@ -34,7 +34,7 @@ describe('ImportFirebaseAuthUsersCommand', () => {
       providers: [
         ImportFirebaseAuthUsersCommand,
         {
-          provide: getRepositoryToken(UserEntity, 'core'),
+          provide: getRepositoryToken(UserEntity),
           useValue: userRepositoryMock,
         },
         {

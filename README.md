@@ -28,6 +28,12 @@ See:
 🚀 [Self-hosting](https://docs.twenty.com/developers/self-hosting/docker-compose)
 🖥️ [Local Setup](https://docs.twenty.com/developers/local-setup)
 
+## Post-Installation (Firebase Auth Migration)
+After migrating your PostgreSQL users to Firestore, you must run the following command to provision them in Firebase Authentication and bridge the login gap:
+`yarn nx run twenty-server:command database:import-firebase-auth-users`
+
+Alternatively, the system includes JIT provisioning, so users migrating will be automatically added to Firebase on their next verified interaction if they hit specific backend flows.
+
 # Why Twenty
 
 We built Twenty for three reasons:

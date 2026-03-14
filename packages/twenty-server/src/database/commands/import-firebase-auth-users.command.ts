@@ -14,7 +14,7 @@ import { UserEntity } from 'src/engine/core-modules/user/user.entity';
 })
 export class ImportFirebaseAuthUsersCommand extends MigrationCommandRunner {
   constructor(
-    @InjectRepository(UserEntity, 'core')
+    @InjectRepository(UserEntity)
     protected readonly userRepository: Repository<UserEntity>,
     protected readonly firebaseAdminService: FirebaseAdminService,
   ) {
