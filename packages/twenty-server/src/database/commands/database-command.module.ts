@@ -14,6 +14,7 @@ import { MigrateTasksCommand } from 'src/database/commands/migrate-tasks.command
 import { MigrateUsersCommand } from 'src/database/commands/migrate-users.command';
 import { ValidateMetadataCommand } from 'src/database/commands/validate-metadata.command';
 import { ConfirmationQuestion } from 'src/database/commands/questions/confirmation.question';
+import { AuditDataMigrationCommand } from 'src/database/commands/audit-data-migration.command';
 import { BackfillWorkspaceIdCommand } from 'src/database/commands/backfill-workspace-id.command';
 import { VerifyFirebaseUsersCommand } from 'src/database/commands/verify-firebase-users.command';
 import { ImportFirebaseAuthUsersCommand } from 'src/database/commands/import-firebase-auth-users.command';
@@ -93,6 +94,7 @@ import { AutomatedTriggerModule } from 'src/modules/workflow/workflow-trigger/au
     MigrateTasksCommand,
     MigrateUsersCommand,
     ValidateMetadataCommand,
+    AuditDataMigrationCommand,
     BackfillWorkspaceIdCommand,
     VerifyFirebaseUsersCommand,
     ImportFirebaseAuthUsersCommand,

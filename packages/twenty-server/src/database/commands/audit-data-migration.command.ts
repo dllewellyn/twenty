@@ -26,6 +26,7 @@ export class AuditDataMigrationCommand extends ActiveOrSuspendedWorkspacesMigrat
     { name: 'task', firestoreName: 'tasks' },
     { name: 'opportunity', firestoreName: 'opportunities' },
     { name: 'user', firestoreName: 'users' },
+    { name: 'noteTarget', firestoreName: 'noteTargets' },
   ];
 
   constructor(
