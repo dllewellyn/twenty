@@ -133,7 +133,10 @@ describe('ImportFirebaseAuthUsersCommand', () => {
       ],
       { hash: { algorithm: 'BCRYPT' } },
     );
-    expect(loggerLogSpy).toHaveBeenCalledWith('Successfully imported: 1');
+    expect(loggerLogSpy).toHaveBeenCalledWith('Summary:');
+    expect(loggerLogSpy).toHaveBeenCalledWith('Total Processed: 1');
+    expect(loggerLogSpy).toHaveBeenCalledWith('Success Count: 1');
+    expect(loggerLogSpy).toHaveBeenCalledWith('Failure Count: 0');
   });
 
   it('should batch users for import if more than 1000 users exist', async () => {
@@ -174,7 +177,10 @@ describe('ImportFirebaseAuthUsersCommand', () => {
     const call2Args = importUsersMock.mock.calls[1][0];
     expect(call2Args.length).toBe(500);
 
-    expect(loggerLogSpy).toHaveBeenCalledWith('Successfully imported: 1500');
+    expect(loggerLogSpy).toHaveBeenCalledWith('Summary:');
+    expect(loggerLogSpy).toHaveBeenCalledWith('Total Processed: 1500');
+    expect(loggerLogSpy).toHaveBeenCalledWith('Success Count: 1500');
+    expect(loggerLogSpy).toHaveBeenCalledWith('Failure Count: 0');
   });
 
   it('should log errors for individual failed user imports', async () => {
@@ -205,6 +211,6 @@ describe('ImportFirebaseAuthUsersCommand', () => {
       'Failed to import user at index 0 in chunk 0:',
       mockError.error,
     );
-    expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to import: 1');
+    expect(loggerErrorSpy).toHaveBeenCalledWith('Failure Count: 1');
   });
 });
