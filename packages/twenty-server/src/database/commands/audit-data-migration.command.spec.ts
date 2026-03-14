@@ -5,6 +5,7 @@ import { AuditDataMigrationCommand } from 'src/database/commands/audit-data-migr
 import { FIREBASE_ADMIN_APP } from 'src/engine/core-modules/firebase/firebase.constants';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { DataSourceService } from 'src/engine/metadata-modules/data-source/data-source.service';
+import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
 
 describe('AuditDataMigrationCommand', () => {
@@ -59,6 +60,14 @@ describe('AuditDataMigrationCommand', () => {
     firestore: jest.fn().mockReturnValue(mockFirestore),
   };
 
+  const mockSchemaValidator = {
+    validator: jest.fn().mockReturnValue(true),
+  };
+
+  const mockMetadataService = {
+    getValidator: jest.fn().mockResolvedValue(mockSchemaValidator),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -74,6 +83,10 @@ describe('AuditDataMigrationCommand', () => {
         {
           provide: DataSourceService,
           useValue: mockDataSourceService,
+        },
+        {
+          provide: MetadataService,
+          useValue: mockMetadataService,
         },
         {
           provide: FIREBASE_ADMIN_APP,
@@ -204,6 +217,59 @@ describe('AuditDataMigrationCommand', () => {
 
     expect(command['logger'].log).toHaveBeenCalledWith(
       expect.stringContaining('mismatch on createdAt'),
+    );
+  });
+
+  it('should log schema validation errors', async () => {
+    const workspaceId = 'test-workspace-id';
+
+    mockRepository.count.mockResolvedValue(1);
+    mockFirestoreCount.data.mockReturnValue({ count: 1 });
+
+    const date = new Date('2023-01-01T00:00:00.000Z');
+    mockRepository.find.mockResolvedValue([{ id: '1', createdAt: date }]);
+
+    mockFirestoreDoc.exists = true;
+    mockFirestoreDoc.data.mockReturnValue({ id: '1', createdAt: '2023-01-01T00:00:00.000Z' });
+
+    mockSchemaValidator.validator.mockReturnValueOnce(false);
+    mockSchemaValidator.validator['errors'] = [{ message: 'Missing property name' }];
+
+    await command.runOnWorkspace({
+      workspaceId,
+      options: { workspaceIds: [] },
+      index: 0,
+      total: 1,
+    });
+
+    expect(command['logger'].log).toHaveBeenCalledWith(
+      expect.stringContaining('failed schema validation'),
+    );
+  });
+
+  it('should log relationship mismatches', async () => {
+    const workspaceId = 'test-workspace-id';
+
+    mockRepository.count.mockResolvedValue(1);
+    mockFirestoreCount.data.mockReturnValue({ count: 1 });
+
+    const date = new Date('2023-01-01T00:00:00.000Z');
+    mockRepository.find.mockResolvedValue([{ id: '1', createdAt: date, companyId: 'pg-company-1' }]);
+
+    mockFirestoreDoc.exists = true;
+    mockFirestoreDoc.data.mockReturnValue({ id: '1', createdAt: '2023-01-01T00:00:00.000Z', companyId: 'fs-company-2' });
+
+    mockSchemaValidator.validator.mockReturnValueOnce(true);
+
+    await command.runOnWorkspace({
+      workspaceId,
+      options: { workspaceIds: [] },
+      index: 0,
+      total: 1,
+    });
+
+    expect(command['logger'].log).toHaveBeenCalledWith(
+      expect.stringContaining('mismatch on relation companyId'),
     );
   });
 });

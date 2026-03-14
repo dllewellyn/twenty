@@ -10,7 +10,9 @@ import { RunOnWorkspaceArgs } from 'src/database/commands/command-runners/worksp
 import { FIREBASE_ADMIN_APP } from 'src/engine/core-modules/firebase/firebase.constants';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { DataSourceService } from 'src/engine/metadata-modules/data-source/data-source.service';
+import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
+import { getArrayTransformedField } from 'src/database/utils/migration-transformation.util';
 
 @Command({
   name: 'database:audit-data-migration',
@@ -31,6 +33,7 @@ export class AuditDataMigrationCommand extends ActiveOrSuspendedWorkspacesMigrat
     protected readonly workspaceRepository: Repository<WorkspaceEntity>,
     protected readonly globalWorkspaceOrmManager: GlobalWorkspaceOrmManager,
     protected readonly dataSourceService: DataSourceService,
+    protected readonly metadataService: MetadataService,
     @Inject(FIREBASE_ADMIN_APP)
     protected readonly firebaseApp: admin.app.App,
   ) {
@@ -73,9 +76,21 @@ export class AuditDataMigrationCommand extends ActiveOrSuspendedWorkspacesMigrat
           );
         }
 
+        let schemaValidator;
+        try {
+          schemaValidator = await this.metadataService.getValidator(
+            collection.firestoreName,
+            workspaceId,
+          );
+        } catch (err) {
+          this.logger.error(
+            `Failed to load validator for ${collection.firestoreName} in workspace ${workspaceId}: ${err.message}`,
+          );
+        }
+
         // 2. Data Integrity Sample
         if (postgresCount > 0) {
-          const sampleRecords = await repository.find({ take: 10 });
+          const sampleRecords = await repository.find({ take: 100 });
 
           for (const pgRecord of sampleRecords) {
             const fsDoc = await db
@@ -103,6 +118,15 @@ export class AuditDataMigrationCommand extends ActiveOrSuspendedWorkspacesMigrat
               continue;
             }
 
+            // Schema Validation
+            if (schemaValidator && !schemaValidator.validator(fsData)) {
+              this.logger.log(
+                chalk.red(
+                  `[${collection.name}] Record ${pgRecord.id} failed schema validation: ${JSON.stringify(schemaValidator.validator.errors)}`,
+                ),
+              );
+            }
+
             if (pgRecord.id !== fsData.id) {
                this.logger.log(
                   chalk.red(
@@ -117,6 +141,36 @@ export class AuditDataMigrationCommand extends ActiveOrSuspendedWorkspacesMigrat
                      `[${collection.name}] Record ${pgRecord.id} mismatch on createdAt. Postgres: ${pgRecord.createdAt?.toISOString()}, Firestore: ${fsData.createdAt}`,
                   ),
                );
+            }
+
+            // Relationship Checks (e.g. companyId on Person, or personId on NoteTarget)
+            const relationalFields = ['companyId', 'personId', 'noteId', 'taskId', 'opportunityId', 'workspaceMemberId'];
+            for (const field of relationalFields) {
+              if (pgRecord[field] && pgRecord[field] !== fsData[field]) {
+                this.logger.log(
+                  chalk.red(
+                    `[${collection.name}] Record ${pgRecord.id} mismatch on relation ${field}. Postgres: ${pgRecord[field]}, Firestore: ${fsData[field]}`,
+                  ),
+                );
+              }
+            }
+
+            // Transformed Array field checks
+            const arrayFields = ['emails', 'phones', 'links'];
+            for (const field of arrayFields) {
+               if (pgRecord[field] !== undefined) {
+                  const expectedArray = getArrayTransformedField(pgRecord[field]);
+                  const stringifiedExpected = JSON.stringify(expectedArray);
+                  const stringifiedActual = JSON.stringify(fsData[field] || []);
+
+                  if (stringifiedExpected !== stringifiedActual && !(stringifiedExpected === '[]' && stringifiedActual === 'null')) {
+                     this.logger.log(
+                        chalk.red(
+                           `[${collection.name}] Record ${pgRecord.id} mismatch on array field ${field}. Expected: ${stringifiedExpected}, Actual: ${stringifiedActual}`,
+                        ),
+                     );
+                  }
+               }
             }
           }
         }
