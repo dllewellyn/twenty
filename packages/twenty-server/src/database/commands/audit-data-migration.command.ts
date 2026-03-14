@@ -12,7 +12,7 @@ import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.ent
 import { DataSourceService } from 'src/engine/metadata-modules/data-source/data-source.service';
 import { MetadataService } from 'src/engine/metadata-modules/metadata.service';
 import { GlobalWorkspaceOrmManager } from 'src/engine/twenty-orm/global-workspace-datasource/global-workspace-orm.manager';
-import { getArrayTransformedField } from 'src/database/utils/migration-transformation.util';
+import { transformEmailsToFirestore, transformLinksToFirestore, transformPhonesToFirestore } from 'src/database/utils/migration-transformation.util';
 
 @Command({
   name: 'database:audit-data-migration',
@@ -159,11 +159,20 @@ export class AuditDataMigrationCommand extends ActiveOrSuspendedWorkspacesMigrat
             const arrayFields = ['emails', 'phones', 'links'];
             for (const field of arrayFields) {
                if (pgRecord[field] !== undefined) {
-                  const expectedArray = getArrayTransformedField(pgRecord[field]);
-                  const stringifiedExpected = JSON.stringify(expectedArray);
+                  let expectedArray: any = null;
+
+                  if (field === 'emails') {
+                    expectedArray = transformEmailsToFirestore(pgRecord[field]);
+                  } else if (field === 'phones') {
+                    expectedArray = transformPhonesToFirestore(pgRecord[field]);
+                  } else if (field === 'links') {
+                    expectedArray = transformLinksToFirestore(pgRecord[field]);
+                  }
+
+                  const stringifiedExpected = JSON.stringify(expectedArray || []);
                   const stringifiedActual = JSON.stringify(fsData[field] || []);
 
-                  if (stringifiedExpected !== stringifiedActual && !(stringifiedExpected === '[]' && stringifiedActual === 'null')) {
+                  if (stringifiedExpected !== stringifiedActual) {
                      this.logger.log(
                         chalk.red(
                            `[${collection.name}] Record ${pgRecord.id} mismatch on array field ${field}. Expected: ${stringifiedExpected}, Actual: ${stringifiedActual}`,

@@ -272,4 +272,32 @@ describe('AuditDataMigrationCommand', () => {
       expect.stringContaining('mismatch on relation companyId'),
     );
   });
+
+  it('should log array field mismatches', async () => {
+    const workspaceId = 'test-workspace-id';
+
+    mockRepository.count.mockResolvedValue(1);
+    mockFirestoreCount.data.mockReturnValue({ count: 1 });
+
+    const date = new Date('2023-01-01T00:00:00.000Z');
+    const emails = { primaryEmail: 'test@example.com' };
+    mockRepository.find.mockResolvedValue([{ id: '1', createdAt: date, emails }]);
+
+    mockFirestoreDoc.exists = true;
+    // Missing the correct emails mapping
+    mockFirestoreDoc.data.mockReturnValue({ id: '1', createdAt: '2023-01-01T00:00:00.000Z', emails: [] });
+
+    mockSchemaValidator.validator.mockReturnValueOnce(true);
+
+    await command.runOnWorkspace({
+      workspaceId,
+      options: { workspaceIds: [] },
+      index: 0,
+      total: 1,
+    });
+
+    expect(command['logger'].log).toHaveBeenCalledWith(
+      expect.stringContaining('mismatch on array field emails'),
+    );
+  });
 });
