@@ -3,10 +3,10 @@
 ## Phase 3: Data Migration
 - [x] **Verify User Auth Flow**: Confirm that the excluded `passwordHash` doesn't break the intended Firebase Authentication strategy (e.g., ensuring users can still sign in or identifying the need for a password import/reset strategy).
 - [ ] **User Import to Firebase Auth**: Implement a migration strategy (either bulk import via script or just-in-time creation during the signup flow) to ensure legacy users can claim their accounts.
-- [ ] **End-to-End Migration Validation**: Perform a full audit of all migrated collections (People, Companies, Notes, Tasks, Opportunities, Users) to ensure data integrity, relationship correctness, and consistency with Firestore schemas.
+- [ ] **Batch Processing & Transformation Audit**: Final review of all migration scripts to ensure the 500-record batching limit and transformation utilities (`transformLinksToFirestore`, `transformEmailsToFirestore`, `transformPhonesToFirestore`) were applied consistently and handled all edge cases.
+- [ ] **Execute and Document Migration Audit**: Run the `database:audit-data-migration` command against the complete migrated dataset across all workspaces and document any discrepancies or confirm 100% integrity.
 - [ ] **Firestore Index Optimization**: Audit the performance of the new security rules and create necessary composite indexes to support filtered queries across all collections.
 - [ ] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.
-- [ ] **Batch Processing & Transformation Audit**: Final review of all migration scripts to ensure the 500-record batching limit and transformation utilities (`transformLinksToFirestore`, `transformEmailsToFirestore`, `transformPhonesToFirestore`) were applied consistently and handled all edge cases.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
     - [ ] **Remove TypeORM Entities**: Delete the `*.entity.ts` files and related decorators.
     - [ ] **Cleanup Database Connection**: Remove PostgreSQL connection logic and environment variables.
@@ -22,6 +22,7 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **End-to-End Migration Validation**: Developed and implemented the `database:audit-data-migration` command to compare PostgreSQL and Firestore data, validating record counts, IDs, schema compliance, relational references, and transformed array fields (emails, phones, links).
 - [x] **Frontend Auth Cleanup**: Refactored `useAuth.ts` and dependent components to remove legacy GraphQL mutations and fully adopt `signInWithEmailAndPassword` and `createUserWithEmailAndPassword`. Handled workspace mapping explicitly post-login rather than relying on workspace-specific backend mutations.
 - [x] **Firestore Security Rules**: Refined Firestore security rules to support multi-tenant and ownership-aware permissions, including `isOwner()` and `isWorkspaceAdmin()` checks across core and collaborative collections.
 - [x] **Collection Migration: 'Users'**: Developed and ran a script to migrate all 'User' records from PostgreSQL to the Firestore 'users' collection, including JSON schema validation and data transformation for Firebase Auth compatibility.
