@@ -137,7 +137,7 @@ export class MigrateUsersCommand extends MigrationCommandRunner {
         return {
           ...restWithoutEmail,
           workspaceId: 'system',
-          emails: email ? [{ email: email, primary: true }] : null,
+          emails: email ? [{ email: email }] : null,
           createdAt: rest.createdAt
             ? new Date(rest.createdAt).toISOString()
             : undefined,

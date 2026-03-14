@@ -47,9 +47,10 @@ describe('AuthService', () => {
   let signInUpServiceMock: jest.Mocked<
     Pick<SignInUpService, 'validatePassword'>
   >;
+  let moduleRef: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         AuthService,
         {
@@ -167,22 +168,22 @@ describe('AuthService', () => {
       ],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
-    userService = module.get<UserService>(UserService);
-    workspaceInvitationService = module.get<WorkspaceInvitationService>(
+    service = moduleRef.get<AuthService>(AuthService);
+    userService = moduleRef.get<UserService>(UserService);
+    workspaceInvitationService = moduleRef.get<WorkspaceInvitationService>(
       WorkspaceInvitationService,
     );
-    authSsoService = module.get<AuthSsoService>(AuthSsoService);
+    authSsoService = moduleRef.get<AuthSsoService>(AuthSsoService);
     userWorkspaceService =
-      module.get<UserWorkspaceService>(UserWorkspaceService);
-    workspaceRepository = module.get<Repository<WorkspaceEntity>>(
+      moduleRef.get<UserWorkspaceService>(UserWorkspaceService);
+    workspaceRepository = moduleRef.get<Repository<WorkspaceEntity>>(
       getRepositoryToken(WorkspaceEntity),
     );
-    userRepository = module.get<Repository<UserEntity>>(
+    userRepository = moduleRef.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
-    permissionsService = module.get<PermissionsService>(PermissionsService);
-    signInUpServiceMock = module.get(SignInUpService) as jest.Mocked<
+    permissionsService = moduleRef.get<PermissionsService>(PermissionsService);
+    signInUpServiceMock = moduleRef.get(SignInUpService) as jest.Mocked<
       Pick<SignInUpService, 'validatePassword'>
     >;
   });
@@ -553,6 +554,76 @@ describe('AuthService', () => {
           } as unknown as WorkspaceEntity,
         });
       }).not.toThrow();
+    });
+  });
+
+  describe('validateLoginWithPassword', () => {
+    it('should provision Firebase Auth user on successful login if user does not exist in Firebase', async () => {
+      const input = { email: 'test@example.com', password: 'password123' };
+      const user = {
+        id: 'user-id',
+        email: 'test@example.com',
+        passwordHash: 'hashedpassword',
+        isEmailVerified: true,
+        firstName: 'Test',
+        lastName: 'User',
+      } as unknown as UserEntity;
+
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(user);
+      const bcryptCompareSpy = jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+
+      const getUserByEmailSpy = moduleRef.get(FirebaseAdminService).auth.getUserByEmail as jest.Mock;
+      const createUserSpy = moduleRef.get(FirebaseAdminService).auth.createUser as jest.Mock;
+
+      // Simulate user not found in Firebase
+      const error = new Error('User not found');
+      (error as any).code = 'auth/user-not-found';
+      getUserByEmailSpy.mockRejectedValue(error);
+
+      const checkIsEmailVerifiedSpy = jest.spyOn(service, 'checkIsEmailVerified').mockResolvedValue(undefined);
+
+      const result = await service.validateLoginWithPassword(input);
+
+      expect(bcryptCompareSpy).toHaveBeenCalledWith('password123', 'hashedpassword');
+      expect(getUserByEmailSpy).toHaveBeenCalledWith('test@example.com');
+      expect(createUserSpy).toHaveBeenCalledWith({
+        uid: 'user-id',
+        email: 'test@example.com',
+        emailVerified: true,
+        password: 'password123',
+        displayName: 'Test User',
+        disabled: undefined,
+      });
+      expect(checkIsEmailVerifiedSpy).toHaveBeenCalledWith(true);
+      expect(result).toBe(user);
+    });
+
+    it('should skip provisioning if user already exists in Firebase Auth', async () => {
+      const input = { email: 'test@example.com', password: 'password123' };
+      const user = {
+        id: 'user-id',
+        email: 'test@example.com',
+        passwordHash: 'hashedpassword',
+        isEmailVerified: true,
+        firstName: 'Test',
+        lastName: 'User',
+      } as unknown as UserEntity;
+
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(user);
+      const bcryptCompareSpy = jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+
+      const getUserByEmailSpy = moduleRef.get(FirebaseAdminService).auth.getUserByEmail as jest.Mock;
+      const createUserSpy = moduleRef.get(FirebaseAdminService).auth.createUser as jest.Mock;
+
+      // Simulate user exists in Firebase
+      getUserByEmailSpy.mockResolvedValue({ uid: 'existing-uid' });
+
+      const checkIsEmailVerifiedSpy = jest.spyOn(service, 'checkIsEmailVerified').mockResolvedValue(undefined);
+
+      await service.validateLoginWithPassword(input);
+
+      expect(getUserByEmailSpy).toHaveBeenCalledWith('test@example.com');
+      expect(createUserSpy).not.toHaveBeenCalled();
     });
   });
 
