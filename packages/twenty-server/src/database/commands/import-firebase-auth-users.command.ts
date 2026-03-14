@@ -2,7 +2,7 @@ import { Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as admin from 'firebase-admin';
 import { Command } from 'nest-commander';
-import { Not, IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { MigrationCommandRunner } from 'src/database/commands/command-runners/migration.command-runner';
 import { FirebaseAdminService } from 'src/engine/core-modules/firebase/firebase-admin.service';
@@ -26,9 +26,8 @@ export class ImportFirebaseAuthUsersCommand extends MigrationCommandRunner {
     options: { dryRun?: boolean; verbose?: boolean },
   ): Promise<void> {
     try {
-      this.logger.log(`Fetching users with passwords from PostgreSQL...`);
+      this.logger.log(`Fetching all users from PostgreSQL...`);
       const users = await this.userRepository.find({
-        where: { passwordHash: Not(IsNull()) },
         withDeleted: true,
       });
 
@@ -37,16 +36,23 @@ export class ImportFirebaseAuthUsersCommand extends MigrationCommandRunner {
         return;
       }
 
-      this.logger.log(`Found ${users.length} users with password hashes.`);
+      this.logger.log(`Found ${users.length} users.`);
 
-      const records: admin.auth.UserImportRecord[] = users.map((user) => ({
-        uid: user.id,
-        email: user.email,
-        passwordHash: Buffer.from(user.passwordHash),
-        emailVerified: user.isEmailVerified,
-        disabled: user.disabled,
-        displayName: `${user.firstName} ${user.lastName}`.trim(),
-      }));
+      const records: admin.auth.UserImportRecord[] = users.map((user) => {
+        const record: admin.auth.UserImportRecord = {
+          uid: user.id,
+          email: user.email,
+          emailVerified: user.isEmailVerified,
+          disabled: user.disabled,
+          displayName: `${user.firstName} ${user.lastName}`.trim(),
+        };
+
+        if (user.passwordHash) {
+          record.passwordHash = Buffer.from(user.passwordHash);
+        }
+
+        return record;
+      });
 
       if (options.dryRun) {
         this.logger.log(
@@ -88,9 +94,13 @@ export class ImportFirebaseAuthUsersCommand extends MigrationCommandRunner {
       }
 
       this.logger.log(`Import complete.`);
-      this.logger.log(`Successfully imported: ${successCount}`);
+      this.logger.log(`Summary:`);
+      this.logger.log(`Total Processed: ${records.length}`);
+      this.logger.log(`Success Count: ${successCount}`);
       if (failureCount > 0) {
-         this.logger.error(`Failed to import: ${failureCount}`);
+         this.logger.error(`Failure Count: ${failureCount}`);
+      } else {
+         this.logger.log(`Failure Count: ${failureCount}`);
       }
 
     } catch (error) {
