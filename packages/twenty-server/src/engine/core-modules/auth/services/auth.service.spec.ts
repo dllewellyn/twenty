@@ -17,6 +17,7 @@ import { DomainServerConfigService } from 'src/engine/core-modules/domain/domain
 import { WorkspaceDomainsService } from 'src/engine/core-modules/domain/workspace-domains/services/workspace-domains.service';
 import { EmailService } from 'src/engine/core-modules/email/email.service';
 import { GuardRedirectService } from 'src/engine/core-modules/guard-redirect/services/guard-redirect.service';
+import { FirebaseAdminService } from 'src/engine/core-modules/firebase/firebase-admin.service';
 import { I18nService } from 'src/engine/core-modules/i18n/i18n.service';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { UserWorkspaceService } from 'src/engine/core-modules/user-workspace/user-workspace.service';
@@ -34,7 +35,7 @@ jest.mock('bcrypt');
 
 const twentyConfigServiceGetMock = jest.fn();
 
-xdescribe('AuthService', () => {
+describe('AuthService', () => {
   let service: AuthService;
   let userService: UserService;
   let workspaceRepository: Repository<WorkspaceEntity>;
@@ -46,9 +47,10 @@ xdescribe('AuthService', () => {
   let signInUpServiceMock: jest.Mocked<
     Pick<SignInUpService, 'validatePassword'>
   >;
+  let moduleRef: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         AuthService,
         {
@@ -75,17 +77,11 @@ xdescribe('AuthService', () => {
           },
         },
         {
-          useValue: {},
-        },
-        {
           provide: WorkspaceDomainsService,
           useValue: {},
         },
         {
           provide: DomainServerConfigService,
-          useValue: {},
-        },
-        {
           useValue: {},
         },
         {
@@ -107,12 +103,6 @@ xdescribe('AuthService', () => {
         },
         {
           provide: EmailService,
-          useValue: {},
-        },
-        {
-          useValue: {},
-        },
-        {
           useValue: {},
         },
         {
@@ -166,25 +156,34 @@ xdescribe('AuthService', () => {
           provide: ApplicationRegistrationService,
           useValue: {},
         },
+        {
+          provide: FirebaseAdminService,
+          useValue: {
+            auth: {
+              getUserByEmail: jest.fn(),
+              createUser: jest.fn(),
+            },
+          },
+        },
       ],
     }).compile();
 
-    service = module.get<AuthService>(AuthService);
-    userService = module.get<UserService>(UserService);
-    workspaceInvitationService = module.get<WorkspaceInvitationService>(
+    service = moduleRef.get<AuthService>(AuthService);
+    userService = moduleRef.get<UserService>(UserService);
+    workspaceInvitationService = moduleRef.get<WorkspaceInvitationService>(
       WorkspaceInvitationService,
     );
-    authSsoService = module.get<AuthSsoService>(AuthSsoService);
+    authSsoService = moduleRef.get<AuthSsoService>(AuthSsoService);
     userWorkspaceService =
-      module.get<UserWorkspaceService>(UserWorkspaceService);
-    workspaceRepository = module.get<Repository<WorkspaceEntity>>(
+      moduleRef.get<UserWorkspaceService>(UserWorkspaceService);
+    workspaceRepository = moduleRef.get<Repository<WorkspaceEntity>>(
       getRepositoryToken(WorkspaceEntity),
     );
-    userRepository = module.get<Repository<UserEntity>>(
+    userRepository = moduleRef.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
-    permissionsService = module.get<PermissionsService>(PermissionsService);
-    signInUpServiceMock = module.get(SignInUpService) as jest.Mocked<
+    permissionsService = moduleRef.get<PermissionsService>(PermissionsService);
+    signInUpServiceMock = moduleRef.get(SignInUpService) as jest.Mocked<
       Pick<SignInUpService, 'validatePassword'>
     >;
   });
@@ -377,7 +376,7 @@ xdescribe('AuthService', () => {
     expect(UserFindOneSpy).toHaveBeenCalledTimes(1);
   });
 
-  xdescribe('checkAccessForSignIn', () => {
+  describe('checkAccessForSignIn', () => {
     it('checkAccessForSignIn - allow signin for existing user who target a workspace with right access', async () => {
       const spy = jest
         .spyOn(userService, 'hasUserAccessToWorkspaceOrThrow')
@@ -558,7 +557,77 @@ xdescribe('AuthService', () => {
     });
   });
 
-  xdescribe('findWorkspaceForSignInUp', () => {
+  describe('validateLoginWithPassword', () => {
+    it('should provision Firebase Auth user on successful login if user does not exist in Firebase', async () => {
+      const input = { email: 'test@example.com', password: 'password123' };
+      const user = {
+        id: 'user-id',
+        email: 'test@example.com',
+        passwordHash: 'hashedpassword',
+        isEmailVerified: true,
+        firstName: 'Test',
+        lastName: 'User',
+      } as unknown as UserEntity;
+
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(user);
+      const bcryptCompareSpy = jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+
+      const getUserByEmailSpy = moduleRef.get(FirebaseAdminService).auth.getUserByEmail as jest.Mock;
+      const createUserSpy = moduleRef.get(FirebaseAdminService).auth.createUser as jest.Mock;
+
+      // Simulate user not found in Firebase
+      const error = new Error('User not found');
+      (error as any).code = 'auth/user-not-found';
+      getUserByEmailSpy.mockRejectedValue(error);
+
+      const checkIsEmailVerifiedSpy = jest.spyOn(service, 'checkIsEmailVerified').mockResolvedValue(undefined);
+
+      const result = await service.validateLoginWithPassword(input);
+
+      expect(bcryptCompareSpy).toHaveBeenCalledWith('password123', 'hashedpassword');
+      expect(getUserByEmailSpy).toHaveBeenCalledWith('test@example.com');
+      expect(createUserSpy).toHaveBeenCalledWith({
+        uid: 'user-id',
+        email: 'test@example.com',
+        emailVerified: true,
+        password: 'password123',
+        displayName: 'Test User',
+        disabled: undefined,
+      });
+      expect(checkIsEmailVerifiedSpy).toHaveBeenCalledWith(true);
+      expect(result).toBe(user);
+    });
+
+    it('should skip provisioning if user already exists in Firebase Auth', async () => {
+      const input = { email: 'test@example.com', password: 'password123' };
+      const user = {
+        id: 'user-id',
+        email: 'test@example.com',
+        passwordHash: 'hashedpassword',
+        isEmailVerified: true,
+        firstName: 'Test',
+        lastName: 'User',
+      } as unknown as UserEntity;
+
+      jest.spyOn(userRepository, 'findOne').mockResolvedValue(user);
+      const bcryptCompareSpy = jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true));
+
+      const getUserByEmailSpy = moduleRef.get(FirebaseAdminService).auth.getUserByEmail as jest.Mock;
+      const createUserSpy = moduleRef.get(FirebaseAdminService).auth.createUser as jest.Mock;
+
+      // Simulate user exists in Firebase
+      getUserByEmailSpy.mockResolvedValue({ uid: 'existing-uid' });
+
+      const checkIsEmailVerifiedSpy = jest.spyOn(service, 'checkIsEmailVerified').mockResolvedValue(undefined);
+
+      await service.validateLoginWithPassword(input);
+
+      expect(getUserByEmailSpy).toHaveBeenCalledWith('test@example.com');
+      expect(createUserSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findWorkspaceForSignInUp', () => {
     it('findWorkspaceForSignInUp - signup password auth', async () => {
       const spyWorkspaceRepository = jest.spyOn(workspaceRepository, 'findOne');
       const spyAuthSsoService = jest.spyOn(

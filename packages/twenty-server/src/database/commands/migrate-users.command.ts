@@ -16,7 +16,7 @@ import { BaseFirestoreRepository } from 'src/engine/twenty-orm/repository/firest
 })
 export class MigrateUsersCommand extends MigrationCommandRunner {
   constructor(
-    @InjectRepository(UserEntity, 'core')
+    @InjectRepository(UserEntity)
     protected readonly userRepository: Repository<UserEntity>,
     protected readonly metadataService: MetadataService,
     @Inject(FIREBASE_ADMIN_APP)
@@ -137,7 +137,7 @@ export class MigrateUsersCommand extends MigrationCommandRunner {
         return {
           ...restWithoutEmail,
           workspaceId: 'system',
-          emails: email ? [{ email: email, primary: true }] : null,
+          emails: email ? [{ email: email }] : null,
           createdAt: rest.createdAt
             ? new Date(rest.createdAt).toISOString()
             : undefined,

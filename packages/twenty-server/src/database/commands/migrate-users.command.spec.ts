@@ -50,7 +50,7 @@ describe('MigrateUsersCommand', () => {
       providers: [
         MigrateUsersCommand,
         {
-          provide: getRepositoryToken(UserEntity, 'core'),
+          provide: getRepositoryToken(UserEntity),
           useValue: mockUserRepository,
         },
         {
@@ -135,7 +135,7 @@ describe('MigrateUsersCommand', () => {
         firstName: 'John',
         lastName: 'Doe',
         workspaceId: 'system',
-        emails: [{ email: 'john@example.com', primary: true }],
+        emails: [{ email: 'john@example.com' }],
         createdAt: dateStr,
         updatedAt: dateStr,
         deletedAt: undefined,
@@ -160,7 +160,7 @@ describe('MigrateUsersCommand', () => {
       id: u.id,
       firstName: u.firstName,
       workspaceId: 'system',
-      emails: [{ email: u.email, primary: true }],
+      emails: [{ email: u.email }],
       createdAt: undefined,
       updatedAt: undefined,
       deletedAt: undefined,
