@@ -1,7 +1,7 @@
 # Task Backlog
 
 ## Phase 3: Data Migration
-- [ ] **Firestore Index Optimization**: Audit the performance of the new security rules and create necessary composite indexes to support filtered queries across all collections.
+- [x] **Firestore Index Optimization**: Audit the performance of the new security rules and create necessary composite indexes to support filtered queries across all collections.
 - [ ] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.
 - [ ] **Run Migration Audit on Staging/Production Data**: Execute the audit command on a non-empty, fully migrated dataset to confirm integrity before final deprecation.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
