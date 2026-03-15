@@ -101,6 +101,14 @@ export const useApolloFactory = (options: Partial<Options<any>> = {}) => {
           },
         });
       },
+      onForbiddenError: (message) => {
+        enqueueErrorSnackBar({
+          message,
+          options: {
+            dedupeKey: 'forbidden-error',
+          },
+        });
+      },
       extraLinks: [],
       isDebugMode: process.env.IS_DEBUG_MODE === 'true',
       // Override options

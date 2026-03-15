@@ -20,6 +20,7 @@ jest.mock('~/modules/auth/firebase', () => ({
 const mockOnError = jest.fn();
 const mockOnNetworkError = jest.fn();
 const mockOnPayloadTooLarge = jest.fn();
+const mockOnForbiddenError = jest.fn();
 
 const mockWorkspaceMember = {
   id: 'workspace-member-id',
@@ -79,6 +80,7 @@ const createMockOptions = (): Options<any> => ({
   onError: mockOnError,
   onNetworkError: mockOnNetworkError,
   onPayloadTooLarge: mockOnPayloadTooLarge,
+  onForbiddenError: mockOnForbiddenError,
   appVersion: '1.0.0',
 });
 
@@ -239,6 +241,49 @@ describe('ApolloFactory', () => {
       expect(mockOnPayloadTooLarge).toHaveBeenCalledWith(
         expect.stringContaining('Uploaded content is too large'),
       );
+    }
+  }, 10000);
+
+  it('should call onForbiddenError when encountering a 403 error', async () => {
+    fetchMock.mockResponse(() =>
+      Promise.reject({
+        statusCode: 403,
+        message: 'Forbidden',
+      }),
+    );
+
+    try {
+      await makeRequest();
+    } catch {
+      expect(mockOnForbiddenError).toHaveBeenCalledWith(
+        expect.stringContaining("You don't have permission to perform this action"),
+      );
+    }
+  }, 10000);
+
+  it('should call onForbiddenError with proper message when encountering FORBIDDEN graphql error', async () => {
+    const errors = [
+      {
+        message: 'Forbidden',
+        extensions: {
+          code: 'FORBIDDEN',
+          userFriendlyMessage: 'Custom forbidden message'
+        },
+      },
+    ];
+    fetchMock.mockResponse(() =>
+      Promise.resolve({
+        body: JSON.stringify({
+          data: {},
+          errors,
+        }),
+      }),
+    );
+
+    try {
+      await makeRequest();
+    } catch {
+      expect(mockOnForbiddenError).toHaveBeenCalledWith('Custom forbidden message');
     }
   }, 10000);
 });

@@ -2,6 +2,8 @@ import { type AppErrorDisplayProps } from '@/error-handler/types/AppErrorDisplay
 import { t } from '@lingui/core/macro';
 import { IconRefresh } from 'twenty-ui/display';
 import { Button } from 'twenty-ui/input';
+import { isForbiddenError } from '@/error-handler/utils/isForbiddenError';
+
 import {
   AnimatedPlaceholder,
   AnimatedPlaceholderEmptyContainer,
@@ -11,16 +13,26 @@ import {
 } from 'twenty-ui/layout';
 
 export const AppErrorDisplay = ({
+  error,
   resetErrorBoundary,
   title = t`Sorry, something went wrong`,
 }: AppErrorDisplayProps) => {
+  const isForbidden = isForbiddenError(error);
+
+  const displayTitle = isForbidden ? t`Permission Denied` : title;
+  const displaySubtitle = isForbidden
+    ? t`You don't have the necessary roles or ownership permissions to view this content.`
+    : t`Please refresh the page.`;
+
   return (
     <AnimatedPlaceholderEmptyContainer>
       <AnimatedPlaceholder type="errorIndex" />
       <AnimatedPlaceholderEmptyTextContainer>
-        <AnimatedPlaceholderEmptyTitle>{title}</AnimatedPlaceholderEmptyTitle>
+        <AnimatedPlaceholderEmptyTitle>
+          {displayTitle}
+        </AnimatedPlaceholderEmptyTitle>
         <AnimatedPlaceholderEmptySubTitle>
-          {t`Please refresh the page.`}
+          {displaySubtitle}
         </AnimatedPlaceholderEmptySubTitle>
       </AnimatedPlaceholderEmptyTextContainer>
       <Button
