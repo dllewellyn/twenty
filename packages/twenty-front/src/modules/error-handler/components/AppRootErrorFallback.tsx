@@ -5,6 +5,8 @@ import { useContext } from 'react';
 import { IconReload } from 'twenty-ui/display';
 import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
 
+import { isForbiddenError } from '@/error-handler/utils/isForbiddenError';
+
 type AppRootErrorFallbackProps = AppErrorDisplayProps;
 
 const StyledContainer = styled.div`
@@ -100,10 +102,18 @@ const StyledIconContainer = styled.span`
 `;
 
 export const AppRootErrorFallback = ({
+  error,
   resetErrorBoundary,
   title = t`Sorry, something went wrong`,
 }: AppRootErrorFallbackProps) => {
   const { theme } = useContext(ThemeContext);
+
+  const isForbidden = isForbiddenError(error);
+
+  const displayTitle = isForbidden ? t`Permission Denied` : title;
+  const displaySubtitle = isForbidden
+    ? t`You don't have the necessary roles or ownership permissions to view this content.`
+    : t`Please refresh the page.`;
 
   return (
     <StyledContainer>
@@ -120,10 +130,8 @@ export const AppRootErrorFallback = ({
             />
           </StyledImageContainer>
           <StyledEmptyTextContainer>
-            <StyledEmptyTitle>{title}</StyledEmptyTitle>
-            <StyledEmptySubTitle>
-              {t`Please refresh the page.`}
-            </StyledEmptySubTitle>
+            <StyledEmptyTitle>{displayTitle}</StyledEmptyTitle>
+            <StyledEmptySubTitle>{displaySubtitle}</StyledEmptySubTitle>
           </StyledEmptyTextContainer>
           <StyledButton onClick={resetErrorBoundary}>
             <StyledIconContainer>

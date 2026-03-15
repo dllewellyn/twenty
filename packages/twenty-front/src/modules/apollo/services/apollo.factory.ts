@@ -52,6 +52,7 @@ export interface Options<TCacheShape> extends ApolloClientOptions<TCacheShape> {
   onUnauthenticatedError?: () => void;
   onAppVersionMismatch?: (message: string) => void;
   onPayloadTooLarge?: (message: string) => void;
+  onForbiddenError?: (message: string) => void;
   currentWorkspaceMember: CurrentWorkspaceMember | null;
   currentWorkspace: CurrentWorkspace | null;
   extraLinks?: ApolloLink[];
@@ -74,6 +75,7 @@ export class ApolloFactory<TCacheShape> implements ApolloManager<TCacheShape> {
       onUnauthenticatedError,
       onAppVersionMismatch,
       onPayloadTooLarge,
+      onForbiddenError,
       currentWorkspaceMember,
       currentWorkspace,
       extraLinks,
@@ -277,8 +279,26 @@ export class ApolloFactory<TCacheShape> implements ApolloManager<TCacheShape> {
                 }
                 case 'NOT_FOUND':
                 case 'BAD_USER_INPUT':
-                case 'FORBIDDEN':
                 case 'CONFLICT':
+                  return;
+                case 'FORBIDDEN': {
+                  let message = t`You don't have permission to perform this action.`;
+                  const userFriendlyMessage =
+                    graphQLError.extensions?.userFriendlyMessage;
+                  if (typeof userFriendlyMessage === 'string') {
+                    message = userFriendlyMessage;
+                  } else if (
+                    userFriendlyMessage &&
+                    typeof userFriendlyMessage === 'object' &&
+                    'message' in userFriendlyMessage
+                  ) {
+                    message = String(
+                      (userFriendlyMessage as { message: unknown }).message,
+                    );
+                  }
+                  onForbiddenError?.(message);
+                  return;
+                }
                 case 'METADATA_VALIDATION_FAILED': {
                   return;
                 }
@@ -312,6 +332,13 @@ export class ApolloFactory<TCacheShape> implements ApolloManager<TCacheShape> {
 
             if (this.isPayloadTooLargeError(networkError as ServerError)) {
               onPayloadTooLarge?.(t`Uploaded content is too large.`);
+              return;
+            }
+
+            if ((networkError as ServerError).statusCode === 403) {
+              onForbiddenError?.(
+                t`You don't have permission to perform this action.`,
+              );
               return;
             }
 
