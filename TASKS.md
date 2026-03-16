@@ -1,6 +1,12 @@
 # Task Backlog
 
 ## Phase 3: Data Migration & ORM Pivot
+- [ ] **Transition WorkspaceRepository to Firestore**: Refactor the core `WorkspaceRepository` to utilize `BaseFirestoreRepository` instead of TypeORM, mapping TypeORM-style queries to Firestore.
+    - [x] **Implement `WorkspaceFirestoreRepository`**: Create the repository class extending `BaseFirestoreRepository`.
+    - [ ] **Map SQL Queries to Firestore**: Identify all `WorkspaceRepository` calls and implement equivalent Firestore queries. (In Progress: Dual-write strategy active)
+    - [ ] **Update Service Layer**: Refactor `WorkspaceService` to use the new repository. (In Progress: Dual-write strategy active)
+    - [ ] **Data Verification**: Ensure `Workspace` data is correctly retrieved and updated in Firestore.
+    - [ ] **Centralized Dual-Write Synchronization**: Implement an event-driven mechanism (e.g. TypeORM Subscriber) to synchronize data from PostgreSQL to Firestore seamlessly without polluting business logic.
 - [ ] **E2E Validation for Frontend Permissions**: Verify that the newly implemented frontend permission handling correctly catches 403 errors from the Firestore emulator when security rules are violated.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
     - [ ] **Remove TypeORM Entities**: Delete the `*.entity.ts` files and related decorators.
@@ -20,11 +26,6 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
-- [x] **Transition WorkspaceRepository to Firestore**: Refactor the core `WorkspaceRepository` to utilize `BaseFirestoreRepository` instead of TypeORM, mapping TypeORM-style queries to Firestore.
-    - [x] **Implement `WorkspaceFirestoreRepository`**: Create the repository class extending `BaseFirestoreRepository`.
-    - [x] **Map SQL Queries to Firestore**: Identify all `WorkspaceRepository` calls and implement equivalent Firestore queries.
-    - [x] **Update Service Layer**: Refactor `WorkspaceService` to use the new repository.
-    - [x] **Data Verification**: Ensure `Workspace` data is correctly retrieved and updated in Firestore.
 - [x] **Firestore Query Engine**: Expanded `BaseFirestoreRepository` with `flattenWhereClause` to support deep nested filtering (dot notation), TypeORM operator mappings (not, between, arrayContains), and cursor-based pagination (`startAfter`).
 - [x] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.
 - [x] **Firestore Index Optimization**: Audit the performance of the new security rules and create necessary composite indexes to support filtered queries across all collections.

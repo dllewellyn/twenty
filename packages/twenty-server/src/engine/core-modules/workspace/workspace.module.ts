@@ -30,6 +30,7 @@ import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/
 import { workspaceAutoResolverOpts } from 'src/engine/core-modules/workspace/workspace.auto-resolver-opts';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { WorkspaceResolver } from 'src/engine/core-modules/workspace/workspace.resolver';
+import { WorkspaceSubscriber } from 'src/engine/core-modules/workspace/workspace.subscriber';
 import { AiAgentModule } from 'src/engine/metadata-modules/ai/ai-agent/ai-agent.module';
 import { DataSourceModule } from 'src/engine/metadata-modules/data-source/data-source.module';
 import { WorkspaceManyOrAllFlatEntityMapsCacheModule } from 'src/engine/metadata-modules/flat-entity/services/workspace-many-or-all-flat-entity-maps-cache.module';
@@ -88,6 +89,7 @@ import { WorkspaceManagerModule } from 'src/engine/workspace-manager/workspace-m
     WorkspaceService,
     WorkspaceGaugeService,
     WorkspaceFirestoreRepository,
+    WorkspaceSubscriber,
     CheckCustomDomainValidRecordsCronCommand,
     CheckCustomDomainValidRecordsCronJob,
   ],
