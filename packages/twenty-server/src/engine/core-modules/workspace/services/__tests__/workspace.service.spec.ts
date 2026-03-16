@@ -39,6 +39,7 @@ import { WorkspaceManagerService } from 'src/engine/workspace-manager/workspace-
 describe('WorkspaceService', () => {
   let service: WorkspaceService;
   let workspaceFirestoreRepository: WorkspaceFirestoreRepository;
+  let workspaceRepository: Repository<WorkspaceEntity>;
   let userRepository: Repository<UserEntity>;
   let userWorkspaceRepository: Repository<UserWorkspaceEntity>;
   let workspaceCacheStorageService: WorkspaceCacheStorageService;
@@ -51,6 +52,16 @@ describe('WorkspaceService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkspaceService,
+        {
+          provide: getRepositoryToken(WorkspaceEntity),
+          useValue: {
+            findOne: jest.fn(),
+            softDelete: jest.fn(),
+            delete: jest.fn(),
+            save: jest.fn(),
+            update: jest.fn(),
+          },
+        },
         {
           provide: WorkspaceFirestoreRepository,
           useValue: {
@@ -182,6 +193,9 @@ describe('WorkspaceService', () => {
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
+    workspaceRepository = module.get<Repository<WorkspaceEntity>>(
+      getRepositoryToken(WorkspaceEntity),
+    );
     workspaceFirestoreRepository = module.get<WorkspaceFirestoreRepository>(
       WorkspaceFirestoreRepository,
     );
@@ -295,7 +309,7 @@ describe('WorkspaceService', () => {
       } as WorkspaceEntity;
 
       jest
-        .spyOn(workspaceFirestoreRepository, 'findOne')
+        .spyOn(workspaceRepository, 'findOne')
         .mockResolvedValue(mockWorkspace);
       jest.spyOn(userWorkspaceRepository, 'find').mockResolvedValue([]);
 
@@ -316,7 +330,7 @@ describe('WorkspaceService', () => {
       } as WorkspaceEntity;
 
       jest
-        .spyOn(workspaceFirestoreRepository, 'findOne')
+        .spyOn(workspaceRepository, 'findOne')
         .mockResolvedValue(mockWorkspace);
       jest.spyOn(userWorkspaceRepository, 'find').mockResolvedValue([]);
 
@@ -340,7 +354,7 @@ describe('WorkspaceService', () => {
       } as WorkspaceEntity;
 
       jest
-        .spyOn(workspaceFirestoreRepository, 'findOne')
+        .spyOn(workspaceRepository, 'findOne')
         .mockResolvedValue(mockWorkspace);
       jest.spyOn(userWorkspaceRepository, 'find').mockResolvedValue([]);
 
@@ -360,7 +374,7 @@ describe('WorkspaceService', () => {
       } as WorkspaceEntity;
 
       jest
-        .spyOn(workspaceFirestoreRepository, 'findOne')
+        .spyOn(workspaceRepository, 'findOne')
         .mockResolvedValue(mockWorkspace);
       jest.spyOn(userWorkspaceRepository, 'find').mockResolvedValue([]);
 

@@ -95,6 +95,8 @@ export class WorkspaceService {
   };
 
   constructor(
+    @InjectRepository(WorkspaceEntity)
+    public readonly workspaceRepository: Repository<WorkspaceEntity>,
     private readonly workspaceFirestoreRepository: WorkspaceFirestoreRepository,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
@@ -348,8 +350,11 @@ export class WorkspaceService {
   }
 
   async deleteWorkspace(id: string, softDelete = false) {
-    // In Firestore, findOne fetches the document regardless of deletedAt.
-    const workspace = await this.workspaceFirestoreRepository.findOne(id);
+    // Both repositories are queried since this is the migration boundary layer
+    const workspace = await this.workspaceRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
 
     assert(workspace, 'Workspace not found');
 
@@ -376,7 +381,14 @@ export class WorkspaceService {
     }
 
     if (softDelete) {
-      await this.workspaceFirestoreRepository.update(id, { deletedAt: new Date() });
+      await this.workspaceRepository.softDelete({ id });
+
+      // Dual-write soft delete
+      try {
+        await this.workspaceFirestoreRepository.update(id, { deletedAt: new Date() } as any);
+      } catch (firestoreError) {
+        this.logger.error(`[Dual-Write] Failed to sync workspace soft deletion to Firestore for ID ${id}`, firestoreError);
+      }
 
       this.logger.log(`workspace ${id} soft deleted`);
 
@@ -407,7 +419,14 @@ export class WorkspaceService {
       this.logger.log(`workspace ${id} custom domain deleted`);
     }
 
-    await this.workspaceFirestoreRepository.delete(id);
+    await this.workspaceRepository.delete(id);
+
+    // Dual-write hard delete
+    try {
+      await this.workspaceFirestoreRepository.delete(id);
+    } catch (firestoreError) {
+      this.logger.error(`[Dual-Write] Failed to sync workspace deletion to Firestore for ID ${id}`, firestoreError);
+    }
 
     this.logger.log(`workspace ${id} hard deleted`);
 
