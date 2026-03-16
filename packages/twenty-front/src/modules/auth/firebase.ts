@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 import {
   FIREBASE_API_KEY,
   FIREBASE_APP_ID,
@@ -23,3 +24,6 @@ const app = FIREBASE_API_KEY ? initializeApp(firebaseConfig) : undefined;
 
 // Export Auth instance if initialized, else an empty object (or null) to prevent crashes in tests
 export const auth = app ? getAuth(app) : ({} as unknown as Auth);
+
+// Export Firestore instance if initialized, else an empty object to prevent crashes in tests
+export const db = app ? getFirestore(app) : ({} as unknown as Firestore);

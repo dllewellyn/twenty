@@ -283,7 +283,7 @@ describe('ApolloFactory', () => {
     try {
       await makeRequest();
     } catch {
-      expect(mockOnForbiddenError).toHaveBeenCalledWith('Custom forbidden message');
+      expect(mockOnForbiddenError).toHaveBeenCalledWith('Custom forbidden message', false);
     }
   }, 10000);
 });

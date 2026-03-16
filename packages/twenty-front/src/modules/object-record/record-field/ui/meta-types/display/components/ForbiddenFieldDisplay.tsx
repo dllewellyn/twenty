@@ -18,13 +18,13 @@ const StyledContainer = styled.div`
   padding: ${themeCssVariables.spacing[1]};
 `;
 
-export const ForbiddenFieldDisplay = () => {
+export const ForbiddenFieldDisplay = ({ message }: { message?: string }) => {
   const { theme } = useContext(ThemeContext);
 
   return (
     <StyledContainer>
       <IconLock size={theme.icon.size.sm} />
-      <Trans>Not shared</Trans>
+      {message ? <span>{message}</span> : <Trans>Not shared</Trans>}
     </StyledContainer>
   );
 };

@@ -20,6 +20,7 @@ import { isDefined } from 'twenty-shared/utils';
 import { REACT_APP_SERVER_BASE_URL } from '~/config';
 import { useUpdateEffect } from '~/hooks/useUpdateEffect';
 import { isMatchingLocation } from '~/utils/isMatchingLocation';
+import { useFirestoreErrorHandler } from '@/auth/hooks/useFirestoreErrorHandler';
 
 export const useApolloFactory = (options: Partial<Options<any>> = {}) => {
   // oxlint-disable-next-line twenty/no-state-useref
@@ -41,6 +42,7 @@ export const useApolloFactory = (options: Partial<Options<any>> = {}) => {
   const location = useLocation();
 
   const { enqueueErrorSnackBar } = useSnackBar();
+  const { handleError: handleFirestoreError } = useFirestoreErrorHandler();
 
   const apolloClient = useMemo(() => {
     apolloRef.current = new ApolloFactory({
@@ -101,13 +103,17 @@ export const useApolloFactory = (options: Partial<Options<any>> = {}) => {
           },
         });
       },
-      onForbiddenError: (message) => {
-        enqueueErrorSnackBar({
-          message,
-          options: {
-            dedupeKey: 'forbidden-error',
-          },
-        });
+      onForbiddenError: (message, isFirestorePermissionError?: boolean) => {
+        if (isFirestorePermissionError) {
+          handleFirestoreError({ code: 'permission-denied' });
+        } else {
+          enqueueErrorSnackBar({
+            message,
+            options: {
+              dedupeKey: 'forbidden-error',
+            },
+          });
+        }
       },
       extraLinks: [],
       isDebugMode: process.env.IS_DEBUG_MODE === 'true',
@@ -124,6 +130,7 @@ export const useApolloFactory = (options: Partial<Options<any>> = {}) => {
     setCurrentWorkspace,
     setReturnToPath,
     enqueueErrorSnackBar,
+    handleFirestoreError,
   ]);
 
   useUpdateEffect(() => {

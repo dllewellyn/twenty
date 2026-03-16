@@ -44,6 +44,7 @@ export const useWidgetPermissions = (
       restriction: {
         type: 'object',
         objectName: objectMetadata?.labelSingular,
+        customMessage: objectPermissions.customMessage,
       },
     };
   }
@@ -72,6 +73,7 @@ export const useWidgetPermissions = (
         type: 'field',
         objectName: objectMetadata?.labelSingular,
         fieldNames: restrictedFieldNames,
+        customMessage: objectPermissions.customMessage,
       },
     };
   }
