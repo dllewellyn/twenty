@@ -52,7 +52,7 @@ export interface Options<TCacheShape> extends ApolloClientOptions<TCacheShape> {
   onUnauthenticatedError?: () => void;
   onAppVersionMismatch?: (message: string) => void;
   onPayloadTooLarge?: (message: string) => void;
-  onForbiddenError?: (message: string) => void;
+  onForbiddenError?: (message: string, isFirestorePermissionError?: boolean) => void;
   currentWorkspaceMember: CurrentWorkspaceMember | null;
   currentWorkspace: CurrentWorkspace | null;
   extraLinks?: ApolloLink[];
@@ -283,6 +283,8 @@ export class ApolloFactory<TCacheShape> implements ApolloManager<TCacheShape> {
                   return;
                 case 'FORBIDDEN': {
                   let message = t`You don't have permission to perform this action.`;
+                  let isFirestorePermissionError = false;
+
                   const userFriendlyMessage =
                     graphQLError.extensions?.userFriendlyMessage;
                   if (typeof userFriendlyMessage === 'string') {
@@ -299,9 +301,9 @@ export class ApolloFactory<TCacheShape> implements ApolloManager<TCacheShape> {
                     graphQLError.message.includes('permission denied') ||
                     graphQLError.message.includes('permission-denied')
                   ) {
-                    message = t`You don't have permission to perform this action. This might be restricted by ownership or role rules.`;
+                    isFirestorePermissionError = true;
                   }
-                  onForbiddenError?.(message);
+                  onForbiddenError?.(message, isFirestorePermissionError);
                   return;
                 }
                 case 'METADATA_VALIDATION_FAILED': {

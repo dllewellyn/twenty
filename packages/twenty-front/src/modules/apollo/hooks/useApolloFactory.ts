@@ -103,10 +103,8 @@ export const useApolloFactory = (options: Partial<Options<any>> = {}) => {
           },
         });
       },
-      onForbiddenError: (message) => {
-        if (
-          message === "You don't have permission to perform this action. This might be restricted by ownership or role rules."
-        ) {
+      onForbiddenError: (message, isFirestorePermissionError?: boolean) => {
+        if (isFirestorePermissionError) {
           handleFirestoreError({ code: 'permission-denied' });
         } else {
           enqueueErrorSnackBar({
