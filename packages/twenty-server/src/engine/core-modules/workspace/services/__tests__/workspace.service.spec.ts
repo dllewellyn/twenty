@@ -303,7 +303,6 @@ describe('WorkspaceService', () => {
       await service.deleteWorkspace(mockWorkspace.id, false);
 
       expect(workspaceRepository.softDelete).not.toHaveBeenCalled();
-      expect(workspaceRepository.softDelete).not.toHaveBeenCalled();
       expect(workspaceCacheStorageService.flush).toHaveBeenCalledWith(
         mockWorkspace.id,
         mockWorkspace.metadataVersion,

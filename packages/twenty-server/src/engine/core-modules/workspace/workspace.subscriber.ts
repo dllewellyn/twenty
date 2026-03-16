@@ -5,7 +5,9 @@ import {
   RemoveEvent,
   SoftRemoveEvent,
   UpdateEvent,
+  DataSource,
 } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { Logger } from '@nestjs/common';
@@ -17,41 +19,30 @@ export class WorkspaceSubscriber
   private readonly logger = new Logger(WorkspaceSubscriber.name);
 
   constructor(
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
     private readonly workspaceFirestoreRepository: WorkspaceFirestoreRepository,
-  ) {}
+  ) {
+    this.dataSource.subscribers.push(this);
+  }
 
   listenTo() {
     return WorkspaceEntity;
   }
 
   private mapEntityToFirestore(entity: WorkspaceEntity): Partial<WorkspaceEntity> {
-    const firestorePayload = { ...entity };
+    const columns = this.dataSource.getMetadata(WorkspaceEntity).columns;
+    const payload: Partial<WorkspaceEntity> = {};
 
-    // Strip relational fields/internal TypeORM state
-    delete firestorePayload.logoFile;
-    delete firestorePayload.appTokens;
-    delete firestorePayload.keyValuePairs;
-    delete firestorePayload.workspaceUsers;
-    delete firestorePayload.featureFlags;
-    delete firestorePayload.approvedAccessDomains;
-    delete firestorePayload.emailingDomains;
-    delete firestorePayload.publicDomains;
-    delete firestorePayload.allPostgresCredentials;
-    delete firestorePayload.workspaceSSOIdentityProviders;
-    delete firestorePayload.agents;
-    delete firestorePayload.webhooks;
-    delete firestorePayload.apiKeys;
-    delete firestorePayload.views;
-    delete firestorePayload.viewFields;
-    delete firestorePayload.viewFilters;
-    delete firestorePayload.viewFilterGroups;
-    delete firestorePayload.viewGroups;
-    delete firestorePayload.viewSorts;
-    delete firestorePayload.defaultRole;
-    delete firestorePayload.workspaceCustomApplication;
-    delete firestorePayload.applications;
+    for (const column of columns) {
+      if (entity[column.propertyName as keyof WorkspaceEntity] !== undefined) {
+        // @ts-expect-error
+        payload[column.propertyName as keyof WorkspaceEntity] =
+          entity[column.propertyName as keyof WorkspaceEntity];
+      }
+    }
 
-    return firestorePayload;
+    return payload;
   }
 
   async afterInsert(event: InsertEvent<WorkspaceEntity>) {

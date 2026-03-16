@@ -2,10 +2,12 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { WorkspaceSubscriber } from 'src/engine/core-modules/workspace/workspace.subscriber';
 import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
+import { getDataSourceToken } from '@nestjs/typeorm';
 
 describe('WorkspaceSubscriber', () => {
   let subscriber: WorkspaceSubscriber;
   let mockFirestoreRepository: Partial<WorkspaceFirestoreRepository>;
+  let mockDataSource: any;
 
   beforeEach(async () => {
     mockFirestoreRepository = {
@@ -14,12 +16,26 @@ describe('WorkspaceSubscriber', () => {
       delete: jest.fn(),
     };
 
+    mockDataSource = {
+      subscribers: { push: jest.fn() },
+      getMetadata: jest.fn().mockReturnValue({
+        columns: [
+          { propertyName: 'id' },
+          { propertyName: 'displayName' },
+        ],
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkspaceSubscriber,
         {
           provide: WorkspaceFirestoreRepository,
           useValue: mockFirestoreRepository,
+        },
+        {
+          provide: getDataSourceToken(),
+          useValue: mockDataSource,
         },
       ],
     }).compile();
