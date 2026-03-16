@@ -1,13 +1,17 @@
 # Task Backlog
 
 ## Phase 3: Data Migration & ORM Pivot
+- [ ] **E2E Validation for Frontend Permissions**: Verify that the newly implemented frontend permission handling correctly catches 403 errors from the Firestore emulator when security rules are violated.
+- [ ] **Expand `BaseFirestoreRepository` Capabilities**: Finalize the repository engine to fully support all TypeORM-style patterns needed for the workspace refactor.
+    - [ ] **Implement `findAndCount`**: Add a method that returns both records and total count to match the TypeORM repository interface.
+    - [ ] **Add Prefix Matching (Like/StartsWith)**: Implement prefix search using Firestore range queries in `applyOptionsToQuery`.
+    - [ ] **Enhance `flattenWhereClause`**: Add robust handling for Date objects and nested array filters to ensure parity with complex SQL queries.
 - [ ] **Transition WorkspaceRepository to Firestore**: Refactor the core `WorkspaceRepository` to utilize `BaseFirestoreRepository` instead of TypeORM, mapping TypeORM-style queries to Firestore.
     - [x] **Implement `WorkspaceFirestoreRepository`**: Create the repository class extending `BaseFirestoreRepository`.
     - [ ] **Map SQL Queries to Firestore**: Identify all `WorkspaceRepository` calls and implement equivalent Firestore queries. (In Progress: Dual-write strategy active)
     - [ ] **Update Service Layer**: Refactor `WorkspaceService` to use the new repository. (In Progress: Dual-write strategy active)
     - [ ] **Data Verification**: Ensure `Workspace` data is correctly retrieved and updated in Firestore.
     - [ ] **Centralized Dual-Write Synchronization**: Implement an event-driven mechanism (e.g. TypeORM Subscriber) to synchronize data from PostgreSQL to Firestore seamlessly without polluting business logic.
-- [ ] **E2E Validation for Frontend Permissions**: Verify that the newly implemented frontend permission handling correctly catches 403 errors from the Firestore emulator when security rules are violated.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
     - [ ] **Remove TypeORM Entities**: Delete the `*.entity.ts` files and related decorators.
     - [ ] **Cleanup Database Connection**: Remove PostgreSQL connection logic and environment variables.
