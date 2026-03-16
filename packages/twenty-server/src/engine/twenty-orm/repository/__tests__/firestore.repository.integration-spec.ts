@@ -286,6 +286,120 @@ describe('BaseFirestoreRepository Integration', () => {
     expect(results[0].name).toBe('deep_filter_1');
   });
 
+  it('should implement findAndCount', async () => {
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'find_and_count_1',
+      name: 'find_and_count_1',
+      label: 'Find And Count 1',
+      type: 'TEXT',
+      isActive: true,
+    });
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'find_and_count_2',
+      name: 'find_and_count_2',
+      label: 'Find And Count 2',
+      type: 'TEXT',
+      isActive: true,
+    });
+
+    const [results, count] = await repository.findAndCount({
+      where: { name: { _type: 'in', _value: ['find_and_count_1', 'find_and_count_2'] } },
+      take: 1,
+    });
+
+    expect(results.length).toBe(1);
+    expect(count).toBe(2);
+  });
+
+  it('should support prefix matching via startsWith', async () => {
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'startsWith_Apple',
+      name: 'Apple',
+      label: 'Apple Label',
+      type: 'TEXT',
+      isActive: true,
+    });
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'startsWith_Appricot',
+      name: 'Appricot',
+      label: 'Appricot Label',
+      type: 'TEXT',
+      isActive: true,
+    });
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'startsWith_Banana',
+      name: 'Banana',
+      label: 'Banana Label',
+      type: 'TEXT',
+      isActive: true,
+    });
+
+    const results = await repository.find({
+      where: { name: { _type: 'startsWith', _value: 'App' } },
+    });
+
+    expect(results.length).toBe(2);
+    expect(results.map((r: any) => r.name).sort()).toEqual(['Apple', 'Appricot']);
+  });
+
+  it('should handle Date filters correctly', async () => {
+    // First, let's create actual documents with a Date property.
+    // Assuming the current schema allows additional properties, or we can use partial `update` if it bypasses some checks.
+    // In BaseFirestoreRepository, partialValidator might still complain, but let's try just bypassing schema check for test, or we can see if it allows the field.
+    // The test schema `CreateFieldInput.json` probably doesn't have `dummyDate`. But Firestore itself doesn't care if Ajv isn't blocking it.
+    // Wait, the repository.create calls validator(data). Let's use `createdAt` which is sometimes a standard property, or just mock the validator for this test to allow everything.
+
+    // Instead of messing with schemas, we can write directly via the db instance just to test `find` logic
+    const db = admin.firestore();
+    const collectionRef = db.collection('test_fields');
+
+    const pastDate = new Date('2020-01-01T00:00:00.000Z');
+    const futureDate = new Date('2030-01-01T00:00:00.000Z');
+
+    const doc1Ref = collectionRef.doc();
+    await doc1Ref.set({
+      name: 'date_doc_1',
+      myCustomDate: pastDate,
+      objectMetadataId: '123',
+      universalIdentifier: 'date_doc_1',
+      type: 'TEXT'
+    });
+
+    const doc2Ref = collectionRef.doc();
+    await doc2Ref.set({
+      name: 'date_doc_2',
+      myCustomDate: futureDate,
+      objectMetadataId: '123',
+      universalIdentifier: 'date_doc_2',
+      type: 'TEXT'
+    });
+
+    // Now test finding with equality
+    const exactResults = await repository.find({ where: { myCustomDate: pastDate } });
+    expect(exactResults.length).toBe(1);
+    expect(exactResults[0].name).toBe('date_doc_1');
+
+    // Test finding with moreThan
+    const intermediateDate = new Date('2025-01-01T00:00:00.000Z');
+    const moreThanResults = await repository.find({ where: { myCustomDate: { _type: 'moreThan', _value: intermediateDate } } });
+    expect(moreThanResults.length).toBe(1);
+    expect(moreThanResults[0].name).toBe('date_doc_2');
+
+    // Test finding with lessThan
+    const lessThanResults = await repository.find({ where: { myCustomDate: { _type: 'lessThan', _value: intermediateDate } } });
+    expect(lessThanResults.length).toBe(1);
+    expect(lessThanResults[0].name).toBe('date_doc_1');
+
+    // Cleanup
+    await doc1Ref.delete();
+    await doc2Ref.delete();
+  });
+
   it('should support advanced operators', async () => {
     await repository.create({
       objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',

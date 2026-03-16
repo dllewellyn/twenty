@@ -91,7 +91,8 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
         typeof value === 'object' &&
         !('_type' in value) &&
         !Array.isArray(value) &&
-        !(value instanceof Date)
+        !(value instanceof Date) &&
+        !(value instanceof admin.firestore.Timestamp)
       ) {
         Object.assign(
           flattened,
@@ -146,6 +147,11 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
                 qs = qs.where(key, 'array-contains-any', opValue);
               } else if (opType === 'between') {
                 qs = qs.where(key, '>=', opValue[0]).where(key, '<=', opValue[1]);
+              } else if (opType === 'startsWith') {
+                if (typeof opValue !== 'string') {
+                  throw new Error(`startsWith operator requires a string value, got ${typeof opValue}`);
+                }
+                qs = qs.where(key, '>=', opValue).where(key, '<', opValue + '\uf8ff');
               }
             }
           }
@@ -179,6 +185,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
 
     const snapshot = await qs.get();
     return snapshot.docs.map((doc) => doc.data() as T);
+  }
+
+  async findAndCount(options?: any): Promise<[T[], number]> {
+    return Promise.all([this.find(options), this.count(options)]);
   }
 
   async delete(id: string): Promise<admin.firestore.WriteResult> {
