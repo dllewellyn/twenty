@@ -77,14 +77,44 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     }
   }
 
+  private flattenWhereClause(
+    where: object,
+    prefix = '',
+  ): Record<string, any> {
+    const flattened: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(where)) {
+      const fullPath = prefix ? `${prefix}.${key}` : key;
+
+      if (
+        value !== null &&
+        typeof value === 'object' &&
+        !('_type' in value) &&
+        !Array.isArray(value) &&
+        !(value instanceof Date)
+      ) {
+        Object.assign(
+          flattened,
+          this.flattenWhereClause(value, fullPath),
+        );
+      } else {
+        flattened[fullPath] = value;
+      }
+    }
+
+    return flattened;
+  }
+
   private applyOptionsToQuery(
     qs: admin.firestore.Query,
     options?: any,
   ): admin.firestore.Query {
     if (options) {
       if (options.where) {
+        const flattenedWhere = this.flattenWhereClause(options.where);
+
         // Handle basic where clauses
-        for (const [key, value] of Object.entries(options.where)) {
+        for (const [key, value] of Object.entries(flattenedWhere)) {
           // If it's a simple equality (including nulls)
           if (
             value !== undefined &&
@@ -102,9 +132,29 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
                 qs = qs.where(key, '<', opValue);
               } else if (opType === 'in') {
                 qs = qs.where(key, 'in', opValue);
+              } else if (opType === 'not') {
+                qs = qs.where(key, '!=', opValue);
+              } else if (opType === 'moreThanOrEqual') {
+                qs = qs.where(key, '>=', opValue);
+              } else if (opType === 'lessThanOrEqual') {
+                qs = qs.where(key, '<=', opValue);
+              } else if (opType === 'notIn') {
+                qs = qs.where(key, 'not-in', opValue);
+              } else if (opType === 'arrayContains') {
+                qs = qs.where(key, 'array-contains', opValue);
+              } else if (opType === 'arrayContainsAny') {
+                qs = qs.where(key, 'array-contains-any', opValue);
+              } else if (opType === 'between') {
+                qs = qs.where(key, '>=', opValue[0]).where(key, '<=', opValue[1]);
               }
             }
           }
+        }
+      }
+
+      if (options.order) {
+        for (const [key, direction] of Object.entries(options.order)) {
+          qs = qs.orderBy(key, (direction as string).toLowerCase() as 'asc' | 'desc');
         }
       }
 
@@ -114,6 +164,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
 
       if (options.skip) {
         qs = qs.offset(options.skip);
+      }
+
+      if (options.cursor) {
+        qs = qs.startAfter(options.cursor);
       }
     }
     return qs;

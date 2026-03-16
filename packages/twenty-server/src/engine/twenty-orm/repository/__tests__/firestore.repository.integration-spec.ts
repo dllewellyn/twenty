@@ -251,6 +251,161 @@ describe('BaseFirestoreRepository Integration', () => {
     expect(allFinds.length).toBe(1);
   });
 
+  it('should support deep filtering', async () => {
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'deep_filter_1',
+      name: 'deep_filter_1',
+      label: 'Deep Filter 1',
+      type: 'TEXT',
+      settings: {
+        nestedSetting: 'active',
+      },
+    });
+
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'deep_filter_2',
+      name: 'deep_filter_2',
+      label: 'Deep Filter 2',
+      type: 'TEXT',
+      settings: {
+        nestedSetting: 'inactive',
+      },
+    });
+
+    const results = await repository.find({
+      where: {
+        settings: {
+          nestedSetting: 'active',
+        },
+      },
+    });
+
+    expect(results.length).toBe(1);
+    expect(results[0].name).toBe('deep_filter_1');
+  });
+
+  it('should support advanced operators', async () => {
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'advanced_op_1',
+      name: 'advanced_op_1',
+      label: 'Advanced Op 1',
+      type: 'TEXT',
+      order: 10,
+      tags: ['tagA', 'tagB'],
+    });
+
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'advanced_op_2',
+      name: 'advanced_op_2',
+      label: 'Advanced Op 2',
+      type: 'TEXT',
+      order: 20,
+      tags: ['tagB', 'tagC'],
+    });
+
+    await repository.create({
+      objectMetadataId: '123e4567-e89b-12d3-a456-426614174000',
+      universalIdentifier: 'advanced_op_3',
+      name: 'advanced_op_3',
+      label: 'Advanced Op 3',
+      type: 'TEXT',
+      order: 30,
+      tags: ['tagD'],
+    });
+
+    // Test 'not' operator
+    const notResults = await repository.find({
+      where: { name: { _type: 'not', _value: 'advanced_op_1' } },
+    });
+    // Assuming other tests might have created other docs, so we check if advanced_op_1 is not included, and 2/3 are included
+    expect(notResults.find((d) => d.name === 'advanced_op_1')).toBeUndefined();
+    expect(notResults.find((d) => d.name === 'advanced_op_2')).toBeDefined();
+
+    // Test 'between' operator
+    const betweenResults = await repository.find({
+      where: { order: { _type: 'between', _value: [15, 25] } },
+    });
+    expect(betweenResults.length).toBe(1);
+    expect(betweenResults[0].name).toBe('advanced_op_2');
+
+    // Test 'arrayContains'
+    const containsResults = await repository.find({
+      where: { tags: { _type: 'arrayContains', _value: 'tagB' } },
+    });
+    // order 10 and 20 both have tagB
+    expect(containsResults.length).toBe(2);
+    expect(containsResults.map((d) => d.name).sort()).toEqual([
+      'advanced_op_1',
+      'advanced_op_2',
+    ]);
+  });
+
+  it('should support orderBy, limits, and cursor-based pagination', async () => {
+    // Clear the collection to make pagination predictable, or use a specific prefix
+    await repository.create({
+      objectMetadataId: '123',
+      universalIdentifier: 'page_1',
+      name: 'page_1',
+      type: 'TEXT',
+      order: 1,
+    });
+    await repository.create({
+      objectMetadataId: '123',
+      universalIdentifier: 'page_2',
+      name: 'page_2',
+      type: 'TEXT',
+      order: 2,
+    });
+    await repository.create({
+      objectMetadataId: '123',
+      universalIdentifier: 'page_3',
+      name: 'page_3',
+      type: 'TEXT',
+      order: 3,
+    });
+
+    // Order by descending
+    const orderedResults = await repository.find({
+      where: { name: { _type: 'in', _value: ['page_1', 'page_2', 'page_3'] } },
+      order: { order: 'DESC' },
+    });
+    expect(orderedResults.length).toBe(3);
+    expect(orderedResults[0].name).toBe('page_3');
+    expect(orderedResults[1].name).toBe('page_2');
+    expect(orderedResults[2].name).toBe('page_1');
+
+    // Limit and order
+    const limitedResults = await repository.find({
+      where: { name: { _type: 'in', _value: ['page_1', 'page_2', 'page_3'] } },
+      order: { order: 'ASC' },
+      take: 2,
+    });
+    expect(limitedResults.length).toBe(2);
+    expect(limitedResults[0].name).toBe('page_1');
+    expect(limitedResults[1].name).toBe('page_2');
+
+    // Wait for the previous docs to settle in emulator or just fetch the doc snapshot
+    const db = admin.firestore();
+    const snapshot = await db
+      .collection('test_fields')
+      .where('name', '==', 'page_2')
+      .get();
+    const cursorDoc = snapshot.docs[0];
+
+    // Cursor pagination using startAfter
+    const paginatedResults = await repository.find({
+      where: { name: { _type: 'in', _value: ['page_1', 'page_2', 'page_3'] } },
+      order: { order: 'ASC' },
+      cursor: cursorDoc,
+    });
+    expect(paginatedResults.length).toBe(1);
+    expect(paginatedResults[0].name).toBe('page_3');
+  });
+
   it('should implement upsert', async () => {
     // Requires an ID usually, let's create one manually.
     const customId = 'custom-upsert-id-123';
