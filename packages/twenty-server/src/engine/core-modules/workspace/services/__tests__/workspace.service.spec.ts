@@ -3,7 +3,6 @@ import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 
 import { type Repository } from 'typeorm';
 
-import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { ApprovedAccessDomainEntity } from 'src/engine/core-modules/approved-access-domain/approved-access-domain.entity';
 import { AuditService } from 'src/engine/core-modules/audit/services/audit.service';
 import { BillingSubscriptionService } from 'src/engine/core-modules/billing/services/billing-subscription.service';
@@ -40,7 +39,6 @@ describe('WorkspaceService', () => {
   let service: WorkspaceService;
   let userWorkspaceRepository: Repository<UserWorkspaceEntity>;
   let userRepository: Repository<UserEntity>;
-  let workspaceFirestoreRepository: WorkspaceFirestoreRepository;
   let workspaceRepository: Repository<WorkspaceEntity>;
   let workspaceCacheStorageService: WorkspaceCacheStorageService;
   let messageQueueService: MessageQueueService;
@@ -60,15 +58,6 @@ describe('WorkspaceService', () => {
             delete: jest.fn(),
             save: jest.fn(),
             update: jest.fn(),
-          },
-        },
-        {
-          provide: WorkspaceFirestoreRepository,
-          useValue: {
-            findOne: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
-            save: jest.fn(),
           },
         },
         {
@@ -197,9 +186,6 @@ describe('WorkspaceService', () => {
     workspaceRepository = module.get<Repository<WorkspaceEntity>>(
       getRepositoryToken(WorkspaceEntity),
     );
-    workspaceFirestoreRepository = module.get<WorkspaceFirestoreRepository>(
-      WorkspaceFirestoreRepository,
-    );
     workspaceCacheStorageService = module.get<WorkspaceCacheStorageService>(
       WorkspaceCacheStorageService,
     );
@@ -317,6 +303,7 @@ describe('WorkspaceService', () => {
       await service.deleteWorkspace(mockWorkspace.id, false);
 
       expect(workspaceRepository.softDelete).not.toHaveBeenCalled();
+      expect(workspaceRepository.softDelete).not.toHaveBeenCalled();
       expect(workspaceCacheStorageService.flush).toHaveBeenCalledWith(
         mockWorkspace.id,
         mockWorkspace.metadataVersion,
@@ -342,10 +329,6 @@ describe('WorkspaceService', () => {
       expect(workspaceRepository.softDelete).toHaveBeenCalledWith({
         id: mockWorkspace.id,
       });
-      expect(workspaceFirestoreRepository.update).toHaveBeenCalledWith(
-        mockWorkspace.id,
-        expect.objectContaining({ deletedAt: expect.any(Date) })
-      );
       expect(workspaceRepository.delete).not.toHaveBeenCalled();
     });
 

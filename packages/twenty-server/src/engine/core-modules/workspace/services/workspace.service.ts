@@ -5,7 +5,6 @@ import assert from 'assert';
 
 import { msg } from '@lingui/core/macro';
 import { TypeOrmQueryService } from '@ptc-org/nestjs-query-typeorm';
-import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { PermissionFlagType } from 'twenty-shared/constants';
 import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
@@ -99,7 +98,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
   constructor(
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
-    private readonly workspaceFirestoreRepository: WorkspaceFirestoreRepository,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(UserWorkspaceEntity)
@@ -275,13 +273,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
         ...workspace,
         ...payload,
       });
-
-      // Dual-write to Firestore to ensure parity during the migration phase
-      try {
-        await this.workspaceFirestoreRepository.update(updatedWorkspace.id, payload as any);
-      } catch (firestoreError) {
-        this.logger.error(`[Dual-Write] Failed to sync workspace update to Firestore for ID ${workspace.id}`, firestoreError);
-      }
     } catch (error) {
       // revert custom domain registration on error
       if (payload.customDomain && customDomainRegistered) {
@@ -329,15 +320,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
       activationStatus: WorkspaceActivationStatus.ONGOING_CREATION,
     });
 
-    // Dual-write to Firestore to ensure parity during the migration phase
-    try {
-      await this.workspaceFirestoreRepository.update(workspace.id, {
-        activationStatus: WorkspaceActivationStatus.ONGOING_CREATION,
-      } as any);
-    } catch (firestoreError) {
-      this.logger.error(`[Dual-Write] Failed to sync workspace activation status to Firestore for ID ${workspace.id}`, firestoreError);
-    }
-
     await this.featureFlagService.enableFeatureFlags(
       DEFAULT_FEATURE_FLAGS,
       workspace.id,
@@ -362,17 +344,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
       activationStatus: WorkspaceActivationStatus.ACTIVE,
       version: extractVersionMajorMinorPatch(appVersion),
     });
-
-    // Dual-write to Firestore
-    try {
-      await this.workspaceFirestoreRepository.update(workspace.id, {
-        displayName: data.displayName,
-        activationStatus: WorkspaceActivationStatus.ACTIVE,
-        version: extractVersionMajorMinorPatch(appVersion),
-      } as any);
-    } catch (firestoreError) {
-      this.logger.error(`[Dual-Write] Failed to sync workspace activation status to Firestore for ID ${workspace.id}`, firestoreError);
-    }
 
     return await this.workspaceRepository.findOneBy({
       id: workspace.id,
@@ -412,13 +383,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     if (softDelete) {
       await this.workspaceRepository.softDelete({ id });
 
-      // Dual-write soft delete
-      try {
-        await this.workspaceFirestoreRepository.update(id, { deletedAt: new Date() } as any);
-      } catch (firestoreError) {
-        this.logger.error(`[Dual-Write] Failed to sync workspace soft deletion to Firestore for ID ${id}`, firestoreError);
-      }
-
       this.logger.log(`workspace ${id} soft deleted`);
 
       return workspace;
@@ -449,13 +413,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     }
 
     await this.workspaceRepository.delete(id);
-
-    // Dual-write hard delete
-    try {
-      await this.workspaceFirestoreRepository.delete(id);
-    } catch (firestoreError) {
-      this.logger.error(`[Dual-Write] Failed to sync workspace deletion to Firestore for ID ${id}`, firestoreError);
-    }
 
     this.logger.log(`workspace ${id} hard deleted`);
 
