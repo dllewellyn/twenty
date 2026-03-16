@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { useFirestoreErrorHandler } from '../useFirestoreErrorHandler';
 import { useSnackBar } from '@/ui/feedback/snack-bar-manager/hooks/useSnackBar';
+import { t } from '@lingui/core/macro';
 
 // Mock the useSnackBar hook
 jest.mock('@/ui/feedback/snack-bar-manager/hooks/useSnackBar', () => ({
@@ -8,12 +9,12 @@ jest.mock('@/ui/feedback/snack-bar-manager/hooks/useSnackBar', () => ({
 }));
 
 describe('useFirestoreErrorHandler', () => {
-  let enqueueSnackBarMock: jest.Mock;
+  let enqueueErrorSnackBarMock: jest.Mock;
 
   beforeEach(() => {
-    enqueueSnackBarMock = jest.fn();
+    enqueueErrorSnackBarMock = jest.fn();
     (useSnackBar as jest.Mock).mockReturnValue({
-      enqueueSnackBar: enqueueSnackBarMock,
+      enqueueErrorSnackBar: enqueueErrorSnackBarMock,
     });
   });
 
@@ -26,10 +27,9 @@ describe('useFirestoreErrorHandler', () => {
 
     result.current.handleError({ code: 'permission-denied' });
 
-    expect(enqueueSnackBarMock).toHaveBeenCalledWith(
-      "You don't have permission to perform this action. This might be restricted by ownership or role rules.",
-      { variant: 'error' }
-    );
+    expect(enqueueErrorSnackBarMock).toHaveBeenCalledWith({
+      message: "You don't have permission to perform this action. This might be restricted by ownership or role rules."
+    });
   });
 
   it('should handle not-found error', () => {
@@ -37,10 +37,9 @@ describe('useFirestoreErrorHandler', () => {
 
     result.current.handleError({ code: 'not-found' });
 
-    expect(enqueueSnackBarMock).toHaveBeenCalledWith(
-      "The requested record was not found.",
-      { variant: 'error' }
-    );
+    expect(enqueueErrorSnackBarMock).toHaveBeenCalledWith({
+      message: "The requested record was not found."
+    });
   });
 
   it('should handle failed-precondition error', () => {
@@ -48,10 +47,9 @@ describe('useFirestoreErrorHandler', () => {
 
     result.current.handleError({ code: 'failed-precondition' });
 
-    expect(enqueueSnackBarMock).toHaveBeenCalledWith(
-      "A required index is missing. Please contact support.",
-      { variant: 'error' }
-    );
+    expect(enqueueErrorSnackBarMock).toHaveBeenCalledWith({
+      message: "A required index is missing. Please contact support."
+    });
   });
 
   it('should handle default error with message', () => {
@@ -59,10 +57,9 @@ describe('useFirestoreErrorHandler', () => {
 
     result.current.handleError({ code: 'unknown-error', message: 'Something went wrong' });
 
-    expect(enqueueSnackBarMock).toHaveBeenCalledWith(
-      "Something went wrong",
-      { variant: 'error' }
-    );
+    expect(enqueueErrorSnackBarMock).toHaveBeenCalledWith({
+      message: "Something went wrong"
+    });
   });
 
   it('should handle default error without message', () => {
@@ -70,9 +67,8 @@ describe('useFirestoreErrorHandler', () => {
 
     result.current.handleError({});
 
-    expect(enqueueSnackBarMock).toHaveBeenCalledWith(
-      "An unexpected error occurred.",
-      { variant: 'error' }
-    );
+    expect(enqueueErrorSnackBarMock).toHaveBeenCalledWith({
+      message: "An unexpected error occurred."
+    });
   });
 });
