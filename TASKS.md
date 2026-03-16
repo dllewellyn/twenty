@@ -1,10 +1,13 @@
 # Task Backlog
 
 ## Phase 3: Data Migration & ORM Pivot
-- [ ] **Transition WorkspaceRepository to Firestore**: Refactor the core `WorkspaceRepository` to utilize `BaseFirestoreRepository` instead of TypeORM, mapping TypeORM-style queries to Firestore.
-- [ ] **Firestore Query Engine**: Expand `BaseFirestoreRepository` to support more complex query logic, including deep filtering and efficient cursor-based pagination.
-- [ ] **Run Migration Audit on Staging/Production Data**: Execute the audit command on a non-empty, fully migrated dataset to confirm integrity before final deprecation.
 - [ ] **E2E Validation for Frontend Permissions**: Verify that the newly implemented frontend permission handling correctly catches 403 errors from the Firestore emulator when security rules are violated.
+- [ ] **Firestore Query Engine**: Expand `BaseFirestoreRepository` to support more complex query logic, including deep filtering and efficient cursor-based pagination.
+- [ ] **Transition WorkspaceRepository to Firestore**: Refactor the core `WorkspaceRepository` to utilize `BaseFirestoreRepository` instead of TypeORM, mapping TypeORM-style queries to Firestore.
+    - [ ] **Implement `WorkspaceFirestoreRepository`**: Create the repository class extending `BaseFirestoreRepository`.
+    - [ ] **Map SQL Queries to Firestore**: Identify all `WorkspaceRepository` calls and implement equivalent Firestore queries.
+    - [ ] **Update Service Layer**: Refactor `WorkspaceService` to use the new repository.
+    - [ ] **Data Verification**: Ensure `Workspace` data is correctly retrieved and updated in Firestore.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
     - [ ] **Remove TypeORM Entities**: Delete the `*.entity.ts` files and related decorators.
     - [ ] **Cleanup Database Connection**: Remove PostgreSQL connection logic and environment variables.
