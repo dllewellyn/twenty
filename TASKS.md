@@ -1,19 +1,24 @@
 # Task Backlog
 
-## Phase 3: Data Migration
+## Phase 3: Data Migration & ORM Pivot
 - [ ] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.
 - [ ] **Run Migration Audit on Staging/Production Data**: Execute the audit command on a non-empty, fully migrated dataset to confirm integrity before final deprecation.
+- [ ] **Transition WorkspaceRepository to Firestore**: Refactor the core `WorkspaceRepository` to utilize `BaseFirestoreRepository` instead of TypeORM, mapping TypeORM-style queries to Firestore.
+- [ ] **Firestore Query Engine**: Expand `BaseFirestoreRepository` to support more complex query logic, including deep filtering and efficient cursor-based pagination.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
     - [ ] **Remove TypeORM Entities**: Delete the `*.entity.ts` files and related decorators.
     - [ ] **Cleanup Database Connection**: Remove PostgreSQL connection logic and environment variables.
     - [ ] **Decommission Postgres Service**: Update `docker-compose.yml` and deployment scripts.
+    - [ ] **Dependency Cleanup**: Uninstall `typeorm`, `pg`, and related PostgreSQL-only packages.
 
-## Phase 4: Serverless Transition
+## Phase 4: Serverless Transition & Deployment
+- [ ] **CI/CD for Cloud Run**: Automate the `deploy-cloudrun.sh` script using GitHub Actions (e.g., in `cd-deploy-main.yaml`).
+- [ ] **Emulator-Only Local Mode**: Update the local development environment to start without a PostgreSQL container, relying entirely on the Firestore emulator.
 - [ ] **Cloud Functions Migration**: Port core business logic from NestJS controllers to Firebase Cloud Functions.
 - [ ] **Hosting Migration**: Deploy the `twenty-front` application to Firebase Hosting and configure the custom domain.
 
 ## Phase 5: Ecosystem & Integration
-- [ ] **Cloud Storage Integration**: Migrate file attachments from local/S3 to Firebase Cloud Storage.
+- [ ] **Firebase Storage Driver**: Implement a `FirebaseStorageDriver` for the `FileStorageService` and migrate file attachments from local/S3 to Firebase Cloud Storage.
 - [ ] **Search & Extensions**: Implement search using Firebase Extensions or Algolia and set up Trigger Email extension.
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
