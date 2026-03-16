@@ -1,10 +1,10 @@
 # Task Backlog
 
 ## Phase 3: Data Migration & ORM Pivot
-- [ ] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.
-- [ ] **Run Migration Audit on Staging/Production Data**: Execute the audit command on a non-empty, fully migrated dataset to confirm integrity before final deprecation.
 - [ ] **Transition WorkspaceRepository to Firestore**: Refactor the core `WorkspaceRepository` to utilize `BaseFirestoreRepository` instead of TypeORM, mapping TypeORM-style queries to Firestore.
 - [ ] **Firestore Query Engine**: Expand `BaseFirestoreRepository` to support more complex query logic, including deep filtering and efficient cursor-based pagination.
+- [ ] **Run Migration Audit on Staging/Production Data**: Execute the audit command on a non-empty, fully migrated dataset to confirm integrity before final deprecation.
+- [ ] **E2E Validation for Frontend Permissions**: Verify that the newly implemented frontend permission handling correctly catches 403 errors from the Firestore emulator when security rules are violated.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
     - [ ] **Remove TypeORM Entities**: Delete the `*.entity.ts` files and related decorators.
     - [ ] **Cleanup Database Connection**: Remove PostgreSQL connection logic and environment variables.
@@ -23,6 +23,7 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.
 - [x] **Firestore Index Optimization**: Audit the performance of the new security rules and create necessary composite indexes to support filtered queries across all collections.
 - [x] **Execute and Document Migration Audit**: Run the `database:audit-data-migration` command against the complete migrated dataset across all workspaces and document any discrepancies or confirm 100% integrity.
 - [x] **User Import to Firebase Auth**: Implement a migration strategy (either bulk import via script or just-in-time creation during the signup flow) to ensure legacy users can claim their accounts.
