@@ -4,7 +4,6 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 
 import { msg } from '@lingui/core/macro';
-import { TypeOrmQueryService } from '@ptc-org/nestjs-query-typeorm';
 import { PermissionFlagType } from 'twenty-shared/constants';
 import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
@@ -64,8 +63,7 @@ import { DEFAULT_FEATURE_FLAGS } from 'src/engine/workspace-manager/workspace-mi
 import { extractVersionMajorMinorPatch } from 'src/utils/version/extract-version-major-minor-patch';
 
 @Injectable()
-// oxlint-disable-next-line twenty/inject-workspace-repository
-export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
+export class WorkspaceService {
   protected readonly logger = new Logger(WorkspaceService.name);
 
   private readonly WORKSPACE_FIELD_PERMISSIONS: Record<
@@ -97,8 +95,6 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
   };
 
   constructor(
-    @InjectRepository(WorkspaceEntity)
-    private readonly workspaceRepository: Repository<WorkspaceEntity>,
     private readonly workspaceFirestoreRepository: WorkspaceFirestoreRepository,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
@@ -124,8 +120,11 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     private readonly messageQueueService: MessageQueueService,
     @InjectDataSource()
     private readonly coreDataSource: DataSource,
-  ) {
-    super(workspaceRepository);
+  ) {}
+
+  async findById(id: string): Promise<WorkspaceEntity | null> {
+    const workspace = await this.workspaceFirestoreRepository.findOne(id);
+    return workspace as WorkspaceEntity | null;
   }
 
   async updateWorkspaceById({

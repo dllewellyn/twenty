@@ -45,7 +45,7 @@ import { MetadataEngineModule } from 'src/engine/metadata-modules/metadata-engin
 @Module({
   imports: [
     TypeORMModule,
-    TypeOrmModule.forFeature([BillingSubscriptionEntity, WorkspaceEntity]),
+    TypeOrmModule.forFeature([BillingSubscriptionEntity]),
     MetricsModule,
     NestjsQueryGraphQLModule.forFeature({
       imports: [
@@ -55,7 +55,6 @@ import { MetadataEngineModule } from 'src/engine/metadata-modules/metadata-engin
         TokenModule,
         NestjsQueryTypeOrmModule.forFeature([
           UserEntity,
-          WorkspaceEntity,
           UserWorkspaceEntity,
           PublicDomainEntity,
         ]),

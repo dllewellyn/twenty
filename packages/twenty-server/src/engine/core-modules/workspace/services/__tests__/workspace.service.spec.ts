@@ -3,6 +3,7 @@ import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 
 import { type Repository } from 'typeorm';
 
+import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { ApprovedAccessDomainEntity } from 'src/engine/core-modules/approved-access-domain/approved-access-domain.entity';
 import { AuditService } from 'src/engine/core-modules/audit/services/audit.service';
 import { BillingSubscriptionService } from 'src/engine/core-modules/billing/services/billing-subscription.service';
@@ -37,9 +38,9 @@ import { WorkspaceManagerService } from 'src/engine/workspace-manager/workspace-
 
 describe('WorkspaceService', () => {
   let service: WorkspaceService;
-  let userWorkspaceRepository: Repository<UserWorkspaceEntity>;
+  let workspaceFirestoreRepository: WorkspaceFirestoreRepository;
   let userRepository: Repository<UserEntity>;
-  let workspaceRepository: Repository<WorkspaceEntity>;
+  let userWorkspaceRepository: Repository<UserWorkspaceEntity>;
   let workspaceCacheStorageService: WorkspaceCacheStorageService;
   let messageQueueService: MessageQueueService;
   let dnsManagerService: DnsManagerService;
@@ -51,10 +52,10 @@ describe('WorkspaceService', () => {
       providers: [
         WorkspaceService,
         {
-          provide: getRepositoryToken(WorkspaceEntity),
+          provide: WorkspaceFirestoreRepository,
           useValue: {
             findOne: jest.fn(),
-            softDelete: jest.fn(),
+            update: jest.fn(),
             delete: jest.fn(),
           },
         },
@@ -181,8 +182,8 @@ describe('WorkspaceService', () => {
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
-    workspaceRepository = module.get<Repository<WorkspaceEntity>>(
-      getRepositoryToken(WorkspaceEntity),
+    workspaceFirestoreRepository = module.get<WorkspaceFirestoreRepository>(
+      WorkspaceFirestoreRepository,
     );
     workspaceCacheStorageService = module.get<WorkspaceCacheStorageService>(
       WorkspaceCacheStorageService,
@@ -294,13 +295,13 @@ describe('WorkspaceService', () => {
       } as WorkspaceEntity;
 
       jest
-        .spyOn(workspaceRepository, 'findOne')
+        .spyOn(workspaceFirestoreRepository, 'findOne')
         .mockResolvedValue(mockWorkspace);
       jest.spyOn(userWorkspaceRepository, 'find').mockResolvedValue([]);
 
       await service.deleteWorkspace(mockWorkspace.id, false);
 
-      expect(workspaceRepository.softDelete).not.toHaveBeenCalled();
+      expect(workspaceFirestoreRepository.update).not.toHaveBeenCalled();
       expect(workspaceCacheStorageService.flush).toHaveBeenCalledWith(
         mockWorkspace.id,
         mockWorkspace.metadataVersion,
@@ -315,7 +316,7 @@ describe('WorkspaceService', () => {
       } as WorkspaceEntity;
 
       jest
-        .spyOn(workspaceRepository, 'findOne')
+        .spyOn(workspaceFirestoreRepository, 'findOne')
         .mockResolvedValue(mockWorkspace);
       jest.spyOn(userWorkspaceRepository, 'find').mockResolvedValue([]);
 
@@ -323,10 +324,11 @@ describe('WorkspaceService', () => {
 
       expect(billingSubscriptionService.deleteSubscriptions).toHaveBeenCalled();
 
-      expect(workspaceRepository.softDelete).toHaveBeenCalledWith({
-        id: mockWorkspace.id,
-      });
-      expect(workspaceRepository.delete).not.toHaveBeenCalled();
+      expect(workspaceFirestoreRepository.update).toHaveBeenCalledWith(
+        mockWorkspace.id,
+        expect.objectContaining({ deletedAt: expect.any(Date) })
+      );
+      expect(workspaceFirestoreRepository.delete).not.toHaveBeenCalled();
     });
 
     it('should delete the custom domain when hard deleting a workspace with a custom domain', async () => {
@@ -338,7 +340,7 @@ describe('WorkspaceService', () => {
       } as WorkspaceEntity;
 
       jest
-        .spyOn(workspaceRepository, 'findOne')
+        .spyOn(workspaceFirestoreRepository, 'findOne')
         .mockResolvedValue(mockWorkspace);
       jest.spyOn(userWorkspaceRepository, 'find').mockResolvedValue([]);
 
@@ -358,16 +360,17 @@ describe('WorkspaceService', () => {
       } as WorkspaceEntity;
 
       jest
-        .spyOn(workspaceRepository, 'findOne')
+        .spyOn(workspaceFirestoreRepository, 'findOne')
         .mockResolvedValue(mockWorkspace);
       jest.spyOn(userWorkspaceRepository, 'find').mockResolvedValue([]);
 
       await service.deleteWorkspace(mockWorkspace.id, true);
 
       expect(dnsManagerService.deleteHostnameSilently).not.toHaveBeenCalled();
-      expect(workspaceRepository.softDelete).toHaveBeenCalledWith({
-        id: mockWorkspace.id,
-      });
+      expect(workspaceFirestoreRepository.update).toHaveBeenCalledWith(
+        mockWorkspace.id,
+        expect.objectContaining({ deletedAt: expect.any(Date) })
+      );
     });
   });
 });
