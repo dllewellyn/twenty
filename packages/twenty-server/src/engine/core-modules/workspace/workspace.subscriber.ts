@@ -5,9 +5,7 @@ import {
   RemoveEvent,
   SoftRemoveEvent,
   UpdateEvent,
-  DataSource,
 } from 'typeorm';
-import { InjectDataSource } from '@nestjs/typeorm';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { Logger } from '@nestjs/common';
@@ -19,12 +17,8 @@ export class WorkspaceSubscriber
   private readonly logger = new Logger(WorkspaceSubscriber.name);
 
   constructor(
-    @InjectDataSource()
-    private readonly dataSource: DataSource,
     private readonly workspaceFirestoreRepository: WorkspaceFirestoreRepository,
-  ) {
-    this.dataSource.subscribers.push(this);
-  }
+  ) {}
 
   listenTo() {
     return WorkspaceEntity;

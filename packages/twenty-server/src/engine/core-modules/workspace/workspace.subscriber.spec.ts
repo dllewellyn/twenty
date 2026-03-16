@@ -1,14 +1,11 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { DataSource } from 'typeorm';
 import { WorkspaceSubscriber } from 'src/engine/core-modules/workspace/workspace.subscriber';
 import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
-import { getDataSourceToken } from '@nestjs/typeorm';
 
 describe('WorkspaceSubscriber', () => {
   let subscriber: WorkspaceSubscriber;
   let mockFirestoreRepository: Partial<WorkspaceFirestoreRepository>;
-  let mockDataSource: Partial<DataSource>;
 
   beforeEach(async () => {
     mockFirestoreRepository = {
@@ -17,20 +14,12 @@ describe('WorkspaceSubscriber', () => {
       delete: jest.fn(),
     };
 
-    mockDataSource = {
-      subscribers: [],
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkspaceSubscriber,
         {
           provide: WorkspaceFirestoreRepository,
           useValue: mockFirestoreRepository,
-        },
-        {
-          provide: getDataSourceToken(),
-          useValue: mockDataSource,
         },
       ],
     }).compile();
@@ -42,9 +31,8 @@ describe('WorkspaceSubscriber', () => {
     jest.clearAllMocks();
   });
 
-  it('should be defined and register itself', () => {
+  it('should be defined', () => {
     expect(subscriber).toBeDefined();
-    expect(mockDataSource.subscribers).toContain(subscriber);
     expect(subscriber.listenTo()).toBe(WorkspaceEntity);
   });
 
