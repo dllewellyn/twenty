@@ -10,7 +10,7 @@
     - [x] **Implement `WorkspaceFirestoreRepository`**: Create the repository class extending `BaseFirestoreRepository`.
     - [ ] **Map SQL Queries to Firestore**: Identify all `WorkspaceRepository` calls and implement equivalent Firestore queries. (In Progress: Dual-write strategy active)
     - [ ] **Update Service Layer**: Refactor `WorkspaceService` to use the new repository. (In Progress: Dual-write strategy active)
-    - [ ] **Data Verification**: Ensure `Workspace` data is correctly retrieved and updated in Firestore.
+    - [x] **Data Verification**: Ensure `Workspace` data is correctly retrieved and updated in Firestore.
     - [x] **Centralized Dual-Write Synchronization**: Implement an event-driven mechanism (e.g. TypeORM Subscriber) to synchronize data from PostgreSQL to Firestore seamlessly without polluting business logic.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
     - [ ] **Remove TypeORM Entities**: Delete the `*.entity.ts` files and related decorators.
