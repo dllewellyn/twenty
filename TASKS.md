@@ -1,13 +1,12 @@
-# Task Backlog
+I will now move the completed "Firestore Query Engine" task to the `COMPLETED WORK` section and re-prioritize the remaining tasks in the `TASKS.md` file.# Task Backlog
 
 ## Phase 3: Data Migration & ORM Pivot
-- [ ] **E2E Validation for Frontend Permissions**: Verify that the newly implemented frontend permission handling correctly catches 403 errors from the Firestore emulator when security rules are violated.
-- [ ] **Firestore Query Engine**: Expand `BaseFirestoreRepository` to support more complex query logic, including deep filtering and efficient cursor-based pagination.
 - [ ] **Transition WorkspaceRepository to Firestore**: Refactor the core `WorkspaceRepository` to utilize `BaseFirestoreRepository` instead of TypeORM, mapping TypeORM-style queries to Firestore.
     - [ ] **Implement `WorkspaceFirestoreRepository`**: Create the repository class extending `BaseFirestoreRepository`.
     - [ ] **Map SQL Queries to Firestore**: Identify all `WorkspaceRepository` calls and implement equivalent Firestore queries.
     - [ ] **Update Service Layer**: Refactor `WorkspaceService` to use the new repository.
     - [ ] **Data Verification**: Ensure `Workspace` data is correctly retrieved and updated in Firestore.
+- [ ] **E2E Validation for Frontend Permissions**: Verify that the newly implemented frontend permission handling correctly catches 403 errors from the Firestore emulator when security rules are violated.
 - [ ] **Deprecate PostgreSQL**: Break down and execute the decommissioning of PostgreSQL.
     - [ ] **Remove TypeORM Entities**: Delete the `*.entity.ts` files and related decorators.
     - [ ] **Cleanup Database Connection**: Remove PostgreSQL connection logic and environment variables.
@@ -26,6 +25,7 @@
 - [ ] **Zapier Integration Refactor**: Update the Zapier integration to point to the new Firebase-native API and use Firebase Auth for authentication.
 
 ## COMPLETED WORK
+- [x] **Firestore Query Engine**: Expanded `BaseFirestoreRepository` with `flattenWhereClause` to support deep nested filtering (dot notation), TypeORM operator mappings (not, between, arrayContains), and cursor-based pagination (`startAfter`).
 - [x] **Frontend Permission Handling**: Update the frontend application to gracefully handle Firestore permission errors (e.g., 403 Forbidden) and provide user-friendly feedback when actions are restricted by ownership or role rules.
 - [x] **Firestore Index Optimization**: Audit the performance of the new security rules and create necessary composite indexes to support filtered queries across all collections.
 - [x] **Execute and Document Migration Audit**: Run the `database:audit-data-migration` command against the complete migrated dataset across all workspaces and document any discrepancies or confirm 100% integrity.
