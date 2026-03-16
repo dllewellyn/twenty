@@ -295,6 +295,11 @@ export class ApolloFactory<TCacheShape> implements ApolloManager<TCacheShape> {
                     message = String(
                       (userFriendlyMessage as { message: unknown }).message,
                     );
+                  } else if (
+                    graphQLError.message.includes('permission denied') ||
+                    graphQLError.message.includes('permission-denied')
+                  ) {
+                    message = t`You don't have permission to perform this action. This might be restricted by ownership or role rules.`;
                   }
                   onForbiddenError?.(message);
                   return;

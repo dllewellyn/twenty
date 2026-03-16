@@ -16,6 +16,10 @@ export const PageLayoutWidgetForbiddenDisplay = ({
   const tooltipId = `widget-forbidden-tooltip-${widgetId}`;
 
   const getTooltipContent = () => {
+    if (restriction.customMessage) {
+      return restriction.customMessage;
+    }
+
     if (restriction.type === 'object' && isDefined(restriction.objectName)) {
       const objectName = restriction.objectName;
       return t`You do not have permission to access the ${objectName} object`;
@@ -39,7 +43,7 @@ export const PageLayoutWidgetForbiddenDisplay = ({
   return (
     <>
       <div id={tooltipId}>
-        <ForbiddenFieldDisplay />
+        <ForbiddenFieldDisplay message={restriction.customMessage} />
       </div>
       <AppTooltip
         anchorSelect={`#${tooltipId}`}
