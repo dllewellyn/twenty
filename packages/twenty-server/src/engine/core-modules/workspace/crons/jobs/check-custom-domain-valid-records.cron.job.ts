@@ -1,11 +1,13 @@
+import { InjectRepository } from '@nestjs/typeorm';
+
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
+import { IsNull, Not, Raw, Repository } from 'typeorm';
 
 import { SentryCronMonitor } from 'src/engine/core-modules/cron/sentry-cron-monitor.decorator';
 import { CustomDomainManagerService } from 'src/engine/core-modules/domain/custom-domain-manager/services/custom-domain-manager.service';
 import { Process } from 'src/engine/core-modules/message-queue/decorators/process.decorator';
 import { Processor } from 'src/engine/core-modules/message-queue/decorators/processor.decorator';
 import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queue.constants';
-import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 
 export const CHECK_CUSTOM_DOMAIN_VALID_RECORDS_CRON_PATTERN = '0 * * * *';
@@ -13,7 +15,8 @@ export const CHECK_CUSTOM_DOMAIN_VALID_RECORDS_CRON_PATTERN = '0 * * * *';
 @Processor(MessageQueue.cronQueue)
 export class CheckCustomDomainValidRecordsCronJob {
   constructor(
-    private readonly workspaceRepository: WorkspaceFirestoreRepository,
+    @InjectRepository(WorkspaceEntity)
+    private readonly workspaceRepository: Repository<WorkspaceEntity>,
     private readonly customDomainManagerService: CustomDomainManagerService,
   ) {}
 
@@ -26,19 +29,15 @@ export class CheckCustomDomainValidRecordsCronJob {
     const workspaces = await this.workspaceRepository.find({
       where: {
         activationStatus: WorkspaceActivationStatus.ACTIVE,
-        customDomain: { _type: 'not', _value: null },
+        customDomain: Not(IsNull()),
+        createdAt: Raw(
+          (alias) => `EXTRACT(HOUR FROM ${alias}) = EXTRACT(HOUR FROM NOW())`,
+        ),
       },
+      select: ['id', 'customDomain', 'isCustomDomainEnabled'],
     });
 
-    const currentHour = new Date().getUTCHours();
-
     for (const workspace of workspaces) {
-      if (!workspace.createdAt) continue;
-
-      const workspaceCreatedAtHour = new Date(workspace.createdAt).getUTCHours();
-
-      if (workspaceCreatedAtHour !== currentHour) continue;
-
       try {
         await this.customDomainManagerService.checkCustomDomainValidRecords(
           workspace,

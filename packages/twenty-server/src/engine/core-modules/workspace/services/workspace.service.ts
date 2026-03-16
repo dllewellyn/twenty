@@ -4,8 +4,9 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import assert from 'assert';
 
 import { msg } from '@lingui/core/macro';
-import { PermissionFlagType } from 'twenty-shared/constants';
+import { TypeOrmQueryService } from '@ptc-org/nestjs-query-typeorm';
 import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
+import { PermissionFlagType } from 'twenty-shared/constants';
 import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
@@ -63,7 +64,8 @@ import { DEFAULT_FEATURE_FLAGS } from 'src/engine/workspace-manager/workspace-mi
 import { extractVersionMajorMinorPatch } from 'src/utils/version/extract-version-major-minor-patch';
 
 @Injectable()
-export class WorkspaceService {
+// oxlint-disable-next-line twenty/inject-workspace-repository
+export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
   protected readonly logger = new Logger(WorkspaceService.name);
 
   private readonly WORKSPACE_FIELD_PERMISSIONS: Record<
@@ -96,7 +98,7 @@ export class WorkspaceService {
 
   constructor(
     @InjectRepository(WorkspaceEntity)
-    public readonly workspaceRepository: Repository<WorkspaceEntity>,
+    private readonly workspaceRepository: Repository<WorkspaceEntity>,
     private readonly workspaceFirestoreRepository: WorkspaceFirestoreRepository,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
@@ -122,11 +124,8 @@ export class WorkspaceService {
     private readonly messageQueueService: MessageQueueService,
     @InjectDataSource()
     private readonly coreDataSource: DataSource,
-  ) {}
-
-  async findById(id: string): Promise<WorkspaceEntity | null> {
-    const workspace = await this.workspaceFirestoreRepository.findOne(id);
-    return workspace as WorkspaceEntity | null;
+  ) {
+    super(workspaceRepository);
   }
 
   async updateWorkspaceById({
@@ -138,7 +137,9 @@ export class WorkspaceService {
     userWorkspaceId?: string;
     apiKey: ApiKeyEntity | undefined;
   }) {
-    const workspace = await this.workspaceFirestoreRepository.findOne(payload.id);
+    const workspace = await this.workspaceRepository.findOneBy({
+      id: payload.id,
+    });
 
     assertIsDefinedOrThrow(workspace, WorkspaceNotFoundDefaultError);
 
@@ -270,10 +271,17 @@ export class WorkspaceService {
     let updatedWorkspace: WorkspaceEntity;
 
     try {
-      updatedWorkspace = await this.workspaceFirestoreRepository.save({
+      updatedWorkspace = await this.workspaceRepository.save({
         ...workspace,
         ...payload,
-      }) as WorkspaceEntity;
+      });
+
+      // Dual-write to Firestore to ensure parity during the migration phase
+      try {
+        await this.workspaceFirestoreRepository.update(updatedWorkspace.id, payload as any);
+      } catch (firestoreError) {
+        this.logger.error(`[Dual-Write] Failed to sync workspace update to Firestore for ID ${workspace.id}`, firestoreError);
+      }
     } catch (error) {
       // revert custom domain registration on error
       if (payload.customDomain && customDomainRegistered) {
@@ -317,9 +325,18 @@ export class WorkspaceService {
       throw new Error('Workspace is not pending creation');
     }
 
-    await this.workspaceFirestoreRepository.update(workspace.id, {
+    await this.workspaceRepository.update(workspace.id, {
       activationStatus: WorkspaceActivationStatus.ONGOING_CREATION,
     });
+
+    // Dual-write to Firestore to ensure parity during the migration phase
+    try {
+      await this.workspaceFirestoreRepository.update(workspace.id, {
+        activationStatus: WorkspaceActivationStatus.ONGOING_CREATION,
+      } as any);
+    } catch (firestoreError) {
+      this.logger.error(`[Dual-Write] Failed to sync workspace activation status to Firestore for ID ${workspace.id}`, firestoreError);
+    }
 
     await this.featureFlagService.enableFeatureFlags(
       DEFAULT_FEATURE_FLAGS,
@@ -340,17 +357,29 @@ export class WorkspaceService {
 
     const appVersion = this.twentyConfigService.get('APP_VERSION');
 
-    await this.workspaceFirestoreRepository.update(workspace.id, {
+    await this.workspaceRepository.update(workspace.id, {
       displayName: data.displayName,
       activationStatus: WorkspaceActivationStatus.ACTIVE,
       version: extractVersionMajorMinorPatch(appVersion),
     });
 
-    return (await this.workspaceFirestoreRepository.findOne(workspace.id))!;
+    // Dual-write to Firestore
+    try {
+      await this.workspaceFirestoreRepository.update(workspace.id, {
+        displayName: data.displayName,
+        activationStatus: WorkspaceActivationStatus.ACTIVE,
+        version: extractVersionMajorMinorPatch(appVersion),
+      } as any);
+    } catch (firestoreError) {
+      this.logger.error(`[Dual-Write] Failed to sync workspace activation status to Firestore for ID ${workspace.id}`, firestoreError);
+    }
+
+    return await this.workspaceRepository.findOneBy({
+      id: workspace.id,
+    });
   }
 
   async deleteWorkspace(id: string, softDelete = false) {
-    // Both repositories are queried since this is the migration boundary layer
     const workspace = await this.workspaceRepository.findOne({
       where: { id },
       withDeleted: true,

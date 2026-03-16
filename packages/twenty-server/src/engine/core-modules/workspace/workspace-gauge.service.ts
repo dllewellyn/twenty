@@ -1,9 +1,11 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 
+import { IsNull, Not, Repository } from 'typeorm';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 
 import { MetricsService } from 'src/engine/core-modules/metrics/metrics.service';
-import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
+import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 
 @Injectable()
 export class WorkspaceGaugeService implements OnModuleInit {
@@ -11,7 +13,8 @@ export class WorkspaceGaugeService implements OnModuleInit {
 
   constructor(
     private readonly metricsService: MetricsService,
-    private readonly workspaceRepository: WorkspaceFirestoreRepository,
+    @InjectRepository(WorkspaceEntity)
+    private readonly workspaceRepository: Repository<WorkspaceEntity>,
   ) {}
 
   onModuleInit() {
@@ -47,7 +50,7 @@ export class WorkspaceGaugeService implements OnModuleInit {
       return this.workspaceRepository.count({
         where: {
           activationStatus: status,
-          deletedAt: null,
+          deletedAt: IsNull(),
         },
       });
     } catch (error) {
@@ -63,7 +66,8 @@ export class WorkspaceGaugeService implements OnModuleInit {
   private async getDeletedWorkspacesCount(): Promise<number> {
     try {
       return this.workspaceRepository.count({
-        where: { deletedAt: { _type: 'not', _value: null } },
+        where: { deletedAt: Not(IsNull()) },
+        withDeleted: true,
       });
     } catch (error) {
       this.logger.error('Failed to count deleted workspaces', error);

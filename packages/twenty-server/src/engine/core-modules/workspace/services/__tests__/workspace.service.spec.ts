@@ -38,10 +38,10 @@ import { WorkspaceManagerService } from 'src/engine/workspace-manager/workspace-
 
 describe('WorkspaceService', () => {
   let service: WorkspaceService;
+  let userWorkspaceRepository: Repository<UserWorkspaceEntity>;
+  let userRepository: Repository<UserEntity>;
   let workspaceFirestoreRepository: WorkspaceFirestoreRepository;
   let workspaceRepository: Repository<WorkspaceEntity>;
-  let userRepository: Repository<UserEntity>;
-  let userWorkspaceRepository: Repository<UserWorkspaceEntity>;
   let workspaceCacheStorageService: WorkspaceCacheStorageService;
   let messageQueueService: MessageQueueService;
   let dnsManagerService: DnsManagerService;
@@ -68,6 +68,7 @@ describe('WorkspaceService', () => {
             findOne: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
+            save: jest.fn(),
           },
         },
         {
@@ -315,7 +316,7 @@ describe('WorkspaceService', () => {
 
       await service.deleteWorkspace(mockWorkspace.id, false);
 
-      expect(workspaceFirestoreRepository.update).not.toHaveBeenCalled();
+      expect(workspaceRepository.softDelete).not.toHaveBeenCalled();
       expect(workspaceCacheStorageService.flush).toHaveBeenCalledWith(
         mockWorkspace.id,
         mockWorkspace.metadataVersion,
@@ -338,11 +339,14 @@ describe('WorkspaceService', () => {
 
       expect(billingSubscriptionService.deleteSubscriptions).toHaveBeenCalled();
 
+      expect(workspaceRepository.softDelete).toHaveBeenCalledWith({
+        id: mockWorkspace.id,
+      });
       expect(workspaceFirestoreRepository.update).toHaveBeenCalledWith(
         mockWorkspace.id,
         expect.objectContaining({ deletedAt: expect.any(Date) })
       );
-      expect(workspaceFirestoreRepository.delete).not.toHaveBeenCalled();
+      expect(workspaceRepository.delete).not.toHaveBeenCalled();
     });
 
     it('should delete the custom domain when hard deleting a workspace with a custom domain', async () => {
@@ -381,10 +385,9 @@ describe('WorkspaceService', () => {
       await service.deleteWorkspace(mockWorkspace.id, true);
 
       expect(dnsManagerService.deleteHostnameSilently).not.toHaveBeenCalled();
-      expect(workspaceFirestoreRepository.update).toHaveBeenCalledWith(
-        mockWorkspace.id,
-        expect.objectContaining({ deletedAt: expect.any(Date) })
-      );
+      expect(workspaceRepository.softDelete).toHaveBeenCalledWith({
+        id: mockWorkspace.id,
+      });
     });
   });
 });

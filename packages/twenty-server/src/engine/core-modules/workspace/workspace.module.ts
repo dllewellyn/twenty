@@ -40,12 +40,11 @@ import { ViewModule } from 'src/engine/metadata-modules/view/view.module';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { WorkspaceDataSourceModule } from 'src/engine/workspace-datasource/workspace-datasource.module';
 import { WorkspaceManagerModule } from 'src/engine/workspace-manager/workspace-manager.module';
-import { MetadataEngineModule } from 'src/engine/metadata-modules/metadata-engine.module';
 
 @Module({
   imports: [
     TypeORMModule,
-    TypeOrmModule.forFeature([BillingSubscriptionEntity]),
+    TypeOrmModule.forFeature([BillingSubscriptionEntity, WorkspaceEntity]),
     MetricsModule,
     NestjsQueryGraphQLModule.forFeature({
       imports: [
@@ -55,6 +54,7 @@ import { MetadataEngineModule } from 'src/engine/metadata-modules/metadata-engin
         TokenModule,
         NestjsQueryTypeOrmModule.forFeature([
           UserEntity,
+          WorkspaceEntity,
           UserWorkspaceEntity,
           PublicDomainEntity,
         ]),
@@ -77,18 +77,17 @@ import { MetadataEngineModule } from 'src/engine/metadata-modules/metadata-engin
         ViewModule,
         WorkspaceManyOrAllFlatEntityMapsCacheModule,
         ApplicationModule,
-        MetadataEngineModule,
       ],
-      services: [WorkspaceFirestoreRepository, WorkspaceService],
+      services: [WorkspaceService],
       resolvers: workspaceAutoResolverOpts,
     }),
   ],
   exports: [WorkspaceService, CheckCustomDomainValidRecordsCronCommand, WorkspaceFirestoreRepository],
   providers: [
-    WorkspaceFirestoreRepository,
     WorkspaceResolver,
     WorkspaceService,
     WorkspaceGaugeService,
+    WorkspaceFirestoreRepository,
     CheckCustomDomainValidRecordsCronCommand,
     CheckCustomDomainValidRecordsCronJob,
   ],
