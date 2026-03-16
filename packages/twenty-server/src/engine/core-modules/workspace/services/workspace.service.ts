@@ -6,6 +6,7 @@ import assert from 'assert';
 import { msg } from '@lingui/core/macro';
 import { TypeOrmQueryService } from '@ptc-org/nestjs-query-typeorm';
 import { PermissionFlagType } from 'twenty-shared/constants';
+import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
 import { WorkspaceActivationStatus } from 'twenty-shared/workspace';
 import { DataSource, QueryRunner, Repository } from 'typeorm';
@@ -98,6 +99,7 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
   constructor(
     @InjectRepository(WorkspaceEntity)
     private readonly workspaceRepository: Repository<WorkspaceEntity>,
+    private readonly workspaceFirestoreRepository: WorkspaceFirestoreRepository,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(UserWorkspaceEntity)
@@ -135,9 +137,7 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     userWorkspaceId?: string;
     apiKey: ApiKeyEntity | undefined;
   }) {
-    const workspace = await this.workspaceRepository.findOneBy({
-      id: payload.id,
-    });
+    const workspace = await this.workspaceFirestoreRepository.findOne(payload.id);
 
     assertIsDefinedOrThrow(workspace, WorkspaceNotFoundDefaultError);
 
@@ -269,10 +269,10 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     let updatedWorkspace: WorkspaceEntity;
 
     try {
-      updatedWorkspace = await this.workspaceRepository.save({
+      updatedWorkspace = await this.workspaceFirestoreRepository.save({
         ...workspace,
         ...payload,
-      });
+      }) as WorkspaceEntity;
     } catch (error) {
       // revert custom domain registration on error
       if (payload.customDomain && customDomainRegistered) {
@@ -316,7 +316,7 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
       throw new Error('Workspace is not pending creation');
     }
 
-    await this.workspaceRepository.update(workspace.id, {
+    await this.workspaceFirestoreRepository.update(workspace.id, {
       activationStatus: WorkspaceActivationStatus.ONGOING_CREATION,
     });
 
@@ -339,22 +339,18 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
 
     const appVersion = this.twentyConfigService.get('APP_VERSION');
 
-    await this.workspaceRepository.update(workspace.id, {
+    await this.workspaceFirestoreRepository.update(workspace.id, {
       displayName: data.displayName,
       activationStatus: WorkspaceActivationStatus.ACTIVE,
       version: extractVersionMajorMinorPatch(appVersion),
     });
 
-    return await this.workspaceRepository.findOneBy({
-      id: workspace.id,
-    });
+    return (await this.workspaceFirestoreRepository.findOne(workspace.id))!;
   }
 
   async deleteWorkspace(id: string, softDelete = false) {
-    const workspace = await this.workspaceRepository.findOne({
-      where: { id },
-      withDeleted: true,
-    });
+    // In Firestore, findOne fetches the document regardless of deletedAt.
+    const workspace = await this.workspaceFirestoreRepository.findOne(id);
 
     assert(workspace, 'Workspace not found');
 
@@ -381,7 +377,7 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
     }
 
     if (softDelete) {
-      await this.workspaceRepository.softDelete({ id });
+      await this.workspaceFirestoreRepository.update(id, { deletedAt: new Date() });
 
       this.logger.log(`workspace ${id} soft deleted`);
 
@@ -412,7 +408,7 @@ export class WorkspaceService extends TypeOrmQueryService<WorkspaceEntity> {
       this.logger.log(`workspace ${id} custom domain deleted`);
     }
 
-    await this.workspaceRepository.delete(id);
+    await this.workspaceFirestoreRepository.delete(id);
 
     this.logger.log(`workspace ${id} hard deleted`);
 

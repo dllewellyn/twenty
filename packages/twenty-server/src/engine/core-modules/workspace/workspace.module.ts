@@ -26,6 +26,7 @@ import { CheckCustomDomainValidRecordsCronCommand } from 'src/engine/core-module
 import { CheckCustomDomainValidRecordsCronJob } from 'src/engine/core-modules/workspace/crons/jobs/check-custom-domain-valid-records.cron.job';
 import { WorkspaceService } from 'src/engine/core-modules/workspace/services/workspace.service';
 import { WorkspaceGaugeService } from 'src/engine/core-modules/workspace/workspace-gauge.service';
+import { WorkspaceFirestoreRepository } from 'src/engine/core-modules/workspace/repositories/workspace.firestore-repository';
 import { workspaceAutoResolverOpts } from 'src/engine/core-modules/workspace/workspace.auto-resolver-opts';
 import { WorkspaceEntity } from 'src/engine/core-modules/workspace/workspace.entity';
 import { WorkspaceResolver } from 'src/engine/core-modules/workspace/workspace.resolver';
@@ -39,6 +40,7 @@ import { ViewModule } from 'src/engine/metadata-modules/view/view.module';
 import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { WorkspaceDataSourceModule } from 'src/engine/workspace-datasource/workspace-datasource.module';
 import { WorkspaceManagerModule } from 'src/engine/workspace-manager/workspace-manager.module';
+import { MetadataEngineModule } from 'src/engine/metadata-modules/metadata-engine.module';
 
 @Module({
   imports: [
@@ -76,13 +78,15 @@ import { WorkspaceManagerModule } from 'src/engine/workspace-manager/workspace-m
         ViewModule,
         WorkspaceManyOrAllFlatEntityMapsCacheModule,
         ApplicationModule,
+        MetadataEngineModule,
       ],
-      services: [WorkspaceService],
+      services: [WorkspaceFirestoreRepository, WorkspaceService],
       resolvers: workspaceAutoResolverOpts,
     }),
   ],
-  exports: [WorkspaceService, CheckCustomDomainValidRecordsCronCommand],
+  exports: [WorkspaceService, CheckCustomDomainValidRecordsCronCommand, WorkspaceFirestoreRepository],
   providers: [
+    WorkspaceFirestoreRepository,
     WorkspaceResolver,
     WorkspaceService,
     WorkspaceGaugeService,
