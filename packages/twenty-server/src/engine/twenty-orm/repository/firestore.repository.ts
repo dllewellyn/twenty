@@ -115,10 +115,13 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
 
         // Handle basic where clauses
         for (const [key, value] of Object.entries(flattenedWhere)) {
-          // If it's a simple equality (including nulls)
+          // If it's a simple equality (including nulls, Dates, and Arrays)
           if (
             value !== undefined &&
-            (typeof value !== 'object' || value === null)
+            (typeof value !== 'object' ||
+              value === null ||
+              value instanceof Date ||
+              Array.isArray(value))
           ) {
             qs = qs.where(key, '==', value);
           } else if (value && typeof value === 'object') {
@@ -146,6 +149,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
                 qs = qs.where(key, 'array-contains-any', opValue);
               } else if (opType === 'between') {
                 qs = qs.where(key, '>=', opValue[0]).where(key, '<=', opValue[1]);
+              } else if (opType === 'startsWith') {
+                qs = qs
+                  .where(key, '>=', opValue)
+                  .where(key, '<', opValue + '\uf8ff');
               }
             }
           }
@@ -179,6 +186,20 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
 
     const snapshot = await qs.get();
     return snapshot.docs.map((doc) => doc.data() as T);
+  }
+
+  async findAndCount(options?: any): Promise<[T[], number]> {
+    const countOptions = options ? { ...options } : {};
+    delete countOptions.take;
+    delete countOptions.skip;
+    delete countOptions.cursor;
+
+    const [items, totalCount] = await Promise.all([
+      this.find(options),
+      this.count(countOptions),
+    ]);
+
+    return [items, totalCount];
   }
 
   async delete(id: string): Promise<admin.firestore.WriteResult> {

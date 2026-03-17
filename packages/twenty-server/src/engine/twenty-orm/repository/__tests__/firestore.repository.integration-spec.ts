@@ -71,10 +71,14 @@ describe('BaseFirestoreRepository Integration', () => {
   });
 
   afterAll(async () => {
-    // Clean up the test document
-    if (createdDocId) {
-      await repository.delete(createdDocId);
-    }
+    // Clean up all documents in the test collection
+    const snapshot = await db.collection('test_fields').get();
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+
     mockMetadataService.onModuleDestroy();
 
     // Delete the default app to prevent issues with other tests that might use firebase-admin
@@ -84,6 +88,16 @@ describe('BaseFirestoreRepository Integration', () => {
 
     // Restore fake timers to not affect other tests
     jest.useFakeTimers();
+  });
+
+  beforeEach(async () => {
+    // Clean up all documents in the test collection before each test
+    const snapshot = await db.collection('test_fields').get();
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
   });
 
   it('should initialize successfully with a valid schema', () => {
@@ -345,25 +359,29 @@ describe('BaseFirestoreRepository Integration', () => {
   });
 
   it('should support orderBy, limits, and cursor-based pagination', async () => {
+    const objectMetadataId = '123e4567-e89b-12d3-a456-426614174000';
     // Clear the collection to make pagination predictable, or use a specific prefix
     await repository.create({
-      objectMetadataId: '123',
+      objectMetadataId,
       universalIdentifier: 'page_1',
       name: 'page_1',
+      label: 'Page 1',
       type: 'TEXT',
       order: 1,
     });
     await repository.create({
-      objectMetadataId: '123',
+      objectMetadataId,
       universalIdentifier: 'page_2',
       name: 'page_2',
+      label: 'Page 2',
       type: 'TEXT',
       order: 2,
     });
     await repository.create({
-      objectMetadataId: '123',
+      objectMetadataId,
       universalIdentifier: 'page_3',
       name: 'page_3',
+      label: 'Page 3',
       type: 'TEXT',
       order: 3,
     });
@@ -436,5 +454,126 @@ describe('BaseFirestoreRepository Integration', () => {
 
     fetched = await repository.findOne(customId);
     expect(fetched?.label).toBe('Updated Upsert Field 1');
+  });
+
+  it('should support findAndCount', async () => {
+    const objectMetadataId = '123e4567-e89b-12d3-a456-426614174000';
+    const prefix = 'find_and_count_';
+    await repository.create({
+      objectMetadataId,
+      universalIdentifier: `${prefix}1`,
+      name: `${prefix}1`,
+      label: 'Find and Count 1',
+      type: 'TEXT',
+    });
+    await repository.create({
+      objectMetadataId,
+      universalIdentifier: `${prefix}2`,
+      name: `${prefix}2`,
+      label: 'Find and Count 2',
+      type: 'TEXT',
+    });
+
+    const [items, total] = await repository.findAndCount({
+      where: { name: { _type: 'startsWith', _value: prefix } },
+      take: 1,
+    });
+
+    expect(items.length).toBe(1);
+    expect(total).toBe(2);
+    expect(items[0].name).toContain(prefix);
+  });
+
+  it('should support startsWith operator', async () => {
+    const objectMetadataId = '123e4567-e89b-12d3-a456-426614174000';
+    await repository.create({
+      objectMetadataId,
+      universalIdentifier: 'prefix_test_1',
+      name: 'prefix_test_1',
+      label: 'Prefix Test 1',
+      type: 'TEXT',
+    });
+    await repository.create({
+      objectMetadataId,
+      universalIdentifier: 'prefix_test_2',
+      name: 'prefix_test_2',
+      label: 'Prefix Test 2',
+      type: 'TEXT',
+    });
+    await repository.create({
+      objectMetadataId,
+      universalIdentifier: 'other_test',
+      name: 'other_test',
+      label: 'Other Test',
+      type: 'TEXT',
+    });
+
+    const results = await repository.find({
+      where: { name: { _type: 'startsWith', _value: 'prefix_' } },
+    });
+
+    expect(results.length).toBe(2);
+    expect(results.map((r) => r.name).sort()).toEqual([
+      'prefix_test_1',
+      'prefix_test_2',
+    ]);
+  });
+
+  it('should support Date filtering', async () => {
+    const objectMetadataId = '123e4567-e89b-12d3-a456-426614174000';
+    const now = new Date();
+    const past = new Date(now.getTime() - 100000);
+    const future = new Date(now.getTime() + 100000);
+
+    await repository.create({
+      objectMetadataId,
+      universalIdentifier: 'date_past',
+      name: 'date_past',
+      label: 'Date Past',
+      type: 'TEXT',
+      createdAt: past,
+    });
+    await repository.create({
+      objectMetadataId,
+      universalIdentifier: 'date_future',
+      name: 'date_future',
+      label: 'Date Future',
+      type: 'TEXT',
+      createdAt: future,
+    });
+
+    // Test equality
+    const exactResults = await repository.find({
+      where: { createdAt: past },
+    });
+    expect(exactResults.length).toBe(1);
+    expect(exactResults[0].name).toBe('date_past');
+
+    // Test range
+    const rangeResults = await repository.find({
+      where: { createdAt: { _type: 'moreThan', _value: now } },
+    });
+    expect(rangeResults.length).toBe(1);
+    expect(rangeResults[0].name).toBe('date_future');
+  });
+
+  it('should support Array equality', async () => {
+    const objectMetadataId = '123e4567-e89b-12d3-a456-426614174000';
+    const tags = ['tag1', 'tag2'];
+    await repository.create({
+      objectMetadataId,
+      universalIdentifier: 'array_test_1',
+      name: 'array_test_1',
+      label: 'Array Test 1',
+      type: 'TEXT',
+      tags: tags,
+    });
+
+    const results = await repository.find({
+      where: { tags: tags },
+    });
+
+    expect(results.length).toBe(1);
+    expect(results[0].name).toBe('array_test_1');
   });
 });
