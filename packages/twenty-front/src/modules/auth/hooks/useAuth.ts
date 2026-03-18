@@ -188,7 +188,7 @@ export const useAuth = () => {
       );
 
       if (availableWorkspacesCount === 0) {
-        return createWorkspace();
+        return createWorkspace({ newTab: false });
       }
 
       if (availableWorkspacesCount === 1) {
