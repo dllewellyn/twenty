@@ -10,7 +10,9 @@ Standard objects are in-built objects with a set of attributes available for all
 Custom objects are objects that you can create to store information that is unique to your organization. They are not built-in; members of your workspace can create and customize custom objects to hold information that standard objects aren't suitable for.
 
 
-## High-level schema
+## High-level architecture
+
+Twenty has transitioned to a **Firebase-native architecture**. Custom object definitions are no longer stored in relational database tables. Instead, they are managed through a **JSON-schema driven metadata system** backed by Firestore.
 
 <div style={{textAlign: 'center'}}>
     <img src="/images/docs/server/custom-object-schema.png" alt="High level schema" />
@@ -18,24 +20,26 @@ Custom objects are objects that you can create to store information that is uniq
 
 <br/>
 
-## How it works
+## How it works: JSON-Schema Metadata
 
-Custom objects come from metadata tables that determine the shape, name, and type of the objects. All this information is present in the metadata schema database, consisting of tables:
+Custom objects are defined by JSON schemas stored in the `_metadata` collection within Firestore. This system determines the shape, name, and validation rules for each object.
 
-- **DataSource**: Details where the data is present.
-- **Object**: Describes the object and links to a DataSource.
-- **Field**: Outlines an Object's fields and connects to the Object.
+- **Metadata Collection**: Firestore collection containing JSON schemas for all workspace objects.
+- **Dynamic Validation**: The backend utilizes [Ajv](https://ajv.js.org/) to validate incoming data against these schemas in real-time.
+- **GraphQL Generation**: Twenty's engine dynamically generates a GraphQL schema based on these JSON definitions, enabling a type-safe API for custom data.
 
-To add a custom object, the workspaceMember will query the /metadata API. This updates the metadata accordingly and computes a GraphQL schema based on the metadata, storing it in a GQL cache for later use.
-<div style={{textAlign: 'center'}}>
-    <img src="/images/docs/server/add-custom-objects.jpeg" alt="Query the /metadata API to add custom objects" />
-</div>
+### Adding a Custom Object
+To add a custom object, a workspace member interacts with the metadata service. This service:
+1. Validates the proposed object structure.
+2. Persists the new JSON schema to the `_metadata` collection.
+3. Triggers a real-time update that refreshes the dynamic GraphQL schema across all server instances.
 
-<br/>
+### Fetching and Modifying Data
+When a client queries the `/graphql` or `/rest` endpoints:
+1. The request is intercepted by the workspace-specific resolver.
+2. The engine translates the request into a Firestore query.
+3. Data is validated against the corresponding JSON schema before being returned to the client or persisted to the database.
 
-To fetch data, the process involves making queries through the /graphql endpoint and passing them through the Query Resolver.
 <div style={{textAlign: 'center'}}>
     <img src="/images/docs/server/custom-object-schema.png" alt="Query the /graphql endpoint to fetch data" />
 </div>
-
-

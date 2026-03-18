@@ -14,6 +14,7 @@ Before you can install and use Twenty, make sure you install the following on yo
 - [Node v24.5.0](https://nodejs.org/en/download)
 - [yarn v4](https://yarnpkg.com/getting-started/install)
 - [nvm](https://github.com/nvm-sh/nvm/blob/master/README.md)
+- [Firebase CLI](https://firebase.google.com/docs/cli)
 
 <Warning>
 `npm` won't work, you should use `yarn` instead. Yarn is now shipped with Node.js, so you don't need to install it separately.
@@ -64,6 +65,8 @@ nvm install # installs recommended node version
 nvm use # use recommended node version
 
 corepack enable
+
+npm install -g firebase-tools
 ```
 
 </Tab>
@@ -99,7 +102,70 @@ cd twenty
 
 You should run all commands in the following steps from the root of the project.
 
-## Step 3: Set up a PostgreSQL Database
+## Step 3: Start Firebase Emulators
+
+Twenty is now **Firebase-native**. Core CRM functionality no longer requires a local PostgreSQL or Redis instance. Instead, it utilizes the Firebase Emulator Suite for Authentication and Firestore.
+
+In a new terminal window, start the emulators:
+
+```bash
+yarn firebase:emulators
+```
+
+The emulators provide:
+- **Firestore**: NoSQL database for records and metadata (Port 8080)
+- **Authentication**: User management and login flows (Port 9099)
+- **Emulator UI**: A web dashboard to inspect data at [http://localhost:4000](http://localhost:4000)
+
+<Info>
+To persist data across emulator restarts, use `yarn firebase:emulators:import` and `yarn firebase:emulators:export`.
+</Info>
+
+## Step 4: Setup environment variables
+
+Use environment variables or `.env` files to configure your project. More info [here](/developers/self-host/capabilities/setup)
+
+Copy the `.env.example` files in `/front` and `/server`:
+```bash
+cp ./packages/twenty-front/.env.example ./packages/twenty-front/.env
+cp ./packages/twenty-server/.env.example ./packages/twenty-server/.env
+```
+
+## Step 5: Installing dependencies
+To build Twenty and its workspaces, run:
+```bash
+yarn
+```
+Note that `npm` or `pnpm` won't work.
+
+## Step 6: Running the project
+
+Start the backend and frontend services:
+```bash
+yarn start
+```
+
+This command runs both the `twenty-server` and `twenty-front` packages.
+
+## Step 7: Use Twenty
+
+**Frontend**
+
+Twenty's frontend will be running at [http://localhost:3001](http://localhost:3001).
+
+**Backend**
+
+- Twenty's server will be up and running at [http://localhost:3000](http://localhost:3000)
+- The GraphQL API can be accessed at [http://localhost:3000/graphql](http://localhost:3000/graphql)
+- The REST API can be reached at [http://localhost:3000/rest](http://localhost:3000/rest)
+
+---
+
+# Archives (Legacy Relational Setup)
+
+The following steps are for legacy development environments that still require PostgreSQL and Redis.
+
+## [Legacy] Step 3: Set up a PostgreSQL Database
 
 <Tabs>
   <Tab title="Linux">
@@ -124,103 +190,23 @@ You should run all commands in the following steps from the root of the project.
       brew services start postgresql@16
       psql postgres -c "CREATE DATABASE \"default\";" -c "CREATE DATABASE test;"
     ```
-
-    You can verify if the PostgreSQL server is running by executing:
-    ```bash
-      brew services list
-    ```
-
-    The installer might not create the `postgres` user by default when installing
-    via Homebrew on MacOS. Instead, it creates a PostgreSQL role that matches your macOS
-    username (e.g., "john").
-    To check and create the `postgres` user if necessary, follow these steps:
-    ```bash
-      # Connect to PostgreSQL
-      psql postgres
-      or
-      psql -U $(whoami) -d postgres
-    ```
-
-    Once at the psql prompt (postgres=#), run:
-     ```bash
-      # List existing PostgreSQL roles
-      \du
-    ```
-    You'll see output similar to:
-     ```bash
-      Role name | Attributes  | Member of
-      -----------+-------------+-----------
-      john      | Superuser   | {}
-    ```
-
-    If you do not see a `postgres` role listed, proceed to the next step.
-    Create the `postgres` role manually:
-     ```bash
-      CREATE ROLE postgres WITH SUPERUSER LOGIN;
-    ```
-    This creates a superuser role named `postgres` with login access.
-      ```bash
-      Role name | Attributes  | Member of
-      -----------+-------------+-----------
-      postgres  | Superuser   | {}
-      john      | Superuser   | {}
-    ```
-
-    **Option 2:** If you have docker installed:
-    ```bash
-      make -C packages/twenty-docker postgres-on-docker
-    ```
   </Tab>
   <Tab title="Windows (WSL)">
-    All the following steps are to be run in the WSL terminal (within your virtual machine)
-
     **Option 1:** To provision your Postgresql locally:
-    Use the following link to install Postgresql on your Linux virtual machine: [Postgresql Installation](https://www.postgresql.org/download/linux/)
+    [Postgresql Installation](https://www.postgresql.org/download/linux/)
     ```bash
       psql postgres -c "CREATE DATABASE \"default\";" -c "CREATE DATABASE test;"
     ```
-    Note: You might need to add `sudo -u postgres` to the command before `psql` to avoid permission errors.
-
-    **Option 2:** If you have docker installed:
-    Running Docker on WSL adds an extra layer of complexity.
-    Only use this option if you are comfortable with the extra steps involved, including turning on [Docker Desktop WSL2](https://docs.docker.com/desktop/wsl).
-    ```bash
-      make -C packages/twenty-docker postgres-on-docker
-    ```
   </Tab>
 </Tabs>
 
-You can now access the database at [localhost:5432](localhost:5432), with user `postgres` and password `postgres` .
-
-## Step 4: Set up a Redis Database (cache)
-Twenty requires a redis cache to provide the best performance
+## [Legacy] Step 4: Set up a Redis Database (cache)
+Twenty requires a redis cache for the legacy BullMQ-based worker.
 
 <Tabs>
   <Tab title="Linux">
     **Option 1:** To provision your Redis locally:
-    Use the following link to install Redis on your Linux machine: [Redis Installation](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-linux/)
-
-    **Option 2:** If you have docker installed:
-    ```bash
-      make -C packages/twenty-docker redis-on-docker
-    ```
-  </Tab>
-  <Tab title="Mac OS">
-    **Option 1 (preferred):** To provision your Redis locally with `brew`:
-    ```bash
-    brew install redis
-    ```
-    Start your redis server:
-    ```brew services start redis```
-
-    **Option 2:** If you have docker installed:
-    ```bash
-      make -C packages/twenty-docker redis-on-docker
-    ```
-  </Tab>
-  <Tab title="Windows (WSL)">
-    **Option 1:** To provision your Redis locally:
-    Use the following link to install Redis on your Linux virtual machine: [Redis Installation](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-linux/)
+    [Redis Installation](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-linux/)
 
     **Option 2:** If you have docker installed:
     ```bash
@@ -228,81 +214,6 @@ Twenty requires a redis cache to provide the best performance
     ```
   </Tab>
 </Tabs>
-
-If you need a Client GUI, we recommend [redis insight](https://redis.io/insight/) (free version available)
-
-## Step 5: Setup environment variables
-
-Use environment variables or `.env` files to configure your project. More info [here](/developers/self-host/capabilities/setup)
-
-Copy the `.env.example` files in `/front` and `/server`:
-```bash
-cp ./packages/twenty-front/.env.example ./packages/twenty-front/.env
-cp ./packages/twenty-server/.env.example ./packages/twenty-server/.env
-```
-
-<Info>
-**Multi-Workspace Mode:** By default, Twenty runs in single-workspace mode where only one workspace can be created. To enable multi-workspace support (useful for testing subdomain-based features), set `IS_MULTIWORKSPACE_ENABLED=true` in your server `.env` file. See [Multi-Workspace Mode](/developers/self-host/capabilities/setup#multi-workspace-mode) for details.
-</Info>
-
-## Step 6: Installing dependencies
-To build Twenty server and seed some data into your database, run the following command:
-```bash
-yarn
-```
-Note that `npm` or `pnpm` won't work
-
-## Step 7: Running the project
-
-<Tabs>
-  <Tab title="Linux">
-    Depending on your Linux distribution, Redis server might be started automatically.
-    If not, check the [Redis installation guide](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/) for your distro.
-  </Tab>
-  <Tab title="Mac OS">
-  Redis should already be running. If not, run:
-    ```bash
-    brew services start redis
-    ```
-  </Tab>
-  <Tab title="Windows (WSL)">
-    Depending on your Linux distribution, Redis server might be started automatically.
-    If not, check the [Redis installation guide](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/) for your distro.
-  </Tab>
-</Tabs>
-
-
-Set up your database with the following command:
-```bash
-npx nx database:reset twenty-server
-```
-
-Start the server, the worker and the frontend services:
-```bash
-npx nx start twenty-server
-npx nx worker twenty-server
-npx nx start twenty-front
-```
-
-Alternatively, you can start all services at once:
-```bash
-npx nx start
-```
-
-## Step 8: Use Twenty
-
-**Frontend**
-
-Twenty's frontend will be running at [http://localhost:3001](http://localhost:3001).
-You can log in using the default demo account: `tim@apple.dev` (password: `tim@apple.dev`)
-
-**Backend**
-
-- Twenty's server will be up and running at [http://localhost:3000](http://localhost:3000)
-- The GraphQL API can be accessed at [http://localhost:3000/graphql](http://localhost:3000/graphql)
-- The REST API can be reached at [http://localhost:3000/rest](http://localhost:3000/rest)
-
-
 
 ## Troubleshooting
 
