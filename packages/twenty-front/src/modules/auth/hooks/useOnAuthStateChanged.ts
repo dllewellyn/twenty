@@ -44,6 +44,7 @@ export const useOnAuthStateChanged = () => {
           setCurrentUser(null);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error handling auth state change:', error);
       } finally {
         setIsCurrentUserLoaded(true);

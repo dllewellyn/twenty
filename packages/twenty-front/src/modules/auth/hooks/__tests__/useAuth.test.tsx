@@ -1,6 +1,12 @@
 import { renderHook, act } from '@testing-library/react';
 import { useAuth } from '../useAuth';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  signInWithPopup,
+  GoogleAuthProvider
+} from 'firebase/auth';
 import { MemoryRouter } from 'react-router-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import { Provider } from 'jotai';
@@ -39,6 +45,8 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
 jest.mock('firebase/auth', () => ({
   signInWithEmailAndPassword: jest.fn().mockResolvedValue({ user: { getIdToken: jest.fn().mockResolvedValue('token') } }),
   createUserWithEmailAndPassword: jest.fn().mockResolvedValue({ user: { getIdToken: jest.fn().mockResolvedValue('token') } }),
+  signInWithPopup: jest.fn().mockResolvedValue({ user: { getIdToken: jest.fn().mockResolvedValue('token') } }),
+  GoogleAuthProvider: jest.fn(),
   sendEmailVerification: jest.fn(),
   signOut: jest.fn(),
   getAuth: jest.fn(),
@@ -91,5 +99,20 @@ describe('useAuth', () => {
     });
 
     expect(signOut).toHaveBeenCalled();
+  });
+
+  it('should call signInWithPopup for Google login', async () => {
+    const { result } = renderHook(() => useAuth(), { wrapper: Wrapper });
+
+    await act(async () => {
+      try {
+        await result.current.signInWithGoogle({ action: 'sign-in' });
+      } catch (e) {
+        // Handle workspace creation redirect catch
+      }
+    });
+
+    expect(signInWithPopup).toHaveBeenCalled();
+    expect(GoogleAuthProvider).toHaveBeenCalled();
   });
 });
