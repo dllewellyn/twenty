@@ -1,6 +1,7 @@
 import { availableWorkspacesState } from '@/auth/states/availableWorkspacesState';
 import { returnToPathState } from '@/auth/states/returnToPathState';
 import { useBuildWorkspaceUrl } from '@/domain-manager/hooks/useBuildWorkspaceUrl';
+import { useRedirectToWorkspaceDomain } from '@/domain-manager/hooks/useRedirectToWorkspaceDomain';
 import { styled } from '@linaria/react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { FormProvider } from 'react-hook-form';
@@ -138,6 +139,7 @@ export const SignInUpGlobalScopeForm = () => {
   const authProviders = useAtomStateValue(authProvidersState);
   const signInUpStep = useAtomStateValue(signInUpStepState);
   const { buildWorkspaceUrl } = useBuildWorkspaceUrl();
+  const { redirectToWorkspaceDomain } = useRedirectToWorkspaceDomain();
   const { signOut } = useAuth();
 
   const { createWorkspace } = useSignUpInNewWorkspace();
@@ -148,13 +150,15 @@ export const SignInUpGlobalScopeForm = () => {
   const { handleResetPassword } = useHandleResetPassword();
   const returnToPath = useAtomStateValue(returnToPathState);
 
-  const getAvailableWorkspaceUrl = (availableWorkspace: AvailableWorkspace) => {
+  const handleWorkspaceSelection = async (
+    availableWorkspace: AvailableWorkspace,
+  ) => {
     const { pathname, searchParams } = getAvailableWorkspacePathAndSearchParams(
       availableWorkspace,
       { email: form.getValues('email') },
     );
 
-    return buildWorkspaceUrl(
+    await redirectToWorkspaceDomain(
       getWorkspaceUrl(availableWorkspace.workspaceUrls),
       pathname,
       {
@@ -175,7 +179,23 @@ export const SignInUpGlobalScopeForm = () => {
             ].map((availableWorkspace) => (
               <UndecoratedLink
                 key={availableWorkspace.id}
-                to={getAvailableWorkspaceUrl(availableWorkspace)}
+                to={buildWorkspaceUrl(
+                  getWorkspaceUrl(availableWorkspace.workspaceUrls),
+                  getAvailableWorkspacePathAndSearchParams(availableWorkspace, {
+                    email: form.getValues('email'),
+                  }).pathname,
+                  {
+                    ...getAvailableWorkspacePathAndSearchParams(
+                      availableWorkspace,
+                      { email: form.getValues('email') },
+                    ).searchParams,
+                    ...(isNonEmptyString(returnToPath) ? { returnToPath } : {}),
+                  },
+                )}
+                onClick={(event) => {
+                  event.preventDefault();
+                  handleWorkspaceSelection(availableWorkspace);
+                }}
               >
                 <StyledWorkspaceItem>
                   <StyledWorkspaceContent>
