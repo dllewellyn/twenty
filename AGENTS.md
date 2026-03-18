@@ -1,4 +1,4 @@
-I will update `AGENTS.md` by adding the new insights related to documentation parity, marketplace app definitions, ecosystem tooling, and Firebase Admin initialization as a new entry for `2026-03-18`.
+I will summarize the technical insights from the recent merge, focusing on the modularization of authentication flows, dynamic redirection strategies, and enhanced multi-tenant user experiences, and then I will update the `AGENTS.md` file accordingly.
 
 **2026-03-06**: Initialized ADL environment.
 **2026-03-06**: Pivoted project goal to a **Firebase-native refactor**. Identified JSON schemas as the replacement for the dynamic PostgreSQL metadata engine. Decided to keep the existing backend in **Google Cloud Run** for a hybrid migration approach.
@@ -193,3 +193,9 @@ I will update `AGENTS.md` by adding the new insights related to documentation pa
     - **Standardized Marketplace App Definitions**: The delivery of the `Community Marketplace Catalog` establishes a robust pattern for building marketplace apps. Key components include `ApplicationConfig` declarations for variables that are injected into logic function environments, and explicit `triggers` defined within `ServerlessFunctionConfig`.
     - **Ecosystem Tooling Consolidation**: The integration of `create-twenty-app` and `twenty-cli` into the monorepo provides a unified toolchain for the entire lifecycle—from scaffolding and local development with the Firebase Emulator Suite to cloud-native deployment.
     - **Resilient Firebase Admin Initialization**: Enhanced the `FirebaseAdminProvider` to support the `FIREBASE_CONFIG` environment variable, enabling automatic discovery of `projectId` and `databaseURL` in GCP environments and providing a reliable fallback for manual service account configuration.
+**2026-03-18**: Implemented **SignInUp Workspace Selection** modularization to improve authentication flow maintainability.
+    - **Decoupled Selection Logic**: Extracting workspace selection into a dedicated `SignInUpWorkspaceSelection` component separates it from global scope forms, enabling cleaner state management and more focused unit testing.
+    - **Cross-Domain Navigation Patterns**: Utilizing `getAvailableWorkspacePathAndSearchParams` and `buildWorkspaceUrl` ensures robust redirection across tenant domains after authentication, correctly preserving `returnToPath` parameters.
+    - **State-Driven UI Branching**: Emphasized a `useMemo`-driven pattern in the `SignInUp` orchestrator for dynamic form rendering based on the `signInUpStep`, providing a scalable approach to complex, multi-stage authentication processes.
+    - **Flexible Auth Provider Rendering**: Designing forms to dynamically render SSO providers (Google/Microsoft) based on `authProvidersState` ensures that the authentication UI remains synchronized with backend configuration.
+    - **Enhanced Multi-Tenant UX**: Consolidating "available for sign in" and "available for sign up" (invitations) into a single workspace selection list provides a more intuitive and efficient onboarding experience for multi-tenant users.
