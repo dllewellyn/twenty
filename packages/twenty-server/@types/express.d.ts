@@ -7,10 +7,13 @@ import { type UserWorkspace } from 'src/engine/core-modules/user-workspace/user-
 import { type User } from 'src/engine/core-modules/user/user.entity';
 import { type AuthProviderEnum } from 'src/engine/core-modules/workspace/types/workspace.type';
 import { type Workspace } from 'src/engine/core-modules/workspace/workspace.entity';
+import { type WorkspaceMemberWorkspaceEntity } from 'src/modules/workspace-member/standard-objects/workspace-member.workspace-entity';
 
 declare module 'express-serve-static-core' {
   interface Request {
     user?: User | null;
+    firebaseUid?: string;
+    firebaseWorkspaceId?: string;
     apiKey?: ApiKey | null;
     application?: ApplicationEntity | null;
     userWorkspace?: UserWorkspace;

@@ -9,6 +9,8 @@ export const bindDataToRequestObject = (
   metadataVersion: number | undefined,
 ) => {
   request.user = data.user;
+  request.firebaseUid = data.firebaseUid;
+  request.firebaseWorkspaceId = data.firebaseWorkspaceId;
   request.apiKey = data.apiKey;
   request.application = data.application;
   request.userWorkspace = data.userWorkspace;

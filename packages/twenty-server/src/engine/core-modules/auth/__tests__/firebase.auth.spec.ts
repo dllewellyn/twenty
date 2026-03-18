@@ -109,6 +109,7 @@ describe('FirebaseAuthStrategy & FirebaseAuthGuard', () => {
 
     it('should resolve AuthContext successfully', async () => {
       firebaseAdminService.verifyIdToken.mockResolvedValue({
+        uid: 'user-uid',
         email: 'test@example.com',
       });
 
@@ -128,6 +129,7 @@ describe('FirebaseAuthStrategy & FirebaseAuthGuard', () => {
       const context = await strategy.validate(validRequest);
 
       expect(context.user).toEqual(mockUser);
+      expect(context.firebaseUid).toEqual('user-uid');
       expect(context.workspace).toEqual(mockWorkspace);
       expect(context.userWorkspace).toEqual(mockUserWorkspace);
       expect(context.workspaceMember).toEqual({ id: 'member-1' });
@@ -141,6 +143,7 @@ describe('FirebaseAuthStrategy & FirebaseAuthGuard', () => {
       } as unknown as Request;
 
       firebaseAdminService.verifyIdToken.mockResolvedValue({
+        uid: 'user-uid',
         email: 'test@example.com',
       });
 

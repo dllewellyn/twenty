@@ -4,4 +4,7 @@ import { type AUTH_CONTEXT_USER_SELECT_FIELDS } from 'src/engine/core-modules/au
 export type AuthContextUser = Pick<
   UserEntity,
   (typeof AUTH_CONTEXT_USER_SELECT_FIELDS)[number]
->;
+> & {
+  firebaseUid?: string;
+  firebaseWorkspaceId?: string;
+};
