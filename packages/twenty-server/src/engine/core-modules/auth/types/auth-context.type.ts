@@ -11,6 +11,8 @@ export { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-co
 
 export type RawAuthContext = {
   user?: AuthContextUser | null | undefined;
+  firebaseUid?: string;
+  firebaseWorkspaceId?: string;
   apiKey?: ApiKeyEntity | null | undefined;
   workspaceMemberId?: string;
   workspaceMember?: WorkspaceMemberWorkspaceEntity;

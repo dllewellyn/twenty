@@ -120,8 +120,16 @@ export class FirebaseAuthStrategy extends PassportStrategy(
       );
     }
 
+    const userWithTokenData = {
+      ...user,
+      firebaseUid: decodedToken.uid,
+      firebaseWorkspaceId: decodedToken.workspaceId,
+    };
+
     let context: AuthContext = {
-      user,
+      user: userWithTokenData,
+      firebaseUid: decodedToken.uid,
+      firebaseWorkspaceId: decodedToken.workspaceId,
       workspace,
       userWorkspace,
       userWorkspaceId: userWorkspace.id,
