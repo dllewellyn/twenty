@@ -2,6 +2,7 @@ import { AppRouterProviders } from '@/app/components/AppRouterProviders';
 import { LazyRoute } from '@/app/components/LazyRoute';
 import { SettingsRoutes } from '@/app/components/SettingsRoutes';
 import { VerifyLoginTokenEffect } from '@/auth/components/VerifyLoginTokenEffect';
+import { RequireAuth } from '@/auth/components/RequireAuth';
 
 import { VerifyEmailEffect } from '@/auth/components/VerifyEmailEffect';
 import indexAppPath from '@/navigation/utils/indexAppPath';
@@ -142,91 +143,113 @@ export const useCreateAppRouter = (
           <Route
             path={AppPath.CreateWorkspace}
             element={
-              <LazyRoute>
-                <CreateWorkspace />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <CreateWorkspace />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.CreateProfile}
             element={
-              <LazyRoute>
-                <CreateProfile />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <CreateProfile />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.SyncEmails}
             element={
-              <LazyRoute>
-                <SyncEmails />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <SyncEmails />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.InviteTeam}
             element={
-              <LazyRoute>
-                <InviteTeam />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <InviteTeam />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.PlanRequired}
             element={
-              <LazyRoute>
-                <ChooseYourPlan />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <ChooseYourPlan />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.PlanRequiredSuccess}
             element={
-              <LazyRoute>
-                <PaymentSuccess />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <PaymentSuccess />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.BookCallDecision}
             element={
-              <LazyRoute>
-                <BookCallDecision />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <BookCallDecision />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.BookCall}
             element={
-              <LazyRoute>
-                <BookCall />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <BookCall />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route path={indexAppPath.getIndexAppPath()} element={<></>} />
           <Route
             path={AppPath.RecordIndexPage}
             element={
-              <LazyRoute>
-                <RecordIndexPage />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <RecordIndexPage />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.RecordShowPage}
             element={
-              <LazyRoute>
-                <RecordShowPage />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <RecordShowPage />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
           <Route
             path={AppPath.SettingsCatchAll}
             element={
-              <SettingsRoutes
-                isFunctionSettingsEnabled={isFunctionSettingsEnabled}
-                isAdminPageEnabled={isAdminPageEnabled}
-              />
+              <RequireAuth>
+                <SettingsRoutes
+                  isFunctionSettingsEnabled={isFunctionSettingsEnabled}
+                  isAdminPageEnabled={isAdminPageEnabled}
+                />
+              </RequireAuth>
             }
           />
           <Route
@@ -242,9 +265,11 @@ export const useCreateAppRouter = (
           <Route
             path={AppPath.Authorize}
             element={
-              <LazyRoute>
-                <Authorize />
-              </LazyRoute>
+              <RequireAuth>
+                <LazyRoute>
+                  <Authorize />
+                </LazyRoute>
+              </RequireAuth>
             }
           />
         </Route>

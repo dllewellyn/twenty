@@ -6,43 +6,52 @@ import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomStat
 import { tokenPairState } from '@/auth/states/tokenPairState';
 import { currentUserState } from '@/auth/states/currentUserState';
 import { useLoadCurrentUser } from '@/users/hooks/useLoadCurrentUser';
+import { isCurrentUserLoadedState } from '@/auth/states/isCurrentUserLoadedState';
 
 export const useOnAuthStateChanged = () => {
   const setTokenPair = useSetAtomState(tokenPairState);
   const setCurrentUser = useSetAtomState(currentUserState);
+  const setIsCurrentUserLoaded = useSetAtomState(isCurrentUserLoadedState);
   const { loadCurrentUser } = useLoadCurrentUser();
 
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
-      if (user) {
-        // User is signed in, get the new token
-        const token = await user.getIdToken();
+      try {
+        if (user) {
+          // User is signed in, get the new token
+          const token = await user.getIdToken();
 
-        // Update local token pair state
-        setTokenPair((prev) => {
-          if (!prev) {
+          // Update local token pair state
+          setTokenPair((prev) => {
+            if (!prev) {
+              return {
+                accessOrWorkspaceAgnosticToken: { token, expiresAt: '' },
+                refreshToken: { token: '', expiresAt: '' },
+              };
+            }
             return {
+              ...prev,
               accessOrWorkspaceAgnosticToken: { token, expiresAt: '' },
-              refreshToken: { token: '', expiresAt: '' },
             };
-          }
-          return {
-            ...prev,
-            accessOrWorkspaceAgnosticToken: { token, expiresAt: '' },
-          };
-        });
+          });
 
-        // Update current user state
-        const { user: currentUser } = await loadCurrentUser();
-        setCurrentUser(currentUser);
-      } else {
-        // User is signed out, clear the local states
-        setTokenPair(null);
-        setCurrentUser(null);
+          // Update current user state
+          const { user: currentUser } = await loadCurrentUser();
+          setCurrentUser(currentUser);
+        } else {
+          // User is signed out, clear the local states
+          setTokenPair(null);
+          setCurrentUser(null);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error handling auth state change:', error);
+      } finally {
+        setIsCurrentUserLoaded(true);
       }
     });
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [setTokenPair, setCurrentUser, loadCurrentUser]);
+  }, [setTokenPair, setCurrentUser, loadCurrentUser, setIsCurrentUserLoaded]);
 };
