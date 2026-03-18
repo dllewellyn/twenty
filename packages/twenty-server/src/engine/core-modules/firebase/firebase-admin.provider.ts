@@ -20,11 +20,11 @@ export const FirebaseAdminProvider: Provider = {
       'FIREBASE_SERVICE_ACCOUNT_KEY_PATH',
     );
     let databaseURL = configService.get('FIREBASE_DATABASE_URL');
-    const firebaseConfigStr = configService.get('FIREBASE_CONFIG');
+    const firebaseConfigString = configService.get('FIREBASE_CONFIG');
 
-    if (firebaseConfigStr) {
+    if (firebaseConfigString) {
       try {
-        const firebaseConfig = JSON.parse(firebaseConfigStr);
+        const firebaseConfig = JSON.parse(firebaseConfigString);
 
         if (!projectId && firebaseConfig.projectId) {
           projectId = firebaseConfig.projectId;
