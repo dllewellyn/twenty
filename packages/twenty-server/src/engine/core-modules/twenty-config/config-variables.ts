@@ -1687,6 +1687,15 @@ export class ConfigVariables {
   })
   @IsOptional()
   FIREBASE_DATABASE_URL?: string;
+
+  @ConfigVariablesMetadata({
+    group: ConfigVariablesGroup.FIREBASE,
+    description: 'The Firebase configuration JSON string',
+    type: ConfigVariableType.STRING,
+    isSensitive: true,
+  })
+  @IsOptional()
+  FIREBASE_CONFIG?: string;
 }
 
 export const validate = (config: Record<string, unknown>): ConfigVariables => {
