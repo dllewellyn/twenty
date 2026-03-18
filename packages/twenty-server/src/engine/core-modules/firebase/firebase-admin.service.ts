@@ -27,6 +27,15 @@ export class FirebaseAdminService {
     }
   }
 
+  public get firestore(): admin.firestore.Firestore {
+    try {
+      return this.firebaseApp.firestore();
+    } catch (error) {
+      this.logger.error('Failed to initialize Firestore', error);
+      throw new InternalServerErrorException('Failed to initialize Firestore');
+    }
+  }
+
   public async verifyIdToken(
     token: string,
   ): Promise<admin.auth.DecodedIdToken> {
