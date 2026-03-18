@@ -128,7 +128,8 @@ Below are a few features we have implemented to date:
 # Stack
 - [TypeScript](https://www.typescriptlang.org/)
 - [Nx](https://nx.dev/)
-- [NestJS](https://nestjs.com/), with [BullMQ](https://bullmq.io/), [PostgreSQL](https://www.postgresql.org/), [Redis](https://redis.io/)
+- [NestJS](https://nestjs.com/)
+- [Firebase](https://firebase.google.com/) (Auth, Firestore, Hosting)
 - [React](https://reactjs.org/), with [Jotai](https://jotai.org/), [Linaria](https://linaria.dev/) and [Lingui](https://lingui.dev/)
 
 
