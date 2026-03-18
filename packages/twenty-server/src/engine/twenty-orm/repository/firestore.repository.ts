@@ -1,6 +1,7 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Optional } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FIREBASE_ADMIN_APP } from '../../core-modules/firebase/firebase.constants';
+import { z } from 'zod';
+import { FIREBASE_ADMIN_APP, FIRESTORE } from '../../core-modules/firebase/firebase.constants';
 import { MetadataService } from '../../metadata-modules/metadata.service';
 
 /**
@@ -18,20 +19,30 @@ import { MetadataService } from '../../metadata-modules/metadata.service';
 export class BaseFirestoreRepository<T extends Record<string, any>> {
   protected readonly db: admin.firestore.Firestore;
   protected readonly collection: admin.firestore.CollectionReference;
+  protected readonly zodSchema?: z.ZodSchema<T>;
 
   constructor(
     protected readonly collectionName: string,
     protected readonly metadataService: MetadataService,
     protected readonly workspaceId: string,
-    @Inject(FIREBASE_ADMIN_APP) protected readonly firebaseApp?: admin.app.App,
+    @Optional() @Inject(FIREBASE_ADMIN_APP) protected readonly firebaseApp?: admin.app.App,
+    @Optional() @Inject(FIRESTORE) firestore?: admin.firestore.Firestore,
+    zodSchema?: z.ZodSchema<T>,
   ) {
-    this.db = this.firebaseApp
-      ? this.firebaseApp.firestore()
-      : admin.firestore();
+    this.zodSchema = zodSchema;
+    this.db =
+      firestore ??
+      (this.firebaseApp && typeof (this.firebaseApp as any).firestore === 'function'
+        ? (this.firebaseApp as any).firestore()
+        : admin.firestore());
     this.collection = this.db.collection(this.collectionName);
   }
 
   async create(data: T): Promise<admin.firestore.DocumentReference> {
+    if (this.zodSchema) {
+      this.zodSchema.parse(data);
+    }
+
     const { validator } = await this.metadataService.getValidator(
       this.collectionName,
       this.workspaceId,
@@ -49,6 +60,15 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     id: string,
     data: Partial<T>,
   ): Promise<admin.firestore.WriteResult> {
+    if (this.zodSchema) {
+      if (this.zodSchema instanceof z.ZodObject) {
+        this.zodSchema.partial().parse(data);
+      } else {
+        // Fallback for non-object schemas if needed
+        this.zodSchema.parse(data);
+      }
+    }
+
     const { partialValidator } = await this.metadataService.getValidator(
       this.collectionName,
       this.workspaceId,
@@ -70,7 +90,9 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       if (!doc.exists) {
         return null;
       }
-      return doc.data() as T;
+      const data = doc.data() as T;
+
+      return this.zodSchema ? this.zodSchema.parse(data) : data;
     } else {
       const docs = await this.find({ ...idOrOptions, take: 1 });
       return docs.length > 0 ? docs[0] : null;
@@ -185,7 +207,11 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     qs = this.applyOptionsToQuery(qs, options);
 
     const snapshot = await qs.get();
-    return snapshot.docs.map((doc) => doc.data() as T);
+    const results = snapshot.docs.map((doc) => doc.data() as T);
+
+    return this.zodSchema
+      ? results.map((data) => this.zodSchema!.parse(data))
+      : results;
   }
 
   async findAndCount(options?: any): Promise<[T[], number]> {
@@ -212,16 +238,27 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       this.workspaceId,
     );
 
-    if (Array.isArray(data)) {
-      for (const item of data) {
-        const isValid = validator(item);
-        if (!isValid) {
-          throw new Error(
-            `Validation failed: ${JSON.stringify(validator.errors)}`,
-          );
+    const items = Array.isArray(data) ? data : [data];
+
+    for (const item of items) {
+      if (this.zodSchema) {
+        // We use partial parse for save as it might be an update
+        if (this.zodSchema instanceof z.ZodObject) {
+          this.zodSchema.partial().parse(item);
+        } else {
+          this.zodSchema.parse(item);
         }
       }
 
+      const isValid = validator(item);
+      if (!isValid) {
+        throw new Error(
+          `Validation failed: ${JSON.stringify(validator.errors)}`,
+        );
+      }
+    }
+
+    if (Array.isArray(data)) {
       const batch = this.db.batch();
       for (const item of data) {
         // If the item already has an ID field, use it as the document ID
@@ -237,12 +274,6 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       await batch.commit();
       return data;
     } else {
-      const isValid = validator(data);
-      if (!isValid) {
-        throw new Error(
-          `Validation failed: ${JSON.stringify(validator.errors)}`,
-        );
-      }
       const docRef = data.id
         ? this.collection.doc(data.id)
         : this.collection.doc();
@@ -268,6 +299,17 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   ): Promise<any> {
     // Basic upsert logic. TypeORM's Upsert requires data and options.
     const items = Array.isArray(data) ? data : [data];
+
+    for (const item of items) {
+      if (this.zodSchema) {
+        if (this.zodSchema instanceof z.ZodObject) {
+          this.zodSchema.partial().parse(item);
+        } else {
+          this.zodSchema.parse(item);
+        }
+      }
+    }
+
     const batch = this.db.batch();
 
     for (const item of items) {
@@ -298,6 +340,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     const items = Array.isArray(data) ? data : [data];
 
     for (const item of items) {
+      if (this.zodSchema) {
+        this.zodSchema.parse(item);
+      }
+
       const isValid = validator(item);
       if (!isValid) {
         throw new Error(

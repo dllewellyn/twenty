@@ -1,7 +1,7 @@
 import { Provider } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 
-import { FIREBASE_ADMIN_APP } from './firebase.constants';
+import { FIREBASE_ADMIN_APP, FIRESTORE } from './firebase.constants';
 import { TwentyConfigService } from '../twenty-config/twenty-config.service';
 
 export const FirebaseAdminProvider: Provider = {
@@ -42,5 +42,13 @@ export const FirebaseAdminProvider: Provider = {
     }
 
     return admin.initializeApp(config);
+  },
+};
+
+export const FirestoreProvider: Provider = {
+  provide: FIRESTORE,
+  inject: [FIREBASE_ADMIN_APP],
+  useFactory: (firebaseApp: admin.app.App): admin.firestore.Firestore => {
+    return firebaseApp.firestore();
   },
 };
