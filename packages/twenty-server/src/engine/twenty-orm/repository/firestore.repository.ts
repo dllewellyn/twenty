@@ -86,7 +86,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     return this.collection.doc(id).update(validatedData as any);
   }
 
-  async findOne(idOrOptions: string | any): Promise<T | null> {
+  async findOne(idOrOptions: string | Record<string, any>): Promise<T | null> {
     if (typeof idOrOptions === 'string') {
       const doc = await this.collection.doc(idOrOptions).get();
       if (!doc.exists) {
@@ -131,7 +131,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
 
   private applyOptionsToQuery(
     qs: admin.firestore.Query,
-    options?: any,
+    options?: Record<string, any>,
   ): admin.firestore.Query {
     if (options) {
       if (options.where) {
@@ -204,7 +204,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     return qs;
   }
 
-  async find(options?: any): Promise<T[]> {
+  async find(options?: Record<string, any>): Promise<T[]> {
     let qs: admin.firestore.Query = this.collection;
     qs = this.applyOptionsToQuery(qs, options);
 
@@ -216,7 +216,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       : results;
   }
 
-  async findAndCount(options?: any): Promise<[T[], number]> {
+  async findAndCount(options?: Record<string, any>): Promise<[T[], number]> {
     const countOptions = options ? { ...options } : {};
     delete countOptions.take;
     delete countOptions.skip;
@@ -292,7 +292,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     }
   }
 
-  async count(options?: any): Promise<number> {
+  async count(options?: Record<string, any>): Promise<number> {
     let qs: admin.firestore.Query = this.collection;
     qs = this.applyOptionsToQuery(qs, options);
 
@@ -301,8 +301,8 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async upsert(
-    data: any,
-    _conflictPathsOrOptions: string[] | any,
+    data: T | T[],
+    _conflictPathsOrOptions: string[] | Record<string, any>,
   ): Promise<any> {
     // Basic upsert logic. TypeORM's Upsert requires data and options.
     const items = Array.isArray(data) ? data : [data];
@@ -341,7 +341,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     };
   }
 
-  async insert(data: any | any[]): Promise<any> {
+  async insert(data: T | T[]): Promise<any> {
     const { validator } = await this.metadataService.getValidator(
       this.collectionName,
       this.workspaceId,
