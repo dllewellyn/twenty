@@ -8,9 +8,13 @@ jest.mock('src/utils/extract-request');
 
 describe('FirebaseAuthGuard', () => {
   let guard: FirebaseAuthGuard;
+  let mockWorkspaceStorageCacheService: any;
 
   beforeEach(() => {
-    guard = new FirebaseAuthGuard();
+    mockWorkspaceStorageCacheService = {
+      getMetadataVersion: jest.fn().mockResolvedValue(1),
+    };
+    guard = new FirebaseAuthGuard(mockWorkspaceStorageCacheService);
     jest.clearAllMocks();
   });
 
@@ -66,6 +70,32 @@ describe('FirebaseAuthGuard', () => {
 
       expect(result).toBe(mockRequest);
       expect(getRequest).toHaveBeenCalledWith(mockContext);
+    });
+  });
+
+  describe('handleRequest', () => {
+    it('should bind data to request object and return user', async () => {
+      const mockUser = { id: 'user-id' };
+      const mockWorkspace = { id: 'workspace-id' };
+      const mockAuthContext = {
+        user: mockUser,
+        workspace: mockWorkspace,
+      };
+
+      const mockRequest = { headers: {} } as any;
+      const mockContext = {
+        getType: jest.fn().mockReturnValue('http'),
+      } as unknown as ExecutionContext;
+
+      jest.spyOn(guard, 'getRequest').mockReturnValue(mockRequest);
+      // @ts-ignore
+      jest.spyOn(Object.getPrototypeOf(FirebaseAuthGuard.prototype), 'handleRequest').mockResolvedValue(mockAuthContext);
+
+      const result = await guard.handleRequest(null, mockAuthContext as any, null, mockContext);
+
+      expect(mockRequest.user).toBe(mockUser);
+      expect(mockRequest.workspace).toBe(mockWorkspace);
+      expect(result).toBe(mockUser);
     });
   });
 });

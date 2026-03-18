@@ -128,7 +128,11 @@ describe('FirebaseAuthStrategy & FirebaseAuthGuard', () => {
 
       const context = await strategy.validate(validRequest);
 
-      expect(context.user).toEqual(mockUser);
+      expect(context.user).toEqual({
+        ...mockUser,
+        firebaseUid: 'user-uid',
+        firebaseWorkspaceId: undefined,
+      });
       expect(context.firebaseUid).toEqual('user-uid');
       expect(context.workspace).toEqual(mockWorkspace);
       expect(context.userWorkspace).toEqual(mockUserWorkspace);

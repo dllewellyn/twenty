@@ -44,6 +44,7 @@ import { KeyValuePairEntity } from 'src/engine/core-modules/key-value-pair/key-v
 import { MetricsModule } from 'src/engine/core-modules/metrics/metrics.module';
 import { OnboardingModule } from 'src/engine/core-modules/onboarding/onboarding.module';
 import { SecureHttpClientModule } from 'src/engine/core-modules/secure-http-client/secure-http-client.module';
+import { WorkspaceCacheStorageModule } from 'src/engine/workspace-cache-storage/workspace-cache-storage.module';
 import { WorkspaceSSOModule } from 'src/engine/core-modules/sso/sso.module';
 import { WorkspaceSSOIdentityProviderEntity } from 'src/engine/core-modules/sso/workspace-sso-identity-provider.entity';
 import { TwoFactorAuthenticationMethodEntity } from 'src/engine/core-modules/two-factor-authentication/entities/two-factor-authentication-method.entity';
@@ -70,11 +71,13 @@ import { MessagingFolderSyncManagerModule } from 'src/modules/messaging/message-
 import { AuthResolver } from './auth.resolver';
 
 import { AuthService } from './services/auth.service';
+import { FirebaseAuthGuard } from './guards/firebase-auth.guard';
 import { FirebaseAuthStrategy } from './strategies/firebase.auth.strategy';
 
 @Module({
   imports: [
     FirebaseModule,
+    WorkspaceCacheStorageModule,
     JwtModule,
     DataSourceModule,
     WorkspaceDomainsModule,
@@ -151,11 +154,13 @@ import { FirebaseAuthStrategy } from './strategies/firebase.auth.strategy';
     UpdateConnectedAccountOnReconnectService,
     TransientTokenService,
     AuthSsoService,
+    FirebaseAuthGuard,
   ],
   exports: [
     CreateMessageChannelService,
     CreateCalendarChannelService,
     FirebaseAuthStrategy,
+    FirebaseAuthGuard,
   ],
 })
 export class AuthModule {}
