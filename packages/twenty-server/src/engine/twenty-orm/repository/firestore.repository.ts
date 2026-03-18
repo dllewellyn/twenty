@@ -39,8 +39,9 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async create(data: T): Promise<admin.firestore.DocumentReference> {
+    let validatedData = data;
     if (this.zodSchema) {
-      this.zodSchema.parse(data);
+      validatedData = this.zodSchema.parse(data);
     }
 
     const { validator } = await this.metadataService.getValidator(
@@ -48,24 +49,25 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       this.workspaceId,
     );
 
-    const isValid = validator(data);
+    const isValid = validator(validatedData);
     if (!isValid) {
       throw new Error(`Validation failed: ${JSON.stringify(validator.errors)}`);
     }
 
-    return this.collection.add(data);
+    return this.collection.add(validatedData);
   }
 
   async update(
     id: string,
     data: Partial<T>,
   ): Promise<admin.firestore.WriteResult> {
+    let validatedData = data;
     if (this.zodSchema) {
       if (this.zodSchema instanceof z.ZodObject) {
-        this.zodSchema.partial().parse(data);
+        validatedData = this.zodSchema.partial().parse(data) as Partial<T>;
       } else {
         // Fallback for non-object schemas if needed
-        this.zodSchema.parse(data);
+        validatedData = this.zodSchema.parse(data as any) as any;
       }
     }
 
@@ -74,14 +76,14 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       this.workspaceId,
     );
 
-    const isValid = partialValidator(data);
+    const isValid = partialValidator(validatedData);
     if (!isValid) {
       throw new Error(
         `Partial validation failed: ${JSON.stringify(partialValidator.errors)}`,
       );
     }
 
-    return this.collection.doc(id).update(data);
+    return this.collection.doc(id).update(validatedData as any);
   }
 
   async findOne(idOrOptions: string | any): Promise<T | null> {
@@ -238,29 +240,33 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       this.workspaceId,
     );
 
-    const items = Array.isArray(data) ? data : [data];
+    const isArray = Array.isArray(data);
+    const items = isArray ? data : [data];
+    const validatedItems: T[] = [];
 
     for (const item of items) {
+      let validatedItem = item;
       if (this.zodSchema) {
         // We use partial parse for save as it might be an update
         if (this.zodSchema instanceof z.ZodObject) {
-          this.zodSchema.partial().parse(item);
+          validatedItem = this.zodSchema.partial().parse(item) as T;
         } else {
-          this.zodSchema.parse(item);
+          validatedItem = this.zodSchema.parse(item);
         }
       }
 
-      const isValid = validator(item);
+      const isValid = validator(validatedItem);
       if (!isValid) {
         throw new Error(
           `Validation failed: ${JSON.stringify(validator.errors)}`,
         );
       }
+      validatedItems.push(validatedItem);
     }
 
-    if (Array.isArray(data)) {
+    if (isArray) {
       const batch = this.db.batch();
-      for (const item of data) {
+      for (const item of validatedItems) {
         // If the item already has an ID field, use it as the document ID
         // Note: The TypeORM save uses `id` primarily.
         const docRef = item.id
@@ -272,16 +278,17 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
         batch.set(docRef, item, { merge: true });
       }
       await batch.commit();
-      return data;
+      return validatedItems;
     } else {
-      const docRef = data.id
-        ? this.collection.doc(data.id)
+      const validatedData = validatedItems[0];
+      const docRef = validatedData.id
+        ? this.collection.doc(validatedData.id)
         : this.collection.doc();
-      if (!data.id) {
-        data.id = docRef.id;
+      if (!validatedData.id) {
+        validatedData.id = docRef.id;
       }
-      await docRef.set(data, { merge: true });
-      return data;
+      await docRef.set(validatedData, { merge: true });
+      return validatedData;
     }
   }
 
@@ -299,20 +306,23 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   ): Promise<any> {
     // Basic upsert logic. TypeORM's Upsert requires data and options.
     const items = Array.isArray(data) ? data : [data];
+    const validatedItems: any[] = [];
 
     for (const item of items) {
+      let validatedItem = item;
       if (this.zodSchema) {
         if (this.zodSchema instanceof z.ZodObject) {
-          this.zodSchema.partial().parse(item);
+          validatedItem = this.zodSchema.partial().parse(item);
         } else {
-          this.zodSchema.parse(item);
+          validatedItem = this.zodSchema.parse(item);
         }
       }
+      validatedItems.push(validatedItem);
     }
 
     const batch = this.db.batch();
 
-    for (const item of items) {
+    for (const item of validatedItems) {
       if (!item.id) {
         throw new Error(
           "Upsert requires an 'id' field in the data to be able to upsert in Firestore.",
@@ -327,7 +337,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     return {
       raw: [],
       generatedMaps: [],
-      identifiers: items.map((item) => ({ id: item.id })),
+      identifiers: validatedItems.map((item) => ({ id: item.id })),
     };
   }
 
@@ -338,22 +348,25 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     );
 
     const items = Array.isArray(data) ? data : [data];
+    const validatedItems: any[] = [];
 
     for (const item of items) {
+      let validatedItem = item;
       if (this.zodSchema) {
-        this.zodSchema.parse(item);
+        validatedItem = this.zodSchema.parse(item);
       }
 
-      const isValid = validator(item);
+      const isValid = validator(validatedItem);
       if (!isValid) {
         throw new Error(
           `Validation failed: ${JSON.stringify(validator.errors)}`,
         );
       }
+      validatedItems.push(validatedItem);
     }
 
     const batch = this.db.batch();
-    for (const item of items) {
+    for (const item of validatedItems) {
       const docRef = item.id
         ? this.collection.doc(item.id)
         : this.collection.doc();
@@ -367,7 +380,7 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     return {
       raw: [],
       generatedMaps: [],
-      identifiers: items.map((item) => ({ id: item.id })),
+      identifiers: validatedItems.map((item) => ({ id: item.id })),
     };
   }
 }
