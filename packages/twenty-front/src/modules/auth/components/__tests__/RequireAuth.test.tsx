@@ -17,7 +17,7 @@ describe('RequireAuth', () => {
   const ProtectedContent = () => <div data-testid="protected">Protected content</div>;
   const SignInPage = () => <div data-testid="signin">Sign in page</div>;
 
-  const StateInitializerEffect = ({
+  const StateInitializer = ({
     isLoaded,
     tokenPair
   }: {
@@ -28,13 +28,9 @@ describe('RequireAuth', () => {
     const setTokenPair = useSetAtomState(tokenPairState);
 
     useEffect(() => {
-      setIsLoaded(isLoaded);
+      setIsCurrentUserLoaded(isLoaded);
       setTokenPair(tokenPair);
-    }, [
-	isLoaded,
-	tokenPair,
-	setTokenPair
-]);
+    }, [isLoaded, tokenPair, setIsCurrentUserLoaded, setTokenPair]);
 
     return null;
   };
