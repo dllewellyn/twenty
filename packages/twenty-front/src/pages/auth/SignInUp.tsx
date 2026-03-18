@@ -27,6 +27,7 @@ import { useMemo } from 'react';
 import { SignInUpGlobalScopeFormEffect } from '@/auth/sign-in-up/components/internal/SignInUpGlobalScopeFormEffect';
 import { SignInUpTwoFactorAuthenticationProvision } from '@/auth/sign-in-up/components/internal/SignInUpTwoFactorAuthenticationProvision';
 import { SignInUpTOTPVerification } from '@/auth/sign-in-up/components/internal/SignInUpTwoFactorAuthenticationVerification';
+import { SignInUpWorkspaceSelection } from '@/auth/sign-in-up/components/SignInUpWorkspaceSelection';
 import { useWorkspaceFromInviteHash } from '@/auth/sign-in-up/hooks/useWorkspaceFromInviteHash';
 import { clientConfigApiStatusState } from '@/client-config/states/clientConfigApiStatusState';
 import { ModalContent } from 'twenty-ui/layout';
@@ -152,6 +153,10 @@ export const SignInUp = () => {
           <Loader color="gray" />
         </StyledLoaderContainer>
       );
+    }
+
+    if (signInUpStep === SignInUpStep.WorkspaceSelection) {
+      return <SignInUpWorkspaceSelection />;
     }
 
     if (isDefaultDomain && isMultiWorkspaceEnabled) {
