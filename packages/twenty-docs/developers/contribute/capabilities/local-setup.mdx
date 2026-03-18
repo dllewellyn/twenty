@@ -99,137 +99,35 @@ cd twenty
 
 You should run all commands in the following steps from the root of the project.
 
-## Step 3: Set up a PostgreSQL Database
+## Step 3: Set up Firebase Emulators
 
-<Tabs>
-  <Tab title="Linux">
-    **Option 1 (preferred):** To provision your database locally:
-    Use the following link to install Postgresql on your Linux machine: [Postgresql Installation](https://www.postgresql.org/download/linux/)
-    ```bash
-      psql postgres -c "CREATE DATABASE \"default\";" -c "CREATE DATABASE test;"
-    ```
-    Note: You might need to add `sudo -u postgres` to the command before `psql` to avoid permission errors.
+Twenty is now **Firebase-native**. Local development requires the Firebase Emulator Suite for Auth and Firestore.
 
-    **Option 2:** If you have docker installed:
-    ```bash
-      make -C packages/twenty-docker postgres-on-docker
-    ```
-  </Tab>
-  <Tab title="Mac OS">
-    **Option 1 (preferred):** To provision your database locally with `brew`:
+1. **Install Firebase CLI**:
+   ```bash
+   npm install -g firebase-tools
+   ```
 
-    ```bash
-      brew install postgresql@16
-      export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
-      brew services start postgresql@16
-      psql postgres -c "CREATE DATABASE \"default\";" -c "CREATE DATABASE test;"
-    ```
+2. **Login to Firebase**:
+   ```bash
+   firebase login
+   ```
 
-    You can verify if the PostgreSQL server is running by executing:
-    ```bash
-      brew services list
-    ```
+3. **Start Emulators**:
+   From the root of the project:
+   ```bash
+   yarn firebase:emulators:import
+   ```
 
-    The installer might not create the `postgres` user by default when installing
-    via Homebrew on MacOS. Instead, it creates a PostgreSQL role that matches your macOS
-    username (e.g., "john").
-    To check and create the `postgres` user if necessary, follow these steps:
-    ```bash
-      # Connect to PostgreSQL
-      psql postgres
-      or
-      psql -U $(whoami) -d postgres
-    ```
+This will start the Firestore and Auth emulators at the ports defined in `firebase.json` (defaulting to 8080 and 9099).
 
-    Once at the psql prompt (postgres=#), run:
-     ```bash
-      # List existing PostgreSQL roles
-      \du
-    ```
-    You'll see output similar to:
-     ```bash
-      Role name | Attributes  | Member of
-      -----------+-------------+-----------
-      john      | Superuser   | {}
-    ```
+## Step 4: Legacy Dependencies (Optional)
+While the core experience is Firebase-native, some peripheral features might still require PostgreSQL and Redis during the transition phase.
 
-    If you do not see a `postgres` role listed, proceed to the next step.
-    Create the `postgres` role manually:
-     ```bash
-      CREATE ROLE postgres WITH SUPERUSER LOGIN;
-    ```
-    This creates a superuser role named `postgres` with login access.
-      ```bash
-      Role name | Attributes  | Member of
-      -----------+-------------+-----------
-      postgres  | Superuser   | {}
-      john      | Superuser   | {}
-    ```
-
-    **Option 2:** If you have docker installed:
-    ```bash
-      make -C packages/twenty-docker postgres-on-docker
-    ```
-  </Tab>
-  <Tab title="Windows (WSL)">
-    All the following steps are to be run in the WSL terminal (within your virtual machine)
-
-    **Option 1:** To provision your Postgresql locally:
-    Use the following link to install Postgresql on your Linux virtual machine: [Postgresql Installation](https://www.postgresql.org/download/linux/)
-    ```bash
-      psql postgres -c "CREATE DATABASE \"default\";" -c "CREATE DATABASE test;"
-    ```
-    Note: You might need to add `sudo -u postgres` to the command before `psql` to avoid permission errors.
-
-    **Option 2:** If you have docker installed:
-    Running Docker on WSL adds an extra layer of complexity.
-    Only use this option if you are comfortable with the extra steps involved, including turning on [Docker Desktop WSL2](https://docs.docker.com/desktop/wsl).
-    ```bash
-      make -C packages/twenty-docker postgres-on-docker
-    ```
-  </Tab>
-</Tabs>
-
-You can now access the database at [localhost:5432](localhost:5432), with user `postgres` and password `postgres` .
-
-## Step 4: Set up a Redis Database (cache)
-Twenty requires a redis cache to provide the best performance
-
-<Tabs>
-  <Tab title="Linux">
-    **Option 1:** To provision your Redis locally:
-    Use the following link to install Redis on your Linux machine: [Redis Installation](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-linux/)
-
-    **Option 2:** If you have docker installed:
-    ```bash
-      make -C packages/twenty-docker redis-on-docker
-    ```
-  </Tab>
-  <Tab title="Mac OS">
-    **Option 1 (preferred):** To provision your Redis locally with `brew`:
-    ```bash
-    brew install redis
-    ```
-    Start your redis server:
-    ```brew services start redis```
-
-    **Option 2:** If you have docker installed:
-    ```bash
-      make -C packages/twenty-docker redis-on-docker
-    ```
-  </Tab>
-  <Tab title="Windows (WSL)">
-    **Option 1:** To provision your Redis locally:
-    Use the following link to install Redis on your Linux virtual machine: [Redis Installation](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-linux/)
-
-    **Option 2:** If you have docker installed:
-    ```bash
-      make -C packages/twenty-docker redis-on-docker
-    ```
-  </Tab>
-</Tabs>
-
-If you need a Client GUI, we recommend [redis insight](https://redis.io/insight/) (free version available)
+If you need them, you can start them via Docker:
+```bash
+make -C packages/twenty-docker up
+```
 
 ## Step 5: Setup environment variables
 
@@ -254,33 +152,14 @@ Note that `npm` or `pnpm` won't work
 
 ## Step 7: Running the project
 
-<Tabs>
-  <Tab title="Linux">
-    Depending on your Linux distribution, Redis server might be started automatically.
-    If not, check the [Redis installation guide](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/) for your distro.
-  </Tab>
-  <Tab title="Mac OS">
-  Redis should already be running. If not, run:
-    ```bash
-    brew services start redis
-    ```
-  </Tab>
-  <Tab title="Windows (WSL)">
-    Depending on your Linux distribution, Redis server might be started automatically.
-    If not, check the [Redis installation guide](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/) for your distro.
-  </Tab>
-</Tabs>
-
-
 Set up your database with the following command:
 ```bash
 npx nx database:reset twenty-server
 ```
 
-Start the server, the worker and the frontend services:
+Start the server and the frontend services:
 ```bash
 npx nx start twenty-server
-npx nx worker twenty-server
 npx nx start twenty-front
 ```
 

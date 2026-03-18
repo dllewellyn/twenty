@@ -179,3 +179,7 @@
     - **Container Security Hardening**: Configured the server to run as a non-root user (UID 1000) within the container, adhering to production security best practices for serverless environments.
     - **Cloud Run Compliance**: Ensured explicit handling of the `$PORT` environment variable (defaulting to 8080) and used `yarn workspaces focus --production` to ensure only runtime dependencies are present in the final image.
     - **Infrastructure Logging Resilience**: Implemented defensive JSON parsing for `FIREBASE_CONFIG` with localized error handling to prevent initialization failures while providing clear diagnostic logs.
+**2026-03-18**: Integrated **Model Context Protocol (MCP)** support and enhanced the **Marketplace Catalog**.
+    - **MCP Client Integration**: Developed a specialized driver to enable Twenty to act as an MCP host, allowing external AI clients (Claude, Cursor) to interact with workspace data securely.
+    - **Marketplace Expansion**: Populated the initial Marketplace catalog with core applications and standard object extensions, leveraging the new JSON-schema driven metadata engine for seamless distribution.
+    - **Real-time Discovery**: Enhanced the `ApplicationService` to support real-time discovery of available applications via external manifest synchronization.

@@ -18,24 +18,23 @@ Custom objects are objects that you can create to store information that is uniq
 
 <br/>
 
-## How it works
+## How it works (Firebase Native)
 
-Custom objects come from metadata tables that determine the shape, name, and type of the objects. All this information is present in the metadata schema database, consisting of tables:
+Twenty has transitioned to a dynamic, **JSON-schema driven metadata system** optimized for Firestore.
 
-- **DataSource**: Details where the data is present.
-- **Object**: Describes the object and links to a DataSource.
-- **Field**: Outlines an Object's fields and connects to the Object.
+### JSON Schema Architecture
+Object definitions (People, Companies, and Custom Objects) are defined using standard JSON Schemas.
+- **Storage**: Schemas are stored in the `_metadata` collection in Firestore.
+- **Validation**: All data operations are validated at runtime using the `ajv` library against these schemas.
+- **Generation**: Schemas are derived from core DTOs and synced to Firestore.
 
-To add a custom object, the workspaceMember will query the /metadata API. This updates the metadata accordingly and computes a GraphQL schema based on the metadata, storing it in a GQL cache for later use.
-<div style={{textAlign: 'center'}}>
-    <img src="/images/docs/server/add-custom-objects.jpeg" alt="Query the /metadata API to add custom objects" />
-</div>
+### Adding Custom Objects
+To add or modify a custom object:
+1. Update the JSON schemas in `packages/twenty-server/src/engine/metadata-modules/json-schemas`.
+2. Sync the changes to Firestore:
+   ```bash
+   yarn nx run twenty-server:command metadata:sync
+   ```
 
-<br/>
-
-To fetch data, the process involves making queries through the /graphql endpoint and passing them through the Query Resolver.
-<div style={{textAlign: 'center'}}>
-    <img src="/images/docs/server/custom-object-schema.png" alt="Query the /graphql endpoint to fetch data" />
-</div>
-
-
+### Data Access
+Queries are translated from standard filters to Firestore-native queries by the `BaseFirestoreRepository`. This ensures that even as the database shifts, the application logic remains consistent.
