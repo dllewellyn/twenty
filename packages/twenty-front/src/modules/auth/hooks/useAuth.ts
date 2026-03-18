@@ -57,6 +57,9 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendEmailVerification,
+  GoogleAuthProvider,
+  signInWithPopup,
+  type UserCredential,
 } from 'firebase/auth';
 
 export const useAuth = () => {
@@ -156,6 +159,70 @@ export const useAuth = () => {
     [setTokenPair],
   );
 
+  const handleUserAuthentication = useCallback(
+    async (
+      userCredential: UserCredential,
+      params?: {
+        workspacePersonalInviteToken?: string;
+        workspaceInviteHash?: string;
+        billingCheckoutSession?: BillingCheckoutSession;
+      },
+    ) => {
+      const token = await userCredential.user.getIdToken();
+
+      handleSetAuthTokens({
+        accessOrWorkspaceAgnosticToken: {
+          token: token,
+          expiresAt: '', // the exact expiration is handled by Firebase
+        },
+        refreshToken: {
+          token: '', // Handled by firebase
+          expiresAt: '',
+        },
+      });
+
+      const { user } = await loadCurrentUser();
+
+      const availableWorkspacesCount = countAvailableWorkspaces(
+        user.availableWorkspaces,
+      );
+
+      if (availableWorkspacesCount === 0) {
+        return createWorkspace();
+      }
+
+      if (availableWorkspacesCount === 1) {
+        const targetWorkspace = getFirstAvailableWorkspaces(
+          user.availableWorkspaces,
+        );
+        return await redirectToWorkspaceDomain(
+          getWorkspaceUrl(targetWorkspace.workspaceUrls),
+          targetWorkspace.loginToken ? AppPath.Verify : AppPath.SignInUp,
+          {
+            ...(targetWorkspace.loginToken && {
+              loginToken: targetWorkspace.loginToken,
+            }),
+            email: user.email,
+            workspaceInviteHash: params?.workspaceInviteHash,
+            inviteToken: params?.workspacePersonalInviteToken,
+            billingCheckoutSessionState: params?.billingCheckoutSession
+              ? JSON.stringify(params.billingCheckoutSession)
+              : undefined,
+          },
+        );
+      }
+
+      setSignInUpStep(SignInUpStep.WorkspaceSelection);
+    },
+    [
+      handleSetAuthTokens,
+      loadCurrentUser,
+      createWorkspace,
+      redirectToWorkspaceDomain,
+      setSignInUpStep,
+    ],
+  );
+
   const handleCredentialsSignIn = useCallback(
     async (email: string, password: string, captchaToken?: string) => {
       try {
@@ -164,46 +231,8 @@ export const useAuth = () => {
           email,
           password,
         );
-        const token = await userCredential.user.getIdToken();
 
-        handleSetAuthTokens({
-          accessOrWorkspaceAgnosticToken: {
-            token: token,
-            expiresAt: '', // the exact expiration is handled by Firebase
-          },
-          refreshToken: {
-            token: '', // Handled by firebase
-            expiresAt: '',
-          },
-        });
-
-        const { user } = await loadCurrentUser();
-
-        const availableWorkspacesCount = countAvailableWorkspaces(
-          user.availableWorkspaces,
-        );
-
-        if (availableWorkspacesCount === 0) {
-          return createWorkspace();
-        }
-
-        if (availableWorkspacesCount === 1) {
-          const targetWorkspace = getFirstAvailableWorkspaces(
-            user.availableWorkspaces,
-          );
-          return await redirectToWorkspaceDomain(
-            getWorkspaceUrl(targetWorkspace.workspaceUrls),
-            targetWorkspace.loginToken ? AppPath.Verify : AppPath.SignInUp,
-            {
-              ...(targetWorkspace.loginToken && {
-                loginToken: targetWorkspace.loginToken,
-              }),
-              email: user.email,
-            },
-          );
-        }
-
-        setSignInUpStep(SignInUpStep.WorkspaceSelection);
+        await handleUserAuthentication(userCredential);
       } catch (error: unknown) {
         if (
           (error as Error).message?.includes('auth/unverified-email') ||
@@ -219,14 +248,7 @@ export const useAuth = () => {
         throw error;
       }
     },
-    [
-      handleSetAuthTokens,
-      redirectToWorkspaceDomain,
-      loadCurrentUser,
-      setSearchParams,
-      setSignInUpStep,
-      createWorkspace,
-    ],
+    [setSearchParams, setSignInUpStep, handleUserAuthentication],
   );
 
   const handleCredentialsSignUp = useCallback(
@@ -237,7 +259,6 @@ export const useAuth = () => {
         email,
         password,
       );
-      const token = await userCredential.user.getIdToken();
 
       if (isEmailVerificationRequired) {
         await sendEmailVerification(userCredential.user);
@@ -246,32 +267,13 @@ export const useAuth = () => {
         return null;
       }
 
-      handleSetAuthTokens({
-        accessOrWorkspaceAgnosticToken: {
-          token: token,
-          expiresAt: '', // handled by firebase
-        },
-        refreshToken: {
-          token: '', // Handled by firebase
-          expiresAt: '',
-        },
-      });
-
-      const { user } = await loadCurrentUser();
-
-      if (countAvailableWorkspaces(user.availableWorkspaces) === 0) {
-        return await createWorkspace({ newTab: false });
-      }
-
-      setSignInUpStep(SignInUpStep.WorkspaceSelection);
+      await handleUserAuthentication(userCredential);
     },
     [
       isEmailVerificationRequired,
       setSearchParams,
-      handleSetAuthTokens,
-      loadCurrentUser,
       setSignInUpStep,
-      createWorkspace,
+      handleUserAuthentication,
     ],
   );
 
@@ -350,15 +352,22 @@ export const useAuth = () => {
   );
 
   const handleGoogleLogin = useCallback(
-    (params: {
+    async (params: {
       workspacePersonalInviteToken?: string;
       workspaceInviteHash?: string;
       billingCheckoutSession?: BillingCheckoutSession;
       action: string;
     }) => {
-      redirect(buildRedirectUrl('/auth/google', params));
+      const provider = new GoogleAuthProvider();
+      try {
+        const userCredential = await signInWithPopup(auth, provider);
+        await handleUserAuthentication(userCredential, params);
+      } catch (error) {
+        console.error('Google sign in error:', error);
+        throw error;
+      }
     },
-    [buildRedirectUrl, redirect],
+    [handleUserAuthentication],
   );
 
   const handleMicrosoftLogin = useCallback(

@@ -6,10 +6,12 @@ import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomStat
 import { tokenPairState } from '@/auth/states/tokenPairState';
 import { currentUserState } from '@/auth/states/currentUserState';
 import { useLoadCurrentUser } from '@/users/hooks/useLoadCurrentUser';
+import { isCurrentUserLoadedState } from '@/auth/states/isCurrentUserLoadedState';
 
 export const useOnAuthStateChanged = () => {
   const setTokenPair = useSetAtomState(tokenPairState);
   const setCurrentUser = useSetAtomState(currentUserState);
+  const setIsCurrentUserLoaded = useSetAtomState(isCurrentUserLoadedState);
   const { loadCurrentUser } = useLoadCurrentUser();
 
   useEffect(() => {
@@ -40,9 +42,10 @@ export const useOnAuthStateChanged = () => {
         setTokenPair(null);
         setCurrentUser(null);
       }
+      setIsCurrentUserLoaded(true);
     });
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [setTokenPair, setCurrentUser, loadCurrentUser]);
+  }, [setTokenPair, setCurrentUser, loadCurrentUser, setIsCurrentUserLoaded]);
 };
