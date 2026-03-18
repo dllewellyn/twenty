@@ -1,0 +1,35 @@
+---
+title: Metadata System
+description: Understanding the JSON-schema driven metadata engine.
+---
+
+## Overview
+
+Twenty has transitioned from a PostgreSQL-based metadata engine to a dynamic, **JSON-schema driven system** optimized for Firestore. This architecture allows for flexible entity definitions while maintaining strict runtime validation.
+
+## Key Concepts
+
+- **Schema Definitions**: All objects (People, Companies, etc.) are defined using standard JSON Schemas located in `packages/twenty-server/src/engine/metadata-modules/json-schemas`.
+- **Firestore Persistence**: These schemas are synced to the `_metadata` collection in Firestore.
+- **Runtime Validation**: The `MetadataService` uses the `ajv` library to validate all incoming data against these schemas in real-time.
+- **Partial Updates**: To support partial updates without maintaining separate schemas, the system dynamically strips `required` constraints from the base schemas at runtime.
+
+## Schema Syncing
+
+To propagate local schema changes to your Firestore environment, run:
+
+```bash
+yarn nx run twenty-server:command metadata:sync
+```
+
+## Troubleshooting Common Issues
+
+### Firestore connection refused
+Ensure the Firestore emulator is running.
+```bash
+yarn firebase:emulators:import
+```
+Verify `FIRESTORE_EMULATOR_HOST` is set to `localhost:8080`.
+
+### Schema mismatch
+If your local changes are not reflected, ensure you have run the `metadata:sync` command.

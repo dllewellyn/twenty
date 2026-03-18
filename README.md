@@ -22,17 +22,31 @@
 
 <br />
 
-# Installation
+# Installation (Firebase Native)
 
-See:
-🚀 [Self-hosting](https://docs.twenty.com/developers/self-hosting/docker-compose)
-🖥️ [Local Setup](https://docs.twenty.com/developers/local-setup)
+Twenty is now **Firebase-native**. To get started locally:
 
-## Post-Installation (Firebase Auth Migration)
-After migrating your PostgreSQL users to Firestore, you must run the following command to provision them in Firebase Authentication and bridge the login gap:
-`yarn nx run twenty-server:command database:import-firebase-auth-users`
+1. **Enable Firebase Emulators**: Ensure you have `firebase-tools` installed.
+2. **Start the environment**:
+   ```bash
+   yarn firebase:emulators:import
+   ```
+3. **Launch the application**:
+   ```bash
+   yarn nx start
+   ```
 
-Alternatively, the system includes JIT provisioning, so users migrating will be automatically added to Firebase on their next verified interaction if they hit specific backend flows.
+For detailed setup, visit the [Local Setup Guide](https://docs.twenty.com/developers/local-setup).
+
+## Metadata System (JSON-Schema Driven)
+The system now utilizes a dynamic, **JSON-schema driven metadata engine** stored in Firestore.
+- Schemas are defined in `packages/twenty-server/src/engine/metadata-modules/json-schemas`.
+- All entity validation is performed at runtime using AJV and these versioned schemas.
+- To sync new schema changes to Firestore, use `yarn nx run twenty-server:command metadata:sync`.
+
+## Troubleshooting Common Emulator Issues
+- **Firestore connection refused**: Ensure the Firestore emulator is running and the `FIRESTORE_EMULATOR_HOST` environment variable is set to `localhost:8080`.
+- **Auth token verification failed**: Verify that the `FIREBASE_AUTH_EMULATOR_HOST` is set to `localhost:9099` in your `.env`.
 
 # Why Twenty
 
