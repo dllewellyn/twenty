@@ -22,17 +22,55 @@
 
 <br />
 
-# Installation
+# Getting Started
 
-See:
-🚀 [Self-hosting](https://docs.twenty.com/developers/self-hosting/docker-compose)
-🖥️ [Local Setup](https://docs.twenty.com/developers/local-setup)
+Twenty is now **Firebase-native**. The local setup relies entirely on the Firebase Emulator Suite, eliminating the need for a local PostgreSQL or Redis instance for core CRM functionality.
 
-## Post-Installation (Firebase Auth Migration)
-After migrating your PostgreSQL users to Firestore, you must run the following command to provision them in Firebase Authentication and bridge the login gap:
-`yarn nx run twenty-server:command database:import-firebase-auth-users`
+## Prerequisites
+- **Node.js**: v24.5.0 (enforced via `.nvmrc`)
+- **Yarn**: v4 (enable via `corepack enable`)
+- **Firebase CLI**: `npm install -g firebase-tools`
 
-Alternatively, the system includes JIT provisioning, so users migrating will be automatically added to Firebase on their next verified interaction if they hit specific backend flows.
+## Quick Start
+1. **Clone and Install**:
+   ```bash
+   git clone https://github.com/twentyhq/twenty.git
+   cd twenty
+   yarn
+   ```
+
+2. **Start Firebase Emulators**:
+   In a new terminal, start the Firestore and Auth emulators:
+   ```bash
+   yarn firebase:emulators
+   ```
+
+3. **Launch Twenty**:
+   In another terminal, start the backend and frontend:
+   ```bash
+   yarn start
+   ```
+   Access the app at [http://localhost:3001](http://localhost:3001).
+
+# Architecture: JSON-Schema Metadata
+
+Twenty has transitioned from a relational metadata engine to a **JSON-schema driven system** powered by Firestore.
+
+- **Dynamic Schemas**: Object and field definitions are stored as JSON schemas in the `_metadata` collection.
+- **Validation**: Runtime data integrity is enforced using [Ajv](https://ajv.js.org/) against these schemas.
+- **Real-time**: Schema changes are propagated instantly to all clients via Firestore's reactive listeners.
+
+# Troubleshooting (Emulators)
+
+- **Port Conflicts**: The emulators use port `8080` (Firestore) and `9099` (Auth) by default. Ensure these are free.
+- **Persistence**: To save your emulator state across restarts, use:
+  ```bash
+  # Export data
+  yarn firebase:emulators:export
+  # Start with imported data
+  yarn firebase:emulators:import
+  ```
+- **UI**: Access the Firebase Emulator UI at [http://localhost:4000](http://localhost:4000) to inspect data and logs.
 
 # Why Twenty
 
@@ -114,10 +152,20 @@ Below are a few features we have implemented to date:
 # Stack
 - [TypeScript](https://www.typescriptlang.org/)
 - [Nx](https://nx.dev/)
-- [NestJS](https://nestjs.com/), with [BullMQ](https://bullmq.io/), [PostgreSQL](https://www.postgresql.org/), [Redis](https://redis.io/)
+- [NestJS](https://nestjs.com/)
+- [Firebase](https://firebase.google.com/) (Auth, Firestore, Hosting)
 - [React](https://reactjs.org/), with [Jotai](https://jotai.org/), [Linaria](https://linaria.dev/) and [Lingui](https://lingui.dev/)
 
+# Archives (Legacy Relational Setup)
 
+The following instructions are for legacy environments still utilizing the relational PostgreSQL-based architecture. Note that these are being decommissioned in favor of the Firebase-native setup.
+
+🚀 [Self-hosting (PostgreSQL)](https://docs.twenty.com/developers/self-hosting/docker-compose)
+🖥️ [Local Setup (PostgreSQL/Redis)](https://docs.twenty.com/developers/local-setup)
+
+### Firebase Auth Migration
+After migrating your PostgreSQL users to Firestore, run the following to provision them in Firebase Auth:
+`yarn nx run twenty-server:command database:import-firebase-auth-users`
 
 # Thanks
 
