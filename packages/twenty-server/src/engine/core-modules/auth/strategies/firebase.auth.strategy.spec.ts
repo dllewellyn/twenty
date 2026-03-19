@@ -19,11 +19,19 @@ describe('FirebaseAuthStrategy', () => {
   let mockWorkspaceRepository: any;
   let mockUserWorkspaceRepository: any;
   let mockWorkspaceCacheService: any;
+  let mockFirestore: any;
 
   beforeEach(async () => {
+    mockFirestore = {
+      collection: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      get: jest.fn(),
+    };
     mockFirebaseAdminService = {
       verifyIdToken: jest.fn(),
       setCustomClaims: jest.fn(),
+      firestore: mockFirestore,
     };
     mockUserRepository = {
       findOne: jest.fn(),
@@ -109,6 +117,10 @@ describe('FirebaseAuthStrategy', () => {
           byId: { 'wm-id': { id: 'wm-id' } },
         },
       });
+      mockFirestore.get.mockResolvedValue({
+        empty: false,
+        docs: [{ data: () => ({ id: 'wm-id' }) }],
+      });
 
       const result = await strategy.validate(request);
 
@@ -118,6 +130,43 @@ describe('FirebaseAuthStrategy', () => {
       expect(result.user.id).toBe('user-id');
       expect(result.workspace.id).toBe('workspace-id');
       expect(result.workspaceMember.id).toBe('wm-id');
+    });
+
+    it('should throw FORBIDDEN_EXCEPTION if workspace membership is missing in Firestore', async () => {
+      const token = 'valid-firebase-token';
+      const request = {
+        headers: {
+          authorization: `Bearer ${token}`,
+          'x-twenty-workspace-id': 'workspace-id',
+        },
+      } as unknown as Request;
+
+      (mockFirebaseAdminService.verifyIdToken as jest.Mock).mockResolvedValue({
+        email: 'test@example.com',
+      });
+      mockUserRepository.findOne.mockResolvedValue({
+        id: 'user-id',
+        email: 'test@example.com',
+      });
+      mockWorkspaceRepository.findOneBy.mockResolvedValue({
+        id: 'workspace-id',
+        activationStatus: 'ACTIVE',
+      });
+      mockUserWorkspaceRepository.findOne.mockResolvedValue({
+        id: 'uw-id',
+        userId: 'user-id',
+        workspaceId: 'workspace-id',
+      });
+      mockFirestore.get.mockResolvedValue({
+        empty: true,
+      });
+
+      await expect(strategy.validate(request)).rejects.toThrow(
+        new AuthException(
+          'User is not a member of the workspace in Firestore',
+          AuthExceptionCode.FORBIDDEN_EXCEPTION,
+        ),
+      );
     });
 
     it('should throw FORBIDDEN_EXCEPTION if firebase verification fails', async () => {

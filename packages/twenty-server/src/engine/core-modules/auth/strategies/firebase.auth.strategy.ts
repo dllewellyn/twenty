@@ -120,6 +120,21 @@ export class FirebaseAuthStrategy extends PassportStrategy(
       );
     }
 
+    // Validate workspace membership in Firestore to prevent claim-spoofing
+    const firestoreWorkspaceMemberSnapshot = await this.firebaseAdminService.firestore
+      .collection('workspaceMembers')
+      .where('userId', '==', user.id)
+      .where('workspaceId', '==', workspaceId)
+      .limit(1)
+      .get();
+
+    if (firestoreWorkspaceMemberSnapshot.empty) {
+      throw new AuthException(
+        'User is not a member of the workspace in Firestore',
+        AuthExceptionCode.FORBIDDEN_EXCEPTION,
+      );
+    }
+
     const userWithTokenData = {
       ...user,
       firebaseUid: decodedToken.uid,
