@@ -4,6 +4,7 @@ import { type SystemWorkspaceAuthContext } from 'src/engine/core-modules/auth/ty
 type SystemAuthContextInput = {
   workspace: NonNullable<RawAuthContext['workspace']>;
   workspaceMetadataVersion?: string;
+  firebaseWorkspaceId?: string;
 };
 
 export const buildSystemAuthContext = (
@@ -13,5 +14,6 @@ export const buildSystemAuthContext = (
     type: 'system',
     workspace: input.workspace,
     workspaceMetadataVersion: input.workspaceMetadataVersion,
+    firebaseWorkspaceId: input.firebaseWorkspaceId,
   };
 };

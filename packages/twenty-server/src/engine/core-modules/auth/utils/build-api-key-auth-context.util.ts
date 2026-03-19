@@ -5,6 +5,7 @@ type ApiKeyAuthContextInput = {
   workspace: NonNullable<RawAuthContext['workspace']>;
   apiKey: NonNullable<RawAuthContext['apiKey']>;
   workspaceMetadataVersion?: string;
+  firebaseWorkspaceId?: string;
 };
 
 export const buildApiKeyAuthContext = (
@@ -15,5 +16,6 @@ export const buildApiKeyAuthContext = (
     workspace: input.workspace,
     apiKey: input.apiKey,
     workspaceMetadataVersion: input.workspaceMetadataVersion,
+    firebaseWorkspaceId: input.firebaseWorkspaceId,
   };
 };

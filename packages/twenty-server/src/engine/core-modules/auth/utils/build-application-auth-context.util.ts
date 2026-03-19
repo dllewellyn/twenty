@@ -5,6 +5,7 @@ type ApplicationAuthContextInput = {
   workspace: NonNullable<RawAuthContext['workspace']>;
   application: NonNullable<RawAuthContext['application']>;
   workspaceMetadataVersion?: string;
+  firebaseWorkspaceId?: string;
 };
 
 export const buildApplicationAuthContext = (
@@ -15,5 +16,6 @@ export const buildApplicationAuthContext = (
     workspace: input.workspace,
     application: input.application,
     workspaceMetadataVersion: input.workspaceMetadataVersion,
+    firebaseWorkspaceId: input.firebaseWorkspaceId,
   };
 };
