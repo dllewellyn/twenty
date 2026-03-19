@@ -1,5 +1,6 @@
 import { Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
+import { workspaceAuthContextStorage } from 'src/engine/core-modules/auth/storage/workspace-auth-context.storage';
 import { FIREBASE_ADMIN_APP } from '../../core-modules/firebase/firebase.constants';
 import { MetadataService } from '../../metadata-modules/metadata.service';
 
@@ -32,9 +33,13 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async create(data: T): Promise<admin.firestore.DocumentReference> {
+    const effectiveWorkspaceId = this.getEffectiveWorkspaceId();
+
+    data.workspaceId = effectiveWorkspaceId;
+
     const { validator } = await this.metadataService.getValidator(
       this.collectionName,
-      this.workspaceId,
+      effectiveWorkspaceId,
     );
 
     const isValid = validator(data);
@@ -49,9 +54,16 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     id: string,
     data: Partial<T>,
   ): Promise<admin.firestore.WriteResult> {
+    const existingDoc = await this.findOne(id);
+    if (!existingDoc) {
+      throw new Error(`Document with ID ${id} not found or access denied.`);
+    }
+
+    const effectiveWorkspaceId = this.getEffectiveWorkspaceId();
+
     const { partialValidator } = await this.metadataService.getValidator(
       this.collectionName,
-      this.workspaceId,
+      effectiveWorkspaceId,
     );
 
     const isValid = partialValidator(data);
@@ -70,7 +82,12 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       if (!doc.exists) {
         return null;
       }
-      return doc.data() as T;
+      const data = doc.data() as T;
+      const effectiveWorkspaceId = this.getEffectiveWorkspaceId();
+      if (data.workspaceId !== effectiveWorkspaceId) {
+        return null;
+      }
+      return data;
     } else {
       const docs = await this.find({ ...idOrOptions, take: 1 });
       return docs.length > 0 ? docs[0] : null;
@@ -105,10 +122,21 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     return flattened;
   }
 
+  private getEffectiveWorkspaceId(): string {
+    return (
+      workspaceAuthContextStorage.getStore()?.firebaseWorkspaceId ??
+      this.workspaceId
+    );
+  }
+
   private applyOptionsToQuery(
     qs: admin.firestore.Query,
     options?: any,
   ): admin.firestore.Query {
+    const effectiveWorkspaceId = this.getEffectiveWorkspaceId();
+
+    qs = qs.where('workspaceId', '==', effectiveWorkspaceId);
+
     if (options) {
       if (options.where) {
         const flattenedWhere = this.flattenWhereClause(options.where);
@@ -203,17 +231,39 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async delete(id: string): Promise<admin.firestore.WriteResult> {
+    const existingDoc = await this.findOne(id);
+    if (!existingDoc) {
+      throw new Error(`Document with ID ${id} not found or access denied.`);
+    }
     return this.collection.doc(id).delete();
   }
 
   async save(data: T | T[]): Promise<T | T[]> {
+    const effectiveWorkspaceId = this.getEffectiveWorkspaceId();
+
     const { validator } = await this.metadataService.getValidator(
       this.collectionName,
-      this.workspaceId,
+      effectiveWorkspaceId,
     );
 
     if (Array.isArray(data)) {
       for (const item of data) {
+        if (item.id) {
+          const existingDoc = await this.findOne(item.id);
+          if (!existingDoc && item.id) {
+            // Document with this ID exists but belongs to another workspace
+            // We shouldn't allow overwriting it.
+            const doc = await this.collection.doc(item.id).get();
+            if (doc.exists) {
+              throw new Error(
+                `Document with ID ${item.id} belongs to another workspace. Access denied.`,
+              );
+            }
+          }
+        }
+
+        item.workspaceId = effectiveWorkspaceId;
+
         const isValid = validator(item);
         if (!isValid) {
           throw new Error(
@@ -237,6 +287,20 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
       await batch.commit();
       return data;
     } else {
+      if (data.id) {
+        const existingDoc = await this.findOne(data.id);
+        if (!existingDoc) {
+          const doc = await this.collection.doc(data.id).get();
+          if (doc.exists) {
+            throw new Error(
+              `Document with ID ${data.id} belongs to another workspace. Access denied.`,
+            );
+          }
+        }
+      }
+
+      data.workspaceId = effectiveWorkspaceId;
+
       const isValid = validator(data);
       if (!isValid) {
         throw new Error(
@@ -266,9 +330,10 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
     data: any,
     _conflictPathsOrOptions: string[] | any,
   ): Promise<any> {
+    const effectiveWorkspaceId = this.getEffectiveWorkspaceId();
+
     // Basic upsert logic. TypeORM's Upsert requires data and options.
     const items = Array.isArray(data) ? data : [data];
-    const batch = this.db.batch();
 
     for (const item of items) {
       if (!item.id) {
@@ -276,6 +341,23 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
           "Upsert requires an 'id' field in the data to be able to upsert in Firestore.",
         );
       }
+
+      const existingDoc = await this.findOne(item.id);
+      if (!existingDoc) {
+        const doc = await this.collection.doc(item.id).get();
+        if (doc.exists) {
+          throw new Error(
+            `Document with ID ${item.id} belongs to another workspace. Access denied.`,
+          );
+        }
+      }
+
+      item.workspaceId = effectiveWorkspaceId;
+    }
+
+    const batch = this.db.batch();
+
+    for (const item of items) {
       const docRef = this.collection.doc(item.id);
       batch.set(docRef, item, { merge: true });
     }
@@ -290,14 +372,27 @@ export class BaseFirestoreRepository<T extends Record<string, any>> {
   }
 
   async insert(data: any | any[]): Promise<any> {
+    const effectiveWorkspaceId = this.getEffectiveWorkspaceId();
+
     const { validator } = await this.metadataService.getValidator(
       this.collectionName,
-      this.workspaceId,
+      effectiveWorkspaceId,
     );
 
     const items = Array.isArray(data) ? data : [data];
 
     for (const item of items) {
+      if (item.id) {
+        const doc = await this.collection.doc(item.id).get();
+        if (doc.exists) {
+          throw new Error(
+            `Document with ID ${item.id} already exists. Insert failed.`,
+          );
+        }
+      }
+
+      item.workspaceId = effectiveWorkspaceId;
+
       const isValid = validator(item);
       if (!isValid) {
         throw new Error(

@@ -35,6 +35,7 @@ export class WorkspaceAuthContextMiddleware implements NestMiddleware {
       return buildApiKeyAuthContext({
         workspace: req.workspace!,
         apiKey: req.apiKey,
+        firebaseWorkspaceId: req.firebaseWorkspaceId,
       });
     }
 
@@ -42,6 +43,7 @@ export class WorkspaceAuthContextMiddleware implements NestMiddleware {
       return buildApplicationAuthContext({
         workspace: req.workspace!,
         application: req.application,
+        firebaseWorkspaceId: req.firebaseWorkspaceId,
       });
     }
 
@@ -57,6 +59,7 @@ export class WorkspaceAuthContextMiddleware implements NestMiddleware {
         user: req.user,
         workspaceMemberId: req.workspaceMemberId,
         workspaceMember: req.workspaceMember,
+        firebaseWorkspaceId: req.firebaseWorkspaceId,
       });
     }
 
@@ -65,6 +68,7 @@ export class WorkspaceAuthContextMiddleware implements NestMiddleware {
         workspace: req.workspace!,
         userWorkspaceId: req.userWorkspaceId,
         user: req.user,
+        firebaseWorkspaceId: req.firebaseWorkspaceId,
       });
     }
 
